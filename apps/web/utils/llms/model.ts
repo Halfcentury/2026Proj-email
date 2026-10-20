@@ -289,7 +289,8 @@ function selectModel(
       const openaiCompatible = createOpenAICompatible({
         name: "openai-compatible",
         baseURL,
-        supportsStructuredOutputs: true,
+        supportsStructuredOutputs:
+          env.OPENAI_COMPATIBLE_STRUCTURED_OUTPUTS !== "false",
         ...getOpenAiCompatibleAuthOptions(openAiCompatibleApiKey),
       });
       return {

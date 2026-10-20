@@ -420,6 +420,7 @@ const nextConfig: NextConfig = {
     "@sentry/node",
     "@vercel/queue",
     "bullmq",
+    "imapflow",
     "ioredis",
     "mammoth",
     "unpdf",

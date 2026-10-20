@@ -112,6 +112,8 @@ model User {
 
   emailAccounts EmailAccount[]
 
+  qqMailMessages QqMailMessage[]
+
   // Referral relationships
   referralsMade    Referral[]        @relation("ReferrerUser")
   referralReceived Referral?         @relation("ReferredUser")
@@ -266,6 +268,31 @@ model EmailAccount {
   @@index([lastInboxHealthEmailAt])
   @@index([watchEmailsSubscriptionId])
   @@index([watchEmailsSubscriptionHistory(ops: JsonbPathOps)], type: Gin)
+}
+
+// Messages pulled from a real IMAP mailbox (currently QQ Mail) for AI triage.
+model QqMailMessage {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountEmail String
+  uid          Int
+  subject      String
+  fromAddress  String
+  fromName     String?
+  receivedAt   DateTime?
+  snippet      String
+  bodyText     String    @db.Text
+  unread       Boolean   @default(true)
+  category     String?
+  actionNeeded Boolean?
+  aiSummary    String?
+  classifiedAt DateTime?
+
+  @@unique([userId, accountEmail, uid])
+  @@index([userId, accountEmail])
 }
 
 // An isolated synthetic mailbox for the human-confirmed triage workflow.

@@ -19,6 +19,7 @@ import {
   HardDriveIcon,
   InboxIcon,
   type LucideIcon,
+  MailIcon,
   MailsIcon,
   MessageSquareIcon,
   MessagesSquareIcon,
@@ -140,6 +141,11 @@ export const useNavigation = () => {
         name: "邮件整理",
         href: prefixPath(currentEmailAccountId, "/mail-triage"),
         icon: InboxIcon,
+      },
+      {
+        name: "QQ 邮箱",
+        href: prefixPath(currentEmailAccountId, "/qq-mail"),
+        icon: MailIcon,
       },
       {
         name: "批量退订",

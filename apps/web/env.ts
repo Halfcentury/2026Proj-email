@@ -185,6 +185,7 @@ const parsedEnv = createEnv({
     OLLAMA_MODEL: z.string().optional(),
     OPENAI_COMPATIBLE_BASE_URL: z.string().optional(),
     OPENAI_COMPATIBLE_MODEL: z.string().optional(),
+    OPENAI_COMPATIBLE_STRUCTURED_OUTPUTS: z.string().optional(),
     MAIL_TRIAGE_API_KEY: z.string().optional(),
     MAIL_TRIAGE_BASE_URL: z.string().url().default("https://api.deepseek.com"),
     MAIL_TRIAGE_MODEL: z.string().default("deepseek-flash"),
@@ -462,7 +463,11 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_BRAND_NAME: z.string().trim().min(1).default("十组邮件小助手"),
     NEXT_PUBLIC_BRAND_LOGO_URL: z.string().optional(),
     NEXT_PUBLIC_BRAND_ICON_URL: z.string().optional().default("/icon.png"),
-    NEXT_PUBLIC_SLACK_BOT_NAME: z.string().trim().min(1).default("十组邮件小助手"),
+    NEXT_PUBLIC_SLACK_BOT_NAME: z
+      .string()
+      .trim()
+      .min(1)
+      .default("十组邮件小助手"),
     NEXT_PUBLIC_SELF_HOSTED_LOGIN_FOOTER_TEXT: z.string().optional(),
     NEXT_PUBLIC_CONTACTS_ENABLED: booleanString.optional().default(false),
     NEXT_PUBLIC_COOKIE_CONSENT_ENABLED: booleanString.optional().default(false),

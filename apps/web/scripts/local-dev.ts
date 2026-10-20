@@ -17,7 +17,9 @@ import Redis from "ioredis";
 import { createLlmEmulator } from "../__tests__/emulators/llm";
 import { createStripeEmulator } from "../__tests__/emulators/stripe";
 import { writeEmulateSeed } from "./emulate-seed";
+import { readLocalAiEnvironment } from "./local-dev/ai-environment";
 import { createLocalEnvironment } from "./local-dev/environment";
+import { readProviderEnvironment } from "./local-dev/provider-environment";
 import { readMailTriageEnvironment } from "./local-dev/mail-triage-environment";
 import { acquireLocalLock } from "./local-dev/lock";
 import { createProcessManager } from "./local-dev/processes";
@@ -137,6 +139,59 @@ async function main() {
       inherited: process.env,
     });
     Object.assign(env, readMailTriageEnvironment(join(APP_DIR, ".env.local")));
+    // Optional: point regular AI (assistant chat included) at a real
+    // OpenAI-compatible service instead of the bundled emulator.
+    const localAi = readLocalAiEnvironment(join(APP_DIR, ".env.local"));
+    if (
+      localAi.ASSISTANT_BASE_URL &&
+      localAi.ASSISTANT_MODEL &&
+      localAi.ASSISTANT_API_KEY
+    ) {
+      env.DEFAULT_LLMS = `openai-compatible:${localAi.ASSISTANT_MODEL}`;
+      env.OPENAI_COMPATIBLE_MODEL = localAi.ASSISTANT_MODEL;
+      env.OPENAI_COMPATIBLE_BASE_URL = localAi.ASSISTANT_BASE_URL.replace(
+        /\/+$/,
+        "",
+      );
+      // JSON-schema response format is unavailable on some compatible
+      // providers, so fall back to JSON mode for structured generations.
+      env.OPENAI_COMPATIBLE_STRUCTURED_OUTPUTS = "false";
+      env.LLM_API_KEY = localAi.ASSISTANT_API_KEY;
+      console.log(
+        `[local] Regular AI uses ${localAi.ASSISTANT_MODEL} at ${env.OPENAI_COMPATIBLE_BASE_URL}`,
+      );
+    }
+    // Optional: use real Gmail/Outlook OAuth instead of the bundled emulators.
+    // Supplying a provider's client credentials skips its emulator entirely.
+    const providerEnv = readProviderEnvironment(join(APP_DIR, ".env.local"));
+    const realGoogle = Boolean(
+      providerEnv.GOOGLE_CLIENT_ID && providerEnv.GOOGLE_CLIENT_SECRET,
+    );
+    const realMicrosoft = Boolean(
+      providerEnv.MICROSOFT_CLIENT_ID && providerEnv.MICROSOFT_CLIENT_SECRET,
+    );
+    if (realGoogle) {
+      env.GOOGLE_CLIENT_ID = providerEnv.GOOGLE_CLIENT_ID;
+      env.GOOGLE_CLIENT_SECRET = providerEnv.GOOGLE_CLIENT_SECRET;
+      Reflect.deleteProperty(env, "GOOGLE_BASE_URL");
+      if (providerEnv.GOOGLE_PUBSUB_TOPIC_NAME)
+        env.GOOGLE_PUBSUB_TOPIC_NAME = providerEnv.GOOGLE_PUBSUB_TOPIC_NAME;
+      if (providerEnv.GOOGLE_PUBSUB_VERIFICATION_TOKEN)
+        env.GOOGLE_PUBSUB_VERIFICATION_TOKEN =
+          providerEnv.GOOGLE_PUBSUB_VERIFICATION_TOKEN;
+      console.log("[local] Google uses real OAuth credentials");
+    }
+    if (realMicrosoft) {
+      env.MICROSOFT_CLIENT_ID = providerEnv.MICROSOFT_CLIENT_ID;
+      env.MICROSOFT_CLIENT_SECRET = providerEnv.MICROSOFT_CLIENT_SECRET;
+      Reflect.deleteProperty(env, "MICROSOFT_BASE_URL");
+      if (providerEnv.MICROSOFT_TENANT_ID)
+        env.MICROSOFT_TENANT_ID = providerEnv.MICROSOFT_TENANT_ID;
+      if (providerEnv.MICROSOFT_WEBHOOK_CLIENT_STATE)
+        env.MICROSOFT_WEBHOOK_CLIENT_STATE =
+          providerEnv.MICROSOFT_WEBHOOK_CLIENT_STATE;
+      console.log("[local] Microsoft uses real OAuth credentials");
+    }
     // Give this launcher its own Next output and lock, separate from pnpm dev and Playwright.
     env.PLAYWRIGHT_RUN_ID = "local-dev";
     env.RESEND_API_KEY = "local-email-key";
@@ -280,6 +335,8 @@ async function main() {
       ["google", googlePort],
       ["microsoft", microsoftPort],
     ] as const) {
+      if (service === "google" && realGoogle) continue;
+      if (service === "microsoft" && realMicrosoft) continue;
       processes.start(`${service} emulator`, PNPM, [
         "exec",
         "emulate",
