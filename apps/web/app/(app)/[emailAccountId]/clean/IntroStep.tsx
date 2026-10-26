@@ -6,8 +6,6 @@ import { TypographyH3 } from "@/components/Typography";
 import { Button } from "@/components/ui/button";
 import { useStep } from "@/app/(app)/[emailAccountId]/clean/useStep";
 import { CleanAction } from "@/generated/prisma/enums";
-import { PremiumAlertWithData } from "@/components/PremiumAlert";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 export function IntroStep({
   unhandledCount,
@@ -17,11 +15,10 @@ export function IntroStep({
   cleanAction: CleanAction;
 }) {
   const { onNext } = useStep();
-  const analytics = useProductAnalytics("deep_clean");
 
   return (
     <div>
-      <PremiumAlertWithData className="mb-20" activeOnly />
+      {null}
       <div className="text-center">
         <Image
           src="/images/illustrations/home-office.svg"
@@ -32,9 +29,7 @@ export function IntroStep({
           unoptimized
         />
 
-        <TypographyH3 className="mt-2">
-          快速整理收件箱
-        </TypographyH3>
+        <TypographyH3 className="mt-2">快速整理收件箱</TypographyH3>
 
         {unhandledCount === null ? (
           <SectionDescription className="mx-auto mt-2 max-w-prose">
@@ -56,10 +51,6 @@ export function IntroStep({
         <div className="mt-6">
           <Button
             onClick={() => {
-              analytics.captureAction("deep_clean_started", {
-                clean_action: cleanAction,
-                unhandled_count: unhandledCount,
-              });
               onNext();
             }}
             disabled={unhandledCount === null}

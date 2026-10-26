@@ -1,7 +1,6 @@
 import { Fragment, useMemo, type ReactNode } from "react";
 import { Overview } from "./overview";
 import { MessagePart } from "./message-part";
-import { MessagingChannelHint } from "./messaging-channel-hint";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatMessage } from "@/components/assistant-chat/types";
 import {
@@ -72,7 +71,7 @@ export function Messages({
                     ))}
                   </MessageContent>
                 </Message>
-                {index === firstAssistantIndex && <MessagingChannelHint />}
+                {index === firstAssistantIndex && null}
               </Fragment>
             ))}
 

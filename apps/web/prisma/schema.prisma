@@ -1610,6 +1610,8 @@ model Booking {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  sourceContext Json?
+
   guestName            String
   guestEmail           String
   guestNote            String?
@@ -1748,6 +1750,8 @@ model Meeting {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  sourceContext Json?
 
   calendarEventId String
   eventTitle      String
@@ -1940,6 +1944,7 @@ model DocumentFiling {
   folderId   String? // null if AI suggests creating a new folder
   folderPath String
   fileId     String?
+  uploadAttempt Json? // Durable cloud-upload intent; reconcile unknown outcomes before retrying
   reasoning  String?
   confidence Float?
 

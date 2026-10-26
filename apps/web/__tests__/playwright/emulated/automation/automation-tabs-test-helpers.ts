@@ -5,8 +5,8 @@ export const HISTORY_RULE_ID = "playwright-automation-history-rule";
 export const HISTORY_RULE_NAME = "Playwright history archive";
 export const HISTORY_EXECUTED_RULE_ID =
   "playwright-automation-history-execution";
-export const KNOWLEDGE_TITLE = "Playwright product context";
-export const UPDATED_KNOWLEDGE_TITLE = "Playwright customer context";
+export const KNOWLEDGE_TITLE = "验收产品背景";
+export const UPDATED_KNOWLEDGE_TITLE = "验收客户背景";
 
 type AutomationAccountSettings = {
   about: string | null;
@@ -222,8 +222,8 @@ export async function seedAutomationSettings(emailAccountId: string) {
         `INSERT INTO "Rule"
            (id, name, enabled, automate, "runOnThreads", instructions,
             "systemType", "emailAccountId", "createdAt", "updatedAt")
-         VALUES ($1, 'To Reply', true, true, false,
-                 'Emails that need a response', 'TO_REPLY', $2,
+         VALUES ($1, '待回复', true, true, false,
+                 '需要回复的邮件', 'TO_REPLY', $2,
                  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [toReplyRuleId, emailAccountId],
       );
@@ -261,7 +261,7 @@ export async function seedAutomationSettings(emailAccountId: string) {
       // empty, so seed one to keep that background write out of the test.
       `UPDATE "EmailAccount"
        SET about = NULL,
-           "writingStyle" = 'Seeded writing style',
+           "writingStyle" = '测试写作风格：简洁准确',
            signature = NULL,
            "includeReferralSignature" = false,
            "multiRuleSelectionEnabled" = false,

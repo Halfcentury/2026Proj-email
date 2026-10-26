@@ -17,6 +17,7 @@ const FETCH_LIMIT = 25;
 
 export interface RecordedMeetingContext {
   eventTitle: string;
+  id?: string;
   startTime: Date;
   summary: MeetingSummary;
 }
@@ -34,11 +35,13 @@ export async function getRecordedMeetingContext({
   recipientEmail,
   additionalRecipients = [],
   logger,
+  onError,
 }: {
   emailAccountId: string;
   recipientEmail: string;
   additionalRecipients?: string[];
   logger: Logger;
+  onError?: () => void;
 }): Promise<RecordedMeetingContext[]> {
   try {
     const meetings = await prisma.meeting.findMany({
@@ -50,6 +53,7 @@ export async function getRecordedMeetingContext({
       orderBy: { startTime: "desc" },
       take: FETCH_LIMIT,
       select: {
+        id: true,
         eventTitle: true,
         startTime: true,
         attendees: true,
@@ -79,6 +83,7 @@ export async function getRecordedMeetingContext({
       if (!summary) continue;
 
       results.push({
+        id: meeting.id,
         eventTitle: meeting.eventTitle,
         startTime: meeting.startTime,
         summary,
@@ -87,6 +92,7 @@ export async function getRecordedMeetingContext({
 
     return results;
   } catch (error) {
+    onError?.();
     logger.error("Failed to get recorded meeting context", { error });
     return [];
   }

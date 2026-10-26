@@ -22,7 +22,7 @@ test("shows inline calendar responses with the current RSVP", async ({
     route.fulfill({
       json: {
         invitation: {
-          title: "Project planning",
+          title: "项目规划",
           organizer: "organizer@example.com",
           recurring: false,
           response: "accepted",

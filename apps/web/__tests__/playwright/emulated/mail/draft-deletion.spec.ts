@@ -9,18 +9,10 @@ test("updates the draft indicator after deletion and retains remaining drafts", 
   // Keep background sync from repairing a stale list during this assertion.
   await page.route("**/api/mobile/mailbox-sync", (route) => route.abort());
   const { conversations } = await openMail(page);
-  if (
-    !(await page.getByText("未选择邮件", { exact: true }).isVisible())
-  ) {
-    await page
-      .getByRole("button", { name: "切换列表或分栏视图" })
-      .click();
+  if (!(await page.getByText("未选择邮件", { exact: true }).isVisible())) {
+    await page.getByRole("button", { name: "切换列表或分栏视图" }).click();
   }
-  const row = conversationWithSubject(
-    page,
-    conversations,
-    "Draft deletion example",
-  );
+  const row = conversationWithSubject(page, conversations, "草稿删除示例");
   await expect(row.getByText("草稿", { exact: true })).toBeVisible();
   await row.click();
   const discardButtons = page.getByRole("button", {
@@ -35,9 +27,7 @@ test("updates the draft indicator after deletion and retains remaining drafts", 
     else await route.continue();
   });
   await discard.click();
-  await expect(
-    page.getByText("丢弃草稿失败", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("丢弃草稿失败", { exact: true })).toBeVisible();
   await expect(discard).toBeVisible();
   await expect(row.getByText("草稿", { exact: true })).toBeVisible();
   await page.unroute("**/mail**");

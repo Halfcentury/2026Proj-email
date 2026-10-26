@@ -3,7 +3,7 @@ import { withEmailAccount } from "@/utils/middleware";
 import { composeAutocompleteBody } from "@/app/api/ai/compose-autocomplete/validation";
 import { chatCompletionStream } from "@/utils/llms";
 import { getEmailAccountWithAi } from "@/utils/user/get";
-import { assertHasAiAccess } from "@/utils/premium/limits";
+import { assertHasAiAccess } from "@/utils/feature-access.server";
 import { LlmUseCase } from "@/utils/llms/use-cases";
 
 export const POST = withEmailAccount(async (request) => {

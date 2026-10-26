@@ -85,7 +85,9 @@ export function ApiKeysSection() {
                         </TableCell>
                         <TableCell>
                           {apiKey.lastUsedAt
-                            ? new Date(apiKey.lastUsedAt).toLocaleString("zh-CN")
+                            ? new Date(apiKey.lastUsedAt).toLocaleString(
+                                "zh-CN",
+                              )
                             : "永不"}
                         </TableCell>
                         <TableCell>
@@ -100,9 +102,7 @@ export function ApiKeysSection() {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  暂无 API 密钥。
-                </p>
+                <p className="text-sm text-muted-foreground">暂无 API 密钥。</p>
               )}
             </LoadingContent>
           </DialogContent>

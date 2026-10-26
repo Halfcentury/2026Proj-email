@@ -19,11 +19,11 @@ test("archives a selected conversation and restores it with undo", async ({
   const archiveConversation = conversationWithSubject(
     page,
     conversations,
-    "Archive Action Message",
+    "归档操作测试邮件",
   );
 
   await archiveConversation
-    .getByRole("checkbox", { name: "Select conversation with Erin Example" })
+    .getByRole("checkbox", { name: "Select conversation with 艾琳" })
     .click();
   await expect(page.getByText("1 selected", { exact: true })).toBeVisible();
   await expect(
@@ -50,12 +50,12 @@ test("shows a queue_full toast when a second archive cannot be admitted", async 
   const first = conversationWithSubject(
     page,
     conversations,
-    "Archive Action Message",
+    "归档操作测试邮件",
   );
   const second = conversationWithSubject(
     page,
     conversations,
-    "Playwright Test Message",
+    "邮件功能测试邮件",
   );
 
   let releaseExecute = () => {};
@@ -137,11 +137,11 @@ test("deletes an open conversation and restores it from Trash", async ({
   const deletedConversation = conversationWithSubject(
     page,
     conversations,
-    "Delete Action Message",
+    "删除操作测试邮件",
   );
   await deletedConversation.click();
   await expect(
-    page.getByRole("heading", { name: "Delete Action Message" }),
+    page.getByRole("heading", { name: "删除操作测试邮件" }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: /更多操作/ }).click();
@@ -195,21 +195,19 @@ test("advances the split reader after archiving an open conversation", async ({
   if (settings.layout === "SPLIT") {
     await expect(emptyReader).toBeVisible();
   } else {
-    await page
-      .getByRole("button", { name: "切换列表或分栏视图" })
-      .click();
+    await page.getByRole("button", { name: "切换列表或分栏视图" }).click();
     await expect(emptyReader).toBeVisible();
   }
   const conversation = conversationWithSubject(
     page,
     conversations,
-    "Second Unread Command Message",
+    "第二封未读操作测试邮件",
   );
   await page.getByRole("button", { name: "未读", exact: true }).click();
   await expect(conversation).toBeVisible();
   await conversation.click();
   await expect(
-    page.getByRole("heading", { name: "Second Unread Command Message" }),
+    page.getByRole("heading", { name: "第二封未读操作测试邮件" }),
   ).toBeVisible();
   await expect(conversation).toHaveCount(0);
 
@@ -286,12 +284,12 @@ test("archives two selected conversations and restores both with undo", async ({
   const first = conversationWithSubject(
     page,
     conversations,
-    "Playwright Test Message",
+    "邮件功能测试邮件",
   );
   const second = conversationWithSubject(
     page,
     conversations,
-    "Read Command Message",
+    "已读状态测试邮件",
   );
   await first.getByRole("checkbox").click();
   await second.getByRole("checkbox").click();

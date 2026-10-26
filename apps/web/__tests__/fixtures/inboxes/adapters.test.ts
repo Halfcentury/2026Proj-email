@@ -22,8 +22,8 @@ describe("demo inbox fixture adapters", () => {
       expect.objectContaining({
         id: expect.stringMatching(/^[a-f0-9]{16}$/),
         user_email: saasFounderMixedInbox.mailbox.email,
-        from: "AWS Security <no-reply-aws@amazon.com>",
-        subject: "Root MFA disabled on production account",
+        from: "AWS 安全中心 <no-reply-aws@amazon.com>",
+        subject: "生产账户的根用户多重身份验证已停用",
         label_ids: expect.arrayContaining(["INBOX", "UNREAD"]),
       }),
     );
@@ -32,15 +32,14 @@ describe("demo inbox fixture adapters", () => {
   test("converts fixture messages into ParsedMessage-like test messages", () => {
     const messages = toMockMessages(saasFounderMixedInbox);
     const customerMessage = messages.find(
-      (message) =>
-        message.subject === "Escalation: renewal terms still unresolved",
+      (message) => message.subject === "需升级处理：续约条款尚未确定",
     );
 
     expect(customerMessage).toEqual(
       expect.objectContaining({
         threadId: expect.stringMatching(/^[a-f0-9]{16}$/),
-        subject: "Escalation: renewal terms still unresolved",
-        textPlain: expect.stringContaining("procurement will pause"),
+        subject: "需升级处理：续约条款尚未确定",
+        textPlain: expect.stringContaining("采购部门将暂停续约"),
         labelIds: expect.arrayContaining(["INBOX", "UNREAD"]),
       }),
     );
@@ -49,25 +48,25 @@ describe("demo inbox fixture adapters", () => {
   test("searches fixture messages by common Gmail-style query terms", () => {
     const productUpdates = searchFixtureMessages({
       fixture: saasFounderMixedInbox,
-      query: "in:inbox product update",
+      query: "in:inbox 产品更新",
       maxResults: 10,
     });
     const unreadSecurity = searchFixtureMessages({
       fixture: saasFounderMixedInbox,
-      query: "is:unread security",
+      query: "is:unread 安全",
       maxResults: 10,
     });
 
     expect(productUpdates.messages.map((message) => message.subject)).toEqual(
       expect.arrayContaining([
-        "What's new in Notion this month",
-        "Vercel product update: new observability features",
+        "Notion 本月功能更新",
+        "Vercel 产品更新：新增可观测性功能",
       ]),
     );
     expect(unreadSecurity.messages.map((message) => message.subject)).toEqual(
       expect.arrayContaining([
-        "Root MFA disabled on production account",
-        "New suspicious login detected",
+        "生产账户的根用户多重身份验证已停用",
+        "检测到新的可疑登录",
       ]),
     );
   });
@@ -75,7 +74,7 @@ describe("demo inbox fixture adapters", () => {
   test("preserves internal hyphens while dropping negative search terms", () => {
     const followUp = searchFixtureMessages({
       fixture: saasFounderMixedInbox,
-      query: "follow-up",
+      query: "经营数据",
       maxResults: 10,
     });
     const deployment = searchFixtureMessages({
@@ -85,10 +84,10 @@ describe("demo inbox fixture adapters", () => {
     });
 
     expect(followUp.messages.map((message) => message.subject)).toContain(
-      "Follow-up on Q2 metrics",
+      "第二季度经营数据跟进",
     );
     expect(deployment.messages.map((message) => message.subject)).toContain(
-      "Production deployment succeeded",
+      "生产环境部署成功",
     );
   });
 
@@ -105,7 +104,7 @@ describe("demo inbox fixture adapters", () => {
     });
 
     expect(rules.map((rule) => rule.name)).toEqual(
-      expect.arrayContaining(["To Reply", "Newsletter", "VIP Customers"]),
+      expect.arrayContaining(["待回复", "订阅邮件", "VIP Customers"]),
     );
     expect(
       buildRuleFixtureRow({

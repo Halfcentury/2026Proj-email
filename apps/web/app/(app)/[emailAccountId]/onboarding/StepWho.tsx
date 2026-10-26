@@ -103,9 +103,7 @@ export function StepWho({
 
       <div className="text-center">
         <PageHeading className="mt-4">你的职业是什么？</PageHeading>
-        <TypographyP className="mt-2">
-          用于根据实际需求配置收件箱。
-        </TypographyP>
+        <TypographyP className="mt-2">用于根据实际需求配置收件箱。</TypographyP>
       </div>
 
       <Form {...form}>
@@ -121,17 +119,14 @@ export function StepWho({
             })
               .then((result) => {
                 if (result?.serverError || result?.validationErrors) {
-                  captureException(
-                    new Error("保存职业信息失败"),
-                    {
-                      extra: {
-                        context: "onboarding",
-                        step: "role",
-                        serverError: result?.serverError,
-                        validationErrors: result?.validationErrors,
-                      },
+                  captureException(new Error("保存职业信息失败"), {
+                    extra: {
+                      context: "onboarding",
+                      step: "role",
+                      serverError: result?.serverError,
+                      validationErrors: result?.validationErrors,
                     },
-                  );
+                  });
                   toastError({
                     description: getActionErrorMessage(
                       {

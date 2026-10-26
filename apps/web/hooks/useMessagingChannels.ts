@@ -1,24 +1,23 @@
-import useSWR from "swr";
-import type { GetMessagingChannelsResponse } from "@/app/api/user/messaging-channels/route";
-import type { GetChannelTargetsResponse } from "@/app/api/user/messaging-channels/[channelId]/targets/route";
-import { getAccountScopedKey } from "@/utils/swr";
-
-export function useMessagingChannels(emailAccountId?: string | null) {
-  return useSWR<GetMessagingChannelsResponse>(
-    getAccountScopedKey("/api/user/messaging-channels", emailAccountId),
-  );
+import type {
+  GetMessagingChannelsResponse,
+  GetChannelTargetsResponse,
+} from "@/utils/retired-notifications";
+const response = {
+  data: {
+    channels: [],
+    availableProviders: [],
+  } as GetMessagingChannelsResponse,
+  isLoading: false,
+  error: undefined,
+  mutate: async () => undefined,
+};
+export function useMessagingChannels(..._args: unknown[]) {
+  return response;
 }
-
-export function useChannelTargets(
-  channelId: string | null,
-  emailAccountId?: string | null,
-) {
-  return useSWR<GetChannelTargetsResponse>(
-    channelId
-      ? getAccountScopedKey(
-          `/api/user/messaging-channels/${channelId}/targets`,
-          emailAccountId,
-        )
-      : null,
-  );
+export function useChannelTargets(..._args: unknown[]) {
+  return {
+    data: undefined as GetChannelTargetsResponse | undefined,
+    isLoading: false,
+    error: undefined,
+  };
 }

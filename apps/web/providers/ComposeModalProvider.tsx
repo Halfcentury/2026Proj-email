@@ -1,5 +1,7 @@
 "use client";
 
+import type { SelectedAttachment } from "@/utils/attachments/source-schema";
+
 import {
   createContext,
   useCallback,
@@ -34,6 +36,8 @@ export type PoppedOutReply = {
   draftKeyMessageId: string;
   draftMode: ReplyDraftMode;
   providerDraftMessageId?: string;
+  useLegacyDraft?: boolean;
+  suggestedAttachments?: SelectedAttachment[];
   replyingToEmail: ReplyingToEmail;
   /** Puts the reply back in its thread when the window is dismissed unsent. */
   onReturn?: () => void;
@@ -146,6 +150,9 @@ export function ComposeModalProvider(props: { children: React.ReactNode }) {
         }}
       >
         <DialogContent
+          aria-label={
+            reply ? reply.replyingToEmail.subject || "Reply" : "新邮件"
+          }
           className={cn(
             "fixed z-50 flex max-h-none max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden bg-background p-0",
             isExpanded
@@ -223,6 +230,8 @@ export function ComposeModalProvider(props: { children: React.ReactNode }) {
                 <ComposeEmailFormLazy
                   key={`${reply.draftSessionId}:${composerKey}`}
                   draftKeyMessageId={reply.draftKeyMessageId}
+                  useLegacyDraft={reply.useLegacyDraft}
+                  suggestedAttachments={reply.suggestedAttachments}
                   draftMode={reply.draftMode}
                   draftSessionId={reply.draftSessionId}
                   layout="window"

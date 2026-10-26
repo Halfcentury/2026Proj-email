@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense, useEffect, useRef } from "react";
-import { usePostHog } from "posthog-js/react";
 import {
   getEmailAlreadyLinkedDescription,
   getRequiresReconsentDescription,
@@ -18,10 +17,6 @@ import { WELCOME_PATH } from "@/utils/config";
 import { CrispChatLoggedOutVisible } from "@/components/CrispChat";
 import { getAndClearAuthErrorCookie } from "@/utils/auth-cookies";
 import { SUPPORT_EMAIL } from "@/utils/branding";
-import {
-  getPendingAuthProvider,
-  trackAuthFailure,
-} from "@/utils/analytics/auth-funnel";
 
 const errorMessages: Record<string, { title: string; description: string }> = {
   email_not_found: {
@@ -31,8 +26,7 @@ const errorMessages: Record<string, { title: string; description: string }> = {
   },
   signup_not_allowed: {
     title: "注册受限",
-    description:
-      "此部署仅允许指定邮箱或域名注册。请联系管理员或使用其他账户。",
+    description: "此部署仅允许指定邮箱或域名注册。请联系管理员或使用其他账户。",
   },
   email_already_linked: {
     title: "邮箱已关联",
@@ -60,7 +54,6 @@ const errorMessages: Record<string, { title: string; description: string }> = {
 };
 
 function LoginErrorContent() {
-  const posthog = usePostHog();
   const hasTrackedAuthFailure = useRef(false);
   const { data, isLoading, error } = useUser();
   const router = useRouter();
@@ -73,12 +66,7 @@ function LoginErrorContent() {
     if (isLoading || data?.id || hasTrackedAuthFailure.current) return;
 
     hasTrackedAuthFailure.current = true;
-    trackAuthFailure(posthog, {
-      provider: getPendingAuthProvider(),
-      stage: "callback",
-      errorCode: resolvedErrorCode,
-    });
-  }, [data?.id, isLoading, posthog, resolvedErrorCode]);
+  }, [data?.id, isLoading, resolvedErrorCode]);
 
   // For some reason users are being sent to this page when logged in
   // This will redirect them out of this page to the app

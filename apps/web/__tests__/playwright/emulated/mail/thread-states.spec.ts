@@ -20,7 +20,7 @@ test("captures queued reply and reconnect", async ({ page }, testInfo) => {
   const { emailAccountId } = await openMail(page);
   await page.goto(`/${emailAccountId}/mail?thread-id=thr_playwright_reply`);
   await expect(
-    page.getByRole("heading", { name: "Reply Workflow Message" }),
+    page.getByRole("heading", { name: "回复流程测试邮件" }),
   ).toBeVisible();
   const initialResponse = await page.request.get(
     "/api/threads/thr_playwright_reply?includeDrafts=true",
@@ -81,7 +81,7 @@ test("captures queued reply and reconnect", async ({ page }, testInfo) => {
         throw error;
     });
   await expect(
-    page.getByRole("heading", { name: /Reply Workflow Message/ }),
+    page.getByRole("heading", { name: /回复流程测试邮件/ }),
   ).toBeVisible({ timeout: 60_000 });
   await page
     .evaluate(async () => {
@@ -127,7 +127,7 @@ test("restores a queued reply for editing without sending a duplicate", async ({
   const { emailAccountId } = await openMail(page);
   await page.goto(`/${emailAccountId}/mail?thread-id=thr_playwright_reply`);
   await expect(
-    page.getByRole("heading", { name: "Reply Workflow Message" }),
+    page.getByRole("heading", { name: "回复流程测试邮件" }),
   ).toBeVisible();
   const editor = await openSeededWorkflowReplyEditor(page);
   const text = "I can review the updated proposal on Thursday.";
@@ -176,7 +176,7 @@ test("restores a queued reply for editing without sending a duplicate", async ({
   await capturePlaywrightCheckpoint(page, testInfo, "22-edit-queued-reply");
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Reply Workflow Message" }),
+    page.getByRole("heading", { name: "回复流程测试邮件" }),
   ).toBeVisible();
   await expect
     .poll(() =>
@@ -197,17 +197,14 @@ test("captures thread reading and reply states", async ({ page }, testInfo) => {
   await page.goto(`/${emailAccountId}/mail?thread-id=thr_playwright_reader`);
   await expectThreadReaderBody(
     page,
-    "A second message proves the complete conversation is rendered.",
+    "第二封邮件用于验证完整会话能够正常显示。",
   );
   await capturePlaywrightCheckpoint(page, testInfo, "01-collapsed-history");
   const collapsed = page
     .locator('[role="button"][aria-expanded="false"]')
-    .filter({ hasText: "Dana Example" });
+    .filter({ hasText: "达娜" });
   if (await collapsed.count()) await collapsed.click();
-  await expectThreadReaderBody(
-    page,
-    "First message in the reader conversation.",
-  );
+  await expectThreadReaderBody(page, "这是阅读器会话中的第一封邮件。");
   await capturePlaywrightCheckpoint(page, testInfo, "02-expanded-history");
   await page
     .getByRole("button", { name: "显示详情", exact: true })
@@ -225,7 +222,7 @@ test("captures thread reading and reply states", async ({ page }, testInfo) => {
   await expect(replyMessage).toBeVisible();
   if (await collapsedReply.count()) await collapsedReply.click();
   await expect(
-    replyMessage.getByText("Please reply to this seeded conversation."),
+    replyMessage.getByText("请回复这封预置测试邮件。"),
   ).toBeVisible();
   const toolbar = page.getByRole("group", { name: "会话操作" });
   await expect(
@@ -237,9 +234,7 @@ test("captures thread reading and reply states", async ({ page }, testInfo) => {
   await expect(page.getByRole("menuitem", { name: /删除/ })).toBeVisible();
   await capturePlaywrightCheckpoint(page, testInfo, "25-thread-actions-menu");
   await page.keyboard.press("Escape");
-  await replyMessage
-    .getByRole("button", { name: "回复", exact: true })
-    .click();
+  await replyMessage.getByRole("button", { name: "回复", exact: true }).click();
   const editor = page.locator("[contenteditable='true']");
   await expect(editor).toBeVisible();
   await capturePlaywrightCheckpoint(page, testInfo, "05-empty-reply");
@@ -252,15 +247,13 @@ test("captures thread reading and reply states", async ({ page }, testInfo) => {
     page.getByRole("combobox", { name: "抄送", exact: true }),
   ).toBeVisible();
   await capturePlaywrightCheckpoint(page, testInfo, "07-reply-recipients");
-  await page
-    .getByRole("button", { name: "隐藏收件人", exact: true })
-    .click();
+  await page.getByRole("button", { name: "隐藏收件人", exact: true }).click();
   await expect(editor).toContainText(
     "Thanks Leslie, Thursday at 2 pm works for me.",
   );
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Reply Workflow Message" }),
+    page.getByRole("heading", { name: "回复流程测试邮件" }),
   ).toBeVisible();
   // The saved reply reopens on its own after a reload.
   await expect(editor).toHaveCount(1);
@@ -273,7 +266,7 @@ test("captures thread reading and reply states", async ({ page }, testInfo) => {
   await page.goto(`/${emailAccountId}/mail`);
   await page.goto(`/${emailAccountId}/mail?thread-id=thr_playwright_reply`);
   await expect(
-    page.getByRole("heading", { name: "Reply Workflow Message" }),
+    page.getByRole("heading", { name: "回复流程测试邮件" }),
   ).toBeVisible();
   await capturePlaywrightCheckpoint(
     page,
@@ -296,7 +289,7 @@ test("captures a longer thread and draft collapse", async ({
   await page.goto(`/${emailAccountId}/mail?thread-id=thr_playwright_reader`);
   await expectThreadReaderBody(
     page,
-    "A second message proves the complete conversation is rendered.",
+    "第二封邮件用于验证完整会话能够正常显示。",
   );
   await capturePlaywrightCheckpoint(page, testInfo, "14-long-thread");
   await page.getByRole("button", { name: "回复", exact: true }).last().click();

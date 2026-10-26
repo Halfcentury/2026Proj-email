@@ -7,15 +7,6 @@ import {
   isDecisionModelAvailable,
   isDecisionModelEnabledForUser,
 } from "@/utils/decision-model/decision-model";
-import {
-  getRemainingUnsubscribeCredits,
-  premiumEntitlementSelect,
-} from "@/utils/premium";
-import {
-  billingAccessPremiumSelect,
-  canManageBilling,
-  organizationBillingPrincipalsSelect,
-} from "@/utils/premium/billing-access";
 
 export type UserResponse = Awaited<ReturnType<typeof getUser>> | null;
 
@@ -38,89 +29,46 @@ async function getUser({
       webhookSecret: true,
       announcementDismissedAt: true,
       dismissedHints: true,
-      premium: {
-        select: {
-          ...billingAccessPremiumSelect,
-          ...premiumEntitlementSelect,
-          lemonSqueezyCustomerId: true,
-          lemonSqueezySubscriptionId: true,
-          stripeCustomerId: true,
-          stripePriceId: true,
-          stripeSubscriptionId: true,
-          stripeInvoiceEmailsEnabled: true,
-          unsubscribeCredits: true,
-          unsubscribeMonth: true,
-          emailAccountsAccess: true,
-          lemonLicenseKey: true,
-          pendingInvites: true,
-        },
-      },
       emailAccounts: {
         select: {
           id: true,
           email: true,
           name: true,
           ...(includeImage && { image: true }),
-          members: {
-            select: {
-              organizationId: true,
-              role: true,
-              organization: {
-                select: {
-                  ...organizationBillingPrincipalsSelect,
-                  name: true,
-                },
-              },
-            },
-          },
         },
       },
     },
   });
-
   if (!user) throw new SafeError("User not found");
-
-  const members = user.emailAccounts.flatMap((account) =>
-    account.members.map(({ organizationId, role, organization }) => ({
-      organizationId,
-      role,
-      organization: { name: organization.name },
-      emailAccountId: account.id,
-    })),
-  );
-
-  const { aiApiKey, webhookSecret, emailAccounts } = user;
-  const canManageBillingAccess = canManageBilling(user.id, user);
-  let premium = null;
-  if (user.premium) {
-    const { admins: _admins, id: _premiumId, ...premiumData } = user.premium;
-    premium = {
-      ...premiumData,
-      isAdmin: canManageBillingAccess,
-    };
-  }
-
+  const { aiApiKey, webhookSecret, ...profile } = user;
   return {
     id: user.id,
     createdAt: user.createdAt,
     aiProvider: user.aiProvider,
     aiModel: user.aiModel,
-    isDecisionModelAvailable: isDecisionModelAvailable(),
-    decisionModelEnabled: isDecisionModelEnabledForUser(user),
     announcementDismissedAt: user.announcementDismissedAt,
     dismissedHints: user.dismissedHints,
-    premium,
-    // Resolved here so the client never compares periods against its own clock.
-    unsubscribeCreditsRemaining: getRemainingUnsubscribeCredits(
-      user.premium ?? {},
-    ),
-    emailAccounts: emailAccounts.map(({ members: _members, ...account }) => ({
-      ...account,
+    emailAccounts: user.emailAccounts.map(({ id, email, name, ...rest }) => ({
+      id,
+      email,
+      name,
+      ...(includeImage
+        ? { image: "image" in rest ? rest.image : undefined }
+        : {}),
     })),
     hasAiApiKey: !!aiApiKey,
     hasWebhookSecret: !!webhookSecret,
-    canManageBilling: canManageBillingAccess,
-    members,
+    isDecisionModelAvailable: isDecisionModelAvailable(),
+    decisionModelEnabled: isDecisionModelEnabledForUser(user),
+    canManageBilling: false,
+    unsubscribeCreditsRemaining: Number.MAX_SAFE_INTEGER,
+    premium: null,
+    members: [] as {
+      organizationId: string;
+      role: string;
+      organization: { name: string };
+      emailAccountId: string;
+    }[],
   };
 }
 

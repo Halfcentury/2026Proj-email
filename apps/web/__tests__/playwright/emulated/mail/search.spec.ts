@@ -17,22 +17,22 @@ for (const accountScope of ["single", "all"] as const) {
     const matching = conversationWithSubject(
       page,
       conversations,
-      "Archive Action Message",
+      "归档操作测试邮件",
     );
     const nonMatching = conversationWithSubject(
       page,
       conversations,
-      "Keyboard Navigation Message",
+      "键盘导航测试邮件",
     );
     await expect(matching).toBeVisible();
     await expect(nonMatching).toBeVisible();
 
     const searchInput = page.getByPlaceholder("搜索邮件");
-    await searchInput.fill("Archive Action");
+    await searchInput.fill("归档操作");
     await searchInput.press("Enter");
 
     await expect(page).toHaveURL(/[?&]q=/);
-    expect(new URL(page.url()).searchParams.get("q")).toBe("Archive Action");
+    expect(new URL(page.url()).searchParams.get("q")).toBe("归档操作");
     await expect(matching).toBeVisible();
     await expect(nonMatching).toHaveCount(0);
 
@@ -104,9 +104,7 @@ test("advanced search panel stays aligned with the search field", async ({
   // field has to be measured before it opens.
   const searchField = await page.getByRole("search").boundingBox();
   await page.getByRole("button", { name: "显示搜索选项" }).click();
-  await expect(
-    page.getByRole("form", { name: "搜索选项" }),
-  ).toBeVisible();
+  await expect(page.getByRole("form", { name: "搜索选项" })).toBeVisible();
   if (!searchField) throw new Error("missing search field bounding box");
   // The popover animates into place; measure the settled alignment.
   await expect
@@ -126,12 +124,12 @@ test("advanced search still filters the mailbox by Has the words", async ({
   const matching = conversationWithSubject(
     page,
     conversations,
-    "Archive Action Message",
+    "归档操作测试邮件",
   );
   const nonMatching = conversationWithSubject(
     page,
     conversations,
-    "Keyboard Navigation Message",
+    "键盘导航测试邮件",
   );
   await expect(matching).toBeVisible();
   await expect(nonMatching).toBeVisible();
@@ -140,11 +138,11 @@ test("advanced search still filters the mailbox by Has the words", async ({
   const filters = page.getByRole("form", { name: "搜索选项" });
   await filters
     .getByLabel(isMicrosoftPlaywright() ? "关键词" : "包含以下文字")
-    .fill("Archive Action");
+    .fill("归档操作");
   await filters.getByRole("button", { name: "搜索" }).click();
 
   await expect(page).toHaveURL(/[?&]q=/);
-  expect(new URL(page.url()).searchParams.get("q")).toBe("Archive Action");
+  expect(new URL(page.url()).searchParams.get("q")).toBe("归档操作");
   await expect(matching).toBeVisible();
   await expect(nonMatching).toHaveCount(0);
 });
@@ -158,7 +156,7 @@ test("search suggests contacts and recent searches", async ({
     await route.fulfill({
       json: {
         contacts: query.startsWith("ali")
-          ? [{ name: "Alice Example", emailAddress: "alice@example.com" }]
+          ? [{ name: "艾丽斯", emailAddress: "alice@example.com" }]
           : [],
       },
     });
@@ -172,7 +170,7 @@ test("search suggests contacts and recent searches", async ({
   await searchInput.fill("ali");
   const suggestions = page.getByRole("listbox", { name: "搜索建议" });
   await expect(
-    suggestions.getByRole("option", { name: /Alice Example/ }),
+    suggestions.getByRole("option", { name: /艾丽斯/ }),
   ).toBeVisible();
   await capturePlaywrightCheckpoint(page, testInfo, "mail-search-suggestions");
 

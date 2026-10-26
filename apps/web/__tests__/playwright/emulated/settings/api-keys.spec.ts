@@ -65,9 +65,9 @@ test("creates, authorizes, lists, and revokes an API key", async ({
   const keyRow = keysDialog.getByRole("row").filter({ hasText: API_KEY_NAME });
   await expect(keyRow).toContainText("Read rules");
   await keyRow.getByRole("button", { name: "撤销" }).click();
-  await expect(
-    page.getByText("API 密钥已停用！", { exact: true }),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("API 密钥已停用！", { exact: true })).toBeVisible(
+    { timeout: 60_000 },
+  );
   await expect(keyRow).toBeHidden({ timeout: 60_000 });
 
   const revokedResponse = await request.get("/api/v1/rules", {

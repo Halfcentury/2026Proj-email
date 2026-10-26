@@ -177,10 +177,7 @@ export function MailTriage() {
         {data && state && (
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-3">
-              <Button
-                disabled={busy}
-                onClick={() => generateSuggestions()}
-              >
+              <Button disabled={busy} onClick={() => generateSuggestions()}>
                 {isAnalyzing ? "正在生成建议…" : "生成整理建议"}
               </Button>
               <Button

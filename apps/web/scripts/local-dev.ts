@@ -15,7 +15,6 @@ import { promisify, parseArgs } from "node:util";
 import { Client } from "pg";
 import Redis from "ioredis";
 import { createLlmEmulator } from "../__tests__/emulators/llm";
-import { createStripeEmulator } from "../__tests__/emulators/stripe";
 import { writeEmulateSeed } from "./emulate-seed";
 import { createLocalEnvironment } from "./local-dev/environment";
 import { readMailTriageEnvironment } from "./local-dev/mail-triage-environment";
@@ -121,9 +120,8 @@ async function main() {
       googlePort,
       microsoftPort,
       llmPort,
-      stripePort,
       emailPort,
-    ] = await Promise.all(Array.from({ length: 8 }, () => availablePort()));
+    ] = await Promise.all(Array.from({ length: 7 }, () => availablePort()));
     const env = createLocalEnvironment({
       appPort,
       databasePort,
@@ -132,7 +130,6 @@ async function main() {
       googlePort,
       microsoftPort,
       llmPort,
-      stripePort,
       secrets,
       inherited: process.env,
     });
@@ -280,16 +277,11 @@ async function main() {
       ["google", googlePort],
       ["microsoft", microsoftPort],
     ] as const) {
-      processes.start(`${service} emulator`, PNPM, [
-        "exec",
-        "emulate",
-        "start",
-        "--service",
+      processes.start(`${service} emulator`, process.execPath, [
+        join(APP_DIR, "scripts/emulator/provider.mjs"),
         service,
-        "--seed",
-        seedPath,
-        "--port",
         String(port),
+        seedPath,
       ]);
       await processes.ready(`${service} emulator`, () =>
         checkUrl(`http://localhost:${port}/.well-known/openid-configuration`),
@@ -297,13 +289,7 @@ async function main() {
     }
     const llm = await createLlmEmulator({ port: llmPort });
     cleanup.push({ close: llm.close });
-    const stripe = await createStripeEmulator({
-      port: stripePort,
-      secretKey: env.STRIPE_SECRET_KEY,
-      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-      webhookUrl: `${env.NEXT_PUBLIC_BASE_URL}/api/stripe/webhook`,
-    });
-    cleanup.push({ close: stripe.close });
+
     processes.start("Email emulator", process.execPath, [
       "__tests__/playwright/email-server.mjs",
       String(emailPort),
@@ -331,7 +317,7 @@ async function main() {
       240_000,
     );
     console.log(
-      `\n[local] Ready: ${env.NEXT_PUBLIC_BASE_URL}/mail\n[local] Sign in with Google: developer@example.com\n[local] Or Microsoft: developer@outlook.test\n[local] Mail, billing, email delivery, and AI use local emulators. AI responses are canned.\n[local] Data survives restarts. Press Ctrl-C to stop.\n`,
+      `\n[local] Ready: ${env.NEXT_PUBLIC_BASE_URL}/mail\n[local] Sign in with Google: developer@example.com\n[local] Or Microsoft: developer@outlook.test\n[local] Mail, email delivery, and AI use local emulators. AI responses are canned.\n[local] Data survives restarts. Press Ctrl-C to stop.\n`,
     );
     await delay(2 ** 31 - 1, undefined, { signal: processes.signal });
   } catch (error) {

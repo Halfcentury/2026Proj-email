@@ -33,8 +33,14 @@ vi.mock("@/utils/user/get", () => ({
 vi.mock("@/utils/ai/choose-rule/run-rules", () => ({
   runRules: runRulesMock,
 }));
-vi.mock("@/utils/premium/server", () => ({
-  checkHasAccess: checkHasAccessMock,
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      checkHasAccess: checkHasAccessMock,
+    },
+  },
 }));
 
 import {
@@ -44,7 +50,7 @@ import {
 import {
   RERUN_MINIMUM_TIER,
   RERUN_UPGRADE_MESSAGE,
-} from "@/utils/premium/rerun";
+} from "@/utils/feature-access";
 
 describe("runRulesAction", () => {
   beforeEach(() => {

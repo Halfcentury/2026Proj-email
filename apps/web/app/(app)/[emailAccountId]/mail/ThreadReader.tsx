@@ -7,7 +7,12 @@ import {
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
-import { AlertCircleIcon, Loader2Icon, MailIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  Loader2Icon,
+  MailIcon,
+  SparklesIcon,
+} from "lucide-react";
 import { ReaderToolbar } from "@/app/(app)/[emailAccountId]/mail/ReaderToolbar";
 import { MailReaderSurface } from "@inboxzero/mail-ui/MailReaderSurface";
 import { isThreadStarred } from "@/app/(app)/[emailAccountId]/mail/star-state";
@@ -26,7 +31,6 @@ import type { EmailLabels } from "@/providers/email-label-types";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useHiddenDraftMessageIds } from "@/hooks/useHiddenDraftMessageIds";
 import { extractEmailAddress, extractNameFromEmail } from "@/utils/email";
-import { PublisherDiscussion } from "@/components/team-comments/PublisherDiscussion";
 import type { OutgoingThreadMessage } from "@/utils/mail-engine/conversation-thread";
 
 const SenderContextPanel = dynamic(
@@ -34,6 +38,11 @@ const SenderContextPanel = dynamic(
     import("@/app/(app)/[emailAccountId]/mail/SenderContextPanel").then(
       (module) => module.SenderContextPanel,
     ),
+  { ssr: false },
+);
+
+const EmailAiPanel = dynamic(
+  () => import("./EmailAiPanel").then((module) => module.EmailAiPanel),
   { ssr: false },
 );
 
@@ -74,6 +83,7 @@ export type ThreadReaderProps = {
   onMoveToInbox?: () => void;
   isUnread: boolean;
   onMarkRead: () => void;
+  onLabel?: () => void;
   onMarkUnread: () => void;
   /** Refreshes the open thread after a reply is sent or a draft changes. */
   refetch: () => void;
@@ -112,6 +122,7 @@ export function ThreadReader({
   onMoveToInbox,
   isUnread,
   onMarkRead,
+  onLabel,
   onMarkUnread,
   refetch,
   onSendSuccess,
@@ -120,6 +131,7 @@ export function ThreadReader({
   menu,
   renderMessageMenu,
 }: ThreadReaderProps) {
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [senderContext, setSenderContext] = useState<{
     messageId: string;
     senderEmail: string;
@@ -175,6 +187,11 @@ export function ThreadReader({
       userLabels,
     }) ?? [];
 
+  const aiMessage = messages.findLast(
+    (message) =>
+      !message.labelIds?.includes("DRAFT") &&
+      !hiddenDraftMessageIds.includes(message.id),
+  );
   const renderToolbar = (
     messageExpansion?: ComponentProps<typeof ReaderToolbar>["messageExpansion"],
   ) => (
@@ -186,7 +203,24 @@ export function ThreadReader({
       messageExpansion={messageExpansion}
       labelHref={labelHref}
       labels={labels}
-      menu={menu}
+      menu={
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="iconSm"
+            aria-label="打开邮件 AI 助手"
+            aria-pressed={aiPanelOpen}
+            disabled={!aiMessage}
+            onClick={() => {
+              setSenderContext(null);
+              setAiPanelOpen((open) => !open);
+            }}
+          >
+            <SparklesIcon className="size-3.5" />
+          </Button>
+          {menu}
+        </div>
+      }
       onArchive={onArchive}
       onMoveToInbox={onMoveToInbox}
       onMarkRead={onMarkRead}
@@ -216,7 +250,22 @@ export function ThreadReader({
         </Button>
       )}
       sidePanel={
-        senderContext ? (
+        aiPanelOpen && aiMessage ? (
+          <EmailAiPanel
+            key={`${emailAccountId}:${threadId}`}
+            threadId={threadId}
+            message={aiMessage}
+            variant={
+              readerWidth >= INLINE_SENDER_CONTEXT_MIN_WIDTH
+                ? "inline"
+                : "sheet"
+            }
+            onClose={() => setAiPanelOpen(false)}
+            onArchive={onArchive}
+            onMarkRead={onMarkRead}
+            onLabel={onLabel}
+          />
+        ) : senderContext ? (
           <SenderContextPanel
             messageId={senderContext.messageId}
             onClose={() => setSenderContext(null)}
@@ -245,6 +294,7 @@ export function ThreadReader({
           sendOperationIds={localAvailability?.sendOperationIds}
           onMarkDone={onArchive}
           onOpenSenderContext={(message) => {
+            setAiPanelOpen(false);
             const senderEmail = extractEmailAddress(message.headers.from);
             setSenderContext({
               messageId: message.id,
@@ -265,13 +315,6 @@ export function ThreadReader({
       ) : (
         renderToolbar()
       )}
-      {emailAccountId && threadId && messages.length > 0 && (
-        <PublisherDiscussion
-          key={`${emailAccountId}:${threadId}`}
-          emailAccountId={emailAccountId}
-          threadId={threadId}
-        />
-      )}
     </MailReaderSurface>
   );
 }
@@ -291,9 +334,7 @@ function ThreadReaderError({
   return (
     <>
       <AlertCircleIcon className="size-6 text-muted-foreground" />
-      <div className="text-foreground text-sm">
-        无法打开此会话
-      </div>
+      <div className="text-foreground text-sm">无法打开此会话</div>
       <div className="text-muted-foreground text-xs">
         {getSWRFetchErrorMessage(error?.info)}
       </div>

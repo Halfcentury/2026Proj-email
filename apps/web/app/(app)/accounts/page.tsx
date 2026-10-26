@@ -167,8 +167,7 @@ function AccountOptionsDropdown({
         } catch {
           toastError({
             title: "设备上仍有本地邮件",
-            description:
-              "账户已删除。请退出登录以清除设备上的该账户邮件。",
+            description: "账户已删除。请退出登录以清除设备上的该账户邮件。",
           });
         }
         await clearOfflineMailCacheForAccount(emailAccount.id);
@@ -347,21 +346,18 @@ function getAccountErrorMessage(
     invalid_state: {
       title: "请求无效",
       description: "身份验证请求无效，请重试。",
-      toastDescription:
-        "身份验证请求无效，请重试。",
+      toastDescription: "身份验证请求无效，请重试。",
     },
     invalid_state_format: {
       title: "邮箱服务返回的响应无效",
       description:
         "无法验证账户授权结果。请重新关联账户；若问题持续，请联系支持。",
-      toastDescription:
-        "无法验证账户授权结果，请重新关联账户。",
+      toastDescription: "无法验证账户授权结果，请重新关联账户。",
     },
     missing_code: {
       title: "身份验证失败",
       description: "未能获取验证码，请重试。",
-      toastDescription:
-        "未能获取验证码，请重试。",
+      toastDescription: "未能获取验证码，请重试。",
     },
     consent_declined: {
       title: "尚未授予 Microsoft 权限",
@@ -412,10 +408,12 @@ function buildMicrosoftPermissionHelp(summary: string) {
   return (
     <div className="space-y-3">
       <p>
-        {summary} 这通常表示 Microsoft 365 组织已允许登录，但未授予完成邮箱连接所需的全部权限。
+        {summary} 这通常表示 Microsoft 365
+        组织已允许登录，但未授予完成邮箱连接所需的全部权限。
       </p>
       <p>
-        请联系 Microsoft 365 管理员批准 {BRAND_NAME} 以下 Microsoft Graph 权限，然后重试。
+        请联系 Microsoft 365 管理员批准 {BRAND_NAME} 以下 Microsoft Graph
+        权限，然后重试。
       </p>
       <Button asChild size="sm">
         <Link href="/login/microsoft-admin-consent">
@@ -427,9 +425,7 @@ function buildMicrosoftPermissionHelp(summary: string) {
         <PermissionList scopes={MICROSOFT_EMAIL_SCOPES} />
       </div>
       <div>
-        <p className="font-medium">
-          连接其他 Microsoft 功能时需要的额外权限
-        </p>
+        <p className="font-medium">连接其他 Microsoft 功能时需要的额外权限</p>
         <div className="space-y-2">
           <div>
             <p className="font-medium">日历</p>

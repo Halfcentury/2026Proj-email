@@ -29,7 +29,8 @@ export default async function MicrosoftAdminConsentPage(props: {
             批准 {BRAND_NAME} 组织使用权限
           </h1>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            授予租户范围的 Microsoft 管理员授权，以便组织用户连接自己的 Outlook 邮箱。
+            授予租户范围的 Microsoft 管理员授权，以便组织用户连接自己的 Outlook
+            邮箱。
           </p>
 
           <AdminConsentStatus
@@ -56,9 +57,7 @@ export default async function MicrosoftAdminConsentPage(props: {
                     height={24}
                     unoptimized
                   />
-                  <span className="ml-3">
-                    通过 Microsoft 授予管理员授权
-                  </span>
+                  <span className="ml-3">通过 Microsoft 授予管理员授权</span>
                 </a>
               </Button>
             ) : (

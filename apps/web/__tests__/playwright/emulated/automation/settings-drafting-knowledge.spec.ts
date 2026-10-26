@@ -51,7 +51,7 @@ test("enables drafting and manages persisted draft knowledge", async ({
     .toBe(true);
 
   await page.goto(`/${emailAccountId}/automation?tab=settings`);
-  const autoDraftItem = getAutomationSettingsCard(page, "Auto draft replies");
+  const autoDraftItem = getAutomationSettingsCard(page, "自动起草回复");
   const autoDraftSwitch = autoDraftItem.getByRole("switch");
   await expectVisibleAfterTransientFetch(page, autoDraftSwitch);
   await expect(autoDraftSwitch).not.toBeChecked();
@@ -70,7 +70,7 @@ test("enables drafting and manages persisted draft knowledge", async ({
   await expectVisibleAfterTransientFetch(page, autoDraftSwitch);
   await expect(autoDraftSwitch).toBeChecked();
 
-  const knowledgeItem = getAutomationSettingsCard(page, "Draft knowledge base");
+  const knowledgeItem = getAutomationSettingsCard(page, "回复知识库");
   const manageKnowledge = knowledgeItem.getByRole("button", { name: "管理" });
   await expectVisibleAfterTransientFetch(page, manageKnowledge);
   await expect(manageKnowledge).toBeEnabled({ timeout: 60_000 });
@@ -80,7 +80,7 @@ test("enables drafting and manages persisted draft knowledge", async ({
     name: "回复知识库",
   });
   await expect(
-    knowledgeDialog.getByText("暂无知识库条目", { exact: true }),
+    knowledgeDialog.getByRole("button", { name: "添加", exact: true }),
   ).toBeVisible({ timeout: 60_000 });
   await knowledgeDialog.getByRole("button", { name: "添加" }).click();
 
@@ -88,14 +88,14 @@ test("enables drafting and manages persisted draft knowledge", async ({
   await addDialog.getByRole("textbox", { name: "标题" }).fill(KNOWLEDGE_TITLE);
   await addDialog
     .locator('[contenteditable="true"]')
-    .fill("Customers use the product to reach inbox zero every morning.");
+    .fill("客户每天早上使用产品清理收件箱。");
   await addDialog.getByRole("button", { name: "创建" }).click();
   await expect
     .poll(() => getKnowledgeState(emailAccountId), {
       timeout: SERVER_ACTION_TIMEOUT_MS,
     })
     .toEqual({
-      content: "Customers use the product to reach inbox zero every morning.",
+      content: "客户每天早上使用产品清理收件箱。",
       title: KNOWLEDGE_TITLE,
     });
 
@@ -111,15 +111,14 @@ test("enables drafting and manages persisted draft knowledge", async ({
     .fill(UPDATED_KNOWLEDGE_TITLE);
   await editDialog
     .locator('[contenteditable="true"]')
-    .fill("Customers use the product to triage important email every morning.");
+    .fill("客户每天早上使用产品筛选重要邮件。");
   await editDialog.getByRole("button", { name: "更新" }).click();
   await expect
     .poll(() => getKnowledgeState(emailAccountId), {
       timeout: SERVER_ACTION_TIMEOUT_MS,
     })
     .toEqual({
-      content:
-        "Customers use the product to triage important email every morning.",
+      content: "客户每天早上使用产品筛选重要邮件。",
       title: UPDATED_KNOWLEDGE_TITLE,
     });
 

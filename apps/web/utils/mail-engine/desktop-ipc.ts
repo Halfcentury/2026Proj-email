@@ -1,5 +1,5 @@
 import { createMailIpcClient } from "@inboxzero/mail-core/protocol/mail-ipc-client";
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
+import { getInboxZeroDesktopApp } from "@/utils/browser-platform";
 import {
   pageConnectivityOnline,
   requestSyncUnlessOffline,

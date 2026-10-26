@@ -97,7 +97,7 @@ test("opens saved mail offline, reconnects, and clears it on sign-out", async ({
   context.on("response", onResponse);
   const { conversations } = await openMail(page);
   await expect(
-    conversationWithSubject(page, conversations, "Archive Action Message"),
+    conversationWithSubject(page, conversations, "归档操作测试邮件"),
   ).toBeVisible();
   const production = process.env.PLAYWRIGHT_PRODUCTION === "1";
   const workerName = production ? "sw.js" : `sw-offline-test-${process.pid}.js`;
@@ -223,7 +223,7 @@ test("opens saved mail offline, reconnects, and clears it on sign-out", async ({
     await page.reload({ waitUntil: "domcontentloaded", timeout: 15_000 });
     await expect(conversations).toBeVisible();
     await expect(
-      conversationWithSubject(page, conversations, "Archive Action Message"),
+      conversationWithSubject(page, conversations, "归档操作测试邮件"),
     ).toBeVisible();
     await capturePlaywrightCheckpoint(
       page,
@@ -233,16 +233,12 @@ test("opens saved mail offline, reconnects, and clears it on sign-out", async ({
 
     if (production) {
       const search = page.getByPlaceholder("搜索邮件");
-      await search.fill('subject:"Archive Action Message"');
+      await search.fill('subject:"归档操作测试邮件"');
       await expect(
-        conversationWithSubject(page, conversations, "Archive Action Message"),
+        conversationWithSubject(page, conversations, "归档操作测试邮件"),
       ).toBeVisible();
       await expect(
-        conversationWithSubject(
-          page,
-          conversations,
-          "Keyboard Navigation Message",
-        ),
+        conversationWithSubject(page, conversations, "键盘导航测试邮件"),
       ).toHaveCount(0);
       await capturePlaywrightCheckpoint(
         page,
@@ -271,7 +267,7 @@ test("opens saved mail offline, reconnects, and clears it on sign-out", async ({
       .toBe(true);
     await page.reload({ waitUntil: "domcontentloaded", timeout: 15_000 });
     await expect(
-      conversationWithSubject(page, conversations, "Archive Action Message"),
+      conversationWithSubject(page, conversations, "归档操作测试邮件"),
     ).toBeVisible();
     await capturePlaywrightCheckpoint(page, testInfo, "mail-after-reconnect");
 
@@ -373,7 +369,7 @@ async function signOutFromAppNav(page: Page) {
     page.getByRole("heading", { name: "设置", exact: true }),
   ).toBeVisible({ timeout: 60_000 });
   const trigger = page.getByRole("button", {
-    name: /Smoke Test User Smoke Test User/,
+    name: /验收测试用户 验收测试用户/,
   });
   const signOut = page.getByRole("menuitem", { name: "退出登录" });
   await trigger.click();

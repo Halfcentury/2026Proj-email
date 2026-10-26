@@ -10,7 +10,7 @@ import {
 } from "./chat-label-tools";
 
 vi.mock("@/utils/email/provider");
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: vi.fn().mockResolvedValue(undefined),
 }));
 

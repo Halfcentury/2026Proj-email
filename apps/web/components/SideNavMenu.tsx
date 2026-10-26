@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 import type { LucideIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { usePostHog } from "posthog-js/react";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -15,9 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   getAppPageFromNavItem,
   getAppPageFromPathname,
-  getAppPageProperties,
-  PRODUCT_ANALYTICS_EVENTS,
-  APP_PAGES,
 } from "@/utils/analytics/product";
 
 type NavItem = {
@@ -41,7 +37,7 @@ export function SideNavMenu({
 }) {
   const { closeMobileSidebar } = useSidebar();
   const pathname = usePathname();
-  const posthog = usePostHog();
+
   const currentAppPage = getAppPageFromPathname(pathname);
 
   return (
@@ -63,15 +59,6 @@ export function SideNavMenu({
                   href: item.href,
                 });
 
-                posthog.capture(PRODUCT_ANALYTICS_EVENTS.navigationClicked, {
-                  ...getAppPageProperties(currentAppPage),
-                  destination_page: destinationAppPage,
-                  destination_page_label: destinationAppPage
-                    ? APP_PAGES[destinationAppPage].label
-                    : undefined,
-                  nav_item: item.name,
-                  nav_href_type: getNavHrefType(item.href),
-                });
                 closeMobileSidebar("left-sidebar");
               }}
             >
@@ -93,10 +80,4 @@ export function SideNavMenu({
       ))}
     </SidebarMenu>
   );
-}
-
-function getNavHrefType(href: string) {
-  if (href.startsWith("?")) return "query";
-  if (href.startsWith("http")) return "external";
-  return "internal";
 }

@@ -4,7 +4,6 @@ import type { Logger } from "@/utils/logger";
 import { createEmailProvider } from "@/utils/email/provider";
 import { findNestedLabelMatches } from "@/utils/label/find-nested-label-matches";
 import { normalizeLabelName } from "@/utils/label/normalize-label-name";
-import { posthogCaptureEvent } from "@/utils/posthog";
 
 type ResourceTerms = {
   resource: "label" | "category";
@@ -214,5 +213,5 @@ async function trackToolCall({
   logger: Logger;
 }) {
   logger.trace("Tracking tool call", { tool, email });
-  return posthogCaptureEvent(email, "AI Assistant Chat Tool Call", { tool });
+  return;
 }

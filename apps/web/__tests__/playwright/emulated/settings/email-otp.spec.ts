@@ -87,9 +87,7 @@ test("an assistant signs in after owner opt-in and loses access when it is disab
           subject: string;
         }[];
         code = messages
-          .findLast(
-            (message) => message.subject === "十组邮件小助手登录验证码",
-          )
+          .findLast((message) => message.subject === "十组邮件小助手登录验证码")
           ?.text.match(/\b\d{6}\b/)?.[0];
         return !!code;
       })
@@ -148,9 +146,7 @@ test("email code login does not disclose account existence", async ({
   await page.getByLabel("邮件", { exact: true }).fill("unknown@example.com");
   await page.getByRole("button", { name: "发送验证码", exact: true }).click();
   await expect(page.getByLabel("登录验证码", { exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "请查看邮件" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "请查看邮件" })).toBeVisible();
 });
 
 for (const path of ["/login/email", "/login/options"]) {

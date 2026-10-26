@@ -174,7 +174,7 @@ describe("getActionRiskLevel", () => {
       expectedMessageContains: "High Risk",
     },
     {
-      name: "returns low risk for integration action with static args",
+      name: "treats a retired integration as an unknown high-risk action",
       action: {
         subject: "",
         content: "",
@@ -192,8 +192,8 @@ describe("getActionRiskLevel", () => {
         },
       },
       rule: {},
-      expectedLevel: "low",
-      expectedMessageContains: "Low Risk",
+      expectedLevel: "high",
+      expectedMessageContains: "High Risk",
     },
   ];
 

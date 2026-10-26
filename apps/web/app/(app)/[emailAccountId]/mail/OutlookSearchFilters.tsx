@@ -47,11 +47,7 @@ export function OutlookSearchFiltersForm({
   }
 
   return (
-    <form
-      aria-label="搜索选项"
-      className="grid gap-3"
-      onSubmit={handleSubmit}
-    >
+    <form aria-label="搜索选项" className="grid gap-3" onSubmit={handleSubmit}>
       <FilterField id="outlook-search-from" label="发件人">
         <Input
           id="outlook-search-from"

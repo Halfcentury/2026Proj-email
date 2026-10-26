@@ -4,9 +4,7 @@ import { MailAccountSwitcherTrigger } from "@inboxzero/mail-ui/MailAccountSwitch
 import { memo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
-  BellIcon,
   ChevronsUpDownIcon,
-  MessagesSquareIcon,
   PlusIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
@@ -35,7 +33,7 @@ import {
   getShortcutHint,
 } from "@/lib/shortcuts/registry";
 import { getMailAccountUrl } from "@/app/(app)/[emailAccountId]/mail/mail-account-url";
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
+import { getInboxZeroDesktopApp } from "@/utils/browser-platform";
 import { cn } from "@/utils";
 
 export const MailAccountSwitcher = memo(function MailAccountSwitcher({
@@ -157,19 +155,7 @@ export const MailAccountSwitcher = memo(function MailAccountSwitcher({
               }
             />
           ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild className="gap-3 rounded-xl px-3 py-2">
-            <Link href="/shared">
-              <MessagesSquareIcon className="size-4 text-muted-foreground" />
-              与我共享
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className="gap-3 rounded-xl px-3 py-2">
-            <Link href="/shared/activity">
-              <BellIcon className="size-4 text-muted-foreground" />
-              动态
-            </Link>
-          </DropdownMenuItem>
+
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="gap-3 rounded-xl p-3">
             <Link href="/accounts">

@@ -21,6 +21,7 @@ import { createEmailProvider } from "@/utils/email/provider";
 import {
   getFilableAttachments,
   processAttachment,
+  confirmPendingFiling,
 } from "@/utils/drive/filing-engine";
 import type { DriveProviderType } from "@/utils/drive/types";
 
@@ -369,5 +370,27 @@ export const fileAttachmentAction = actionClient
         filedAt: new Date().toISOString(),
         provider: result.filing.provider as DriveProviderType,
       };
+    },
+  );
+
+export const confirmPendingFilingAction = actionClient
+  .metadata({ name: "confirmPendingFiling" })
+  .inputSchema(submitPreviewFeedbackBody.pick({ filingId: true }))
+  .action(
+    async ({
+      ctx: { emailAccountId, provider, logger },
+      parsedInput: { filingId },
+    }) => {
+      const emailProvider = await createEmailProvider({
+        emailAccountId,
+        provider,
+        logger,
+      });
+      return confirmPendingFiling({
+        emailAccountId,
+        filingId,
+        emailProvider,
+        logger,
+      });
     },
   );

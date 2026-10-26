@@ -26,7 +26,7 @@ import {
   getIntegrationToolSpec,
   type IntegrationArgSpec,
   isAiFilledArgValue,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 import type { SelectedAttachment } from "@/utils/attachments/source-schema";
 import { escapeHtml } from "@/utils/string";
 

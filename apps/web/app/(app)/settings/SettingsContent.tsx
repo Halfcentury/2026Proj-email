@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import type { MouseEvent } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ChevronRightIcon,
-  CreditCardIcon,
   MailIcon,
   MessageCircleIcon,
   MessagesSquareIcon,
@@ -13,23 +12,15 @@ import {
   SendIcon,
   SparklesIcon,
   UserIcon,
-  UsersIcon,
   WebhookIcon,
 } from "lucide-react";
 import { ApiKeysSection } from "@/app/(app)/[emailAccountId]/settings/ApiKeysSection";
-import { McpSection } from "@/app/(app)/[emailAccountId]/settings/McpSection";
 import { EmailOtpSection } from "@/app/(app)/settings/EmailOtpSection";
 import { AppearanceSection } from "@/app/(app)/settings/AppearanceSection";
-import { TeamSection } from "@/app/(app)/settings/TeamSection";
-import { BillingSection } from "@/app/(app)/[emailAccountId]/settings/BillingSection";
 import { CleanupDraftsSection } from "@/app/(app)/[emailAccountId]/settings/CleanupDraftsSection";
-import { SentMessageOpenTrackingSetting } from "@/app/(app)/[emailAccountId]/settings/SentMessageOpenTrackingSetting";
-import { useSlackNotifications } from "@/app/(app)/[emailAccountId]/settings/ConnectedAppsSection";
 import { DeleteSection } from "@/app/(app)/[emailAccountId]/settings/DeleteSection";
 import { ModelSection } from "@/app/(app)/[emailAccountId]/settings/ModelSection";
 import { DecisionModelSection } from "@/app/(app)/[emailAccountId]/settings/DecisionModelSection";
-import { OrgAnalyticsConsentSection } from "@/app/(app)/[emailAccountId]/settings/OrgAnalyticsConsentSection";
-import { ResetAnalyticsSection } from "@/app/(app)/[emailAccountId]/settings/ResetAnalyticsSection";
 import { WebhookSection } from "@/app/(app)/[emailAccountId]/settings/WebhookSection";
 import { CopyRulesSection } from "@/app/(app)/[emailAccountId]/settings/CopyRulesSection";
 import { RuleImportExportSetting } from "@/app/(app)/[emailAccountId]/assistant/settings/RuleImportExportSetting";
@@ -39,22 +30,14 @@ import { LoadingContent } from "@/components/LoadingContent";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Item,
-  ItemCard,
-  ItemContent,
-  ItemSeparator,
-  ItemTitle,
-  ItemActions,
-} from "@/components/ui/item";
+import { ItemCard, ItemSeparator } from "@/components/ui/item";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useMessagingChannels } from "@/hooks/useMessagingChannels";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/hooks/useFeatureAccess";
 import { useUser } from "@/hooks/useUser";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { cn } from "@/utils";
 import { env } from "@/env";
-import { hasOrganizationAdminRole } from "@/utils/organizations/roles";
 
 export function SettingsContent() {
   const { emailAccountId: activeEmailAccountId } = useAccount();
@@ -64,30 +47,6 @@ export function SettingsContent() {
   const [expandedAccountId, setExpandedAccountId] = useState<string | null>(
     null,
   );
-
-  const organizationMembership = user?.members?.find(
-    (member) => member.emailAccountId === activeEmailAccountId,
-  );
-  // No membership means no organization yet — the invite modal then creates one.
-  const canInviteMembers =
-    !!user &&
-    !!activeEmailAccountId &&
-    (!organizationMembership ||
-      hasOrganizationAdminRole(organizationMembership.role));
-
-  const handleSlackConnected = useCallback(
-    (connectedEmailAccountId: string | null) => {
-      setExpandedAccountId(
-        connectedEmailAccountId ?? activeEmailAccountId ?? null,
-      );
-    },
-    [activeEmailAccountId],
-  );
-
-  useSlackNotifications({
-    enabled: true,
-    onSlackConnected: handleSlackConnected,
-  });
 
   const emailAccounts = useMemo(() => {
     const accounts = data?.emailAccounts ?? [];
@@ -100,10 +59,7 @@ export function SettingsContent() {
 
   return (
     <div className="space-y-10">
-      <SettingsGroup
-        icon={<MailIcon className="size-5" />}
-        title="邮箱账户"
-      >
+      <SettingsGroup icon={<MailIcon className="size-5" />} title="邮箱账户">
         <LoadingContent loading={isLoading} error={error}>
           {emailAccounts.length > 0 && (
             <div className="space-y-4">
@@ -132,27 +88,6 @@ export function SettingsContent() {
         </LoadingContent>
       </SettingsGroup>
 
-      {!env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS && canManageBilling && (
-        <SettingsGroup
-          icon={<CreditCardIcon className="size-5" />}
-          title="账单"
-        >
-          <ItemCard>
-            <BillingSection />
-          </ItemCard>
-        </SettingsGroup>
-      )}
-
-      {canInviteMembers && (
-        <SettingsGroup icon={<UsersIcon className="size-5" />} title="团队">
-          <ItemCard>
-            <TeamSection
-              organizationId={organizationMembership?.organizationId}
-            />
-          </ItemCard>
-        </SettingsGroup>
-      )}
-
       {!env.NEXT_PUBLIC_AI_MODEL_SETTINGS_DISABLED && (
         <SettingsGroup
           icon={<SparklesIcon className="size-5" />}
@@ -171,21 +106,10 @@ export function SettingsContent() {
 
       <SettingsGroup icon={<UserIcon className="size-5" />} title="账户">
         <ItemCard>
-          {env.NEXT_PUBLIC_EXTERNAL_API_ENABLED && <McpSection />}
+          {env.NEXT_PUBLIC_EXTERNAL_API_ENABLED && null}
           <EmailOtpSection hasMultipleAccounts={emailAccounts.length > 1} />
           <ItemSeparator />
           <AppearanceSection />
-          <ItemSeparator />
-          <Item size="sm">
-            <ItemContent>
-              <ItemTitle>测试功能</ItemTitle>
-            </ItemContent>
-            <ItemActions>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/early-access">打开</Link>
-              </Button>
-            </ItemActions>
-          </Item>
         </ItemCard>
         <ItemCard>
           <DeleteSection />
@@ -194,10 +118,7 @@ export function SettingsContent() {
 
       {(env.NEXT_PUBLIC_WEBHOOK_ACTION_ENABLED !== false ||
         env.NEXT_PUBLIC_EXTERNAL_API_ENABLED) && (
-        <SettingsGroup
-          icon={<WebhookIcon className="size-5" />}
-          title="开发者"
-        >
+        <SettingsGroup icon={<WebhookIcon className="size-5" />} title="开发者">
           <ItemCard>
             {env.NEXT_PUBLIC_WEBHOOK_ACTION_ENABLED !== false && (
               <WebhookSection />
@@ -294,8 +215,6 @@ function EmailAccountSettingsCard({
 
       {expanded && (
         <>
-          <SentMessageOpenTrackingSetting emailAccountId={emailAccount.id} />
-          <OrgAnalyticsConsentSection emailAccountId={emailAccount.id} />
           <ToggleAllRulesSection emailAccountId={emailAccount.id} />
           <RuleImportExportSetting emailAccountId={emailAccount.id} />
           <CopyRulesSection
@@ -304,7 +223,6 @@ function EmailAccountSettingsCard({
             allAccounts={allAccounts}
           />
           <CleanupDraftsSection emailAccountId={emailAccount.id} />
-          <ResetAnalyticsSection emailAccountId={emailAccount.id} />
         </>
       )}
     </ItemCard>

@@ -85,8 +85,7 @@ function getDemoAnnouncement(): Announcement {
   return {
     id: "follow-up-reminders",
     title: "跟进提醒",
-    description:
-      "跟踪回复，提醒处理尚未答复的邮件。",
+    description: "跟踪回复，提醒处理尚未答复的邮件。",
     image: <FollowUpRemindersIllustration />,
     link: "/automation?tab=settings",
     learnMoreLink: "/#",

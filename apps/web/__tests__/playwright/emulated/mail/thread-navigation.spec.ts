@@ -37,7 +37,7 @@ test("keeps arrow navigation inside the thread and expands from its toolbar", as
       waitUntil: "domcontentloaded",
     },
   );
-  await expectThreadReaderBody(page, "Latest read message stays expanded.");
+  await expectThreadReaderBody(page, "最新的已读邮件保持展开。");
   const threadUrl = page.url();
   const messages = page.locator("li[data-thread-message-id]");
   const selected = page.locator('li[aria-current="true"]');
@@ -68,7 +68,7 @@ test("keeps arrow navigation inside the thread and expands from its toolbar", as
     page.getByRole("button", { name: "展开全部邮件", exact: true }),
   ).toHaveCount(1);
   await expand.click();
-  await expectThreadReaderBody(page, "First collapsed history message.");
+  await expectThreadReaderBody(page, "第一封已折叠的历史邮件。");
   await toolbar
     .getByRole("button", { name: "收起全部邮件", exact: true })
     .click();
@@ -122,7 +122,7 @@ test("navigates messages from inside a rich email body", async ({ page }) => {
   const emailBody = page
     .frameLocator('iframe[title="Email content preview"]')
     .last()
-    .getByText("A rich email body for keyboard navigation.");
+    .getByText("这是一封用于验证键盘导航的富文本邮件。");
   await expect(emailBody).toBeVisible({ timeout: 60_000 });
   const threadUrl = page.url();
   const messages = page.locator("li[data-thread-message-id]");
@@ -135,9 +135,7 @@ test("navigates messages from inside a rich email body", async ({ page }) => {
   await expect(page).toHaveURL(threadUrl);
   await emailBody.click();
   await page.keyboard.press("Enter");
-  await expect(
-    page.getByRole("textbox", { name: "邮件内容" }),
-  ).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "邮件内容" })).toBeVisible();
 });
 
 test("expands a collapsed message before Enter opens a reply", async ({
@@ -171,7 +169,5 @@ test("expands a collapsed message before Enter opens a reply", async ({
   await message.focus();
   await page.keyboard.press("Enter");
   await expect(editor).toBeFocused();
-  await expect(
-    page.getByRole("textbox", { name: "邮件内容" }),
-  ).toHaveCount(1);
+  await expect(page.getByRole("textbox", { name: "邮件内容" })).toHaveCount(1);
 });

@@ -54,7 +54,8 @@ export function DeleteChatDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>删除对话？</AlertDialogTitle>
           <AlertDialogDescription>
-            &ldquo;{label}”将从对话历史中移除，消息内容会被清除。此操作无法撤销。
+            &ldquo;{label}
+            ”将从对话历史中移除，消息内容会被清除。此操作无法撤销。
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -213,10 +213,6 @@ const nextConfig: NextConfig = {
         protocol: "https",
       },
       {
-        hostname: "cdn.sanity.io",
-        protocol: "https",
-      },
-      {
         hostname: "images.getinboxzero.com",
         protocol: "https",
       },
@@ -398,24 +394,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
-    return [
-      {
-        destination: "https://app.posthog.com/:path*",
-        source: "/ingest/:path*",
-      },
-      {
-        destination: "https://api.dub.co/track/:path",
-        source: "/_proxy/dub/track/:path",
-      },
-      {
-        destination: "https://www.dubcdn.com/analytics/script.js",
-        source: "/_proxy/dub/script.js",
-      },
-    ];
-  },
   serverExternalPackages: [
-    "@chat-adapter/teams",
     "@sentry/nextjs",
     "@sentry/node",
     "@vercel/queue",

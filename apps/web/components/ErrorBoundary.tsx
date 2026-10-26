@@ -37,8 +37,7 @@ export class ErrorBoundary extends Component<
     Sentry.captureException(error, { ...errorInfo, extra: this.props.extra });
   }
   render() {
-    if (this.state.hasError)
-      return this.props.fallback ?? <div>发生错误</div>;
+    if (this.state.hasError) return this.props.fallback ?? <div>发生错误</div>;
 
     return this.props.children;
   }

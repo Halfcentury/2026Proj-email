@@ -75,9 +75,7 @@ export function CalendarInvitation({ messageId }: { messageId: string }) {
                   {invitation.organizer}
                 </p>
                 {invitation.recurring && (
-                  <p className="text-sm text-muted-foreground">
-                    重复日历邀请
-                  </p>
+                  <p className="text-sm text-muted-foreground">重复日历邀请</p>
                 )}
               </div>
             </div>

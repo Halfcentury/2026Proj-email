@@ -74,12 +74,8 @@ export function ConfirmationStep({
       <TypographyH3 className="mt-2">准备整理收件箱</TypographyH3>
 
       <ul className="mx-auto mt-4 max-w-prose list-disc space-y-2 pl-4 text-left">
-        <li>
-          将处理 {PREVIEW_RUN_COUNT} 封邮件，作为首轮整理。
-        </li>
-        <li>
-          确认结果符合预期后，可继续处理收件箱中的其余邮件。
-        </li>
+        <li>将处理 {PREVIEW_RUN_COUNT} 封邮件，作为首轮整理。</li>
+        <li>确认结果符合预期后，可继续处理收件箱中的其余邮件。</li>
         {/* TODO: we should count only emails we're processing */}
         {/* <li>
           The full process to handle {unhandledCount} emails will take
@@ -88,13 +84,12 @@ export function ConfirmationStep({
         <li>
           {action === CleanAction.ARCHIVE ? (
             <>
-              归档邮件将添加标签{" "}
-              <Badge color="green">已归档</Badge> （Gmail）。
+              归档邮件将添加标签 <Badge color="green">已归档</Badge> （Gmail）。
             </>
           ) : (
             <>
-              标为已读的邮件将添加标签{" "}
-              <Badge color="green">已读</Badge> （Gmail）。
+              标为已读的邮件将添加标签 <Badge color="green">已读</Badge>{" "}
+              （Gmail）。
             </>
           )}
         </li>

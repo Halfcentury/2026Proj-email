@@ -123,7 +123,7 @@ describe("AssistantInlineEmailResponse", () => {
         "google",
       ),
     );
-    expect(screen.getByText("Archive")).toBeTruthy();
+    expect(screen.getByText("归档")).toBeTruthy();
   });
 
   it("renders inline email detail views", () => {
@@ -269,7 +269,7 @@ describe("AssistantInlineEmailResponse", () => {
 
     expect(screen.getByText("Large messages")).toBeTruthy();
     expect(screen.getByText("size > 10MB")).toBeTruthy();
-    expect(screen.getByText("Archive")).toBeTruthy();
+    expect(screen.getByText("归档")).toBeTruthy();
   });
 
   it.each([
@@ -321,8 +321,8 @@ describe("AssistantInlineEmailResponse", () => {
     expect(
       screen.getByText("mention alerts from monitoring tools"),
     ).toBeTruthy();
-    expect(screen.getByText("Label as 'Monitoring'")).toBeTruthy();
-    expect(screen.getByText("Archive")).toBeTruthy();
+    expect(screen.getByText("添加标签‘Monitoring’")).toBeTruthy();
+    expect(screen.getByText("归档")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: /Approve/i }));
 
@@ -370,8 +370,8 @@ describe("AssistantInlineEmailResponse", () => {
         "emails from noreply@sentry.io regarding infrastructure or load balancer changes",
       ),
     ).toBeTruthy();
-    expect(screen.getAllByText("Label as 'Notification'")).toHaveLength(2);
-    expect(screen.getAllByText("Archive")).toHaveLength(2);
+    expect(screen.getAllByText("添加标签‘Notification’")).toHaveLength(2);
+    expect(screen.getAllByText("归档")).toHaveLength(2);
   });
 
   it("renders free-form rule suggestion actions as plain text", () => {
@@ -386,7 +386,7 @@ describe("AssistantInlineEmailResponse", () => {
     expect(
       screen.getByText("label the email as Monitoring and archive"),
     ).toBeTruthy();
-    expect(screen.queryByText("Label as 'the email as'")).toBeNull();
+    expect(screen.queryByText("添加标签‘the email as’")).toBeNull();
   });
 
   it("renders specific notification destinations in rule suggestions", () => {
@@ -398,7 +398,7 @@ describe("AssistantInlineEmailResponse", () => {
       ),
     );
 
-    expect(screen.getByText("Label as 'Support'")).toBeTruthy();
+    expect(screen.getByText("添加标签‘Support’")).toBeTruthy();
     expect(screen.getByText("Notify on Slack")).toBeTruthy();
     expect(screen.queryByText("Notify on chat app")).toBeNull();
   });
@@ -412,8 +412,8 @@ describe("AssistantInlineEmailResponse", () => {
       ),
     );
 
-    expect(screen.getByText("Draft Reply")).toBeTruthy();
-    expect(screen.getByText("Mark Read")).toBeTruthy();
+    expect(screen.getByText("起草回复")).toBeTruthy();
+    expect(screen.getByText("标为已读")).toBeTruthy();
   });
 });
 

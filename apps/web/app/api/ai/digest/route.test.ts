@@ -40,8 +40,14 @@ vi.mock("@/utils/user/get", () => ({
   getEmailAccountWithAi: mockGetEmailAccountWithAi,
 }));
 
-vi.mock("@/utils/premium/server", () => ({
-  checkHasAccess: mockCheckHasAccess,
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      checkHasAccess: mockCheckHasAccess,
+    },
+  },
 }));
 
 vi.mock("@/utils/digest/summary-limit", () => ({

@@ -1,5 +1,6 @@
 "use client";
 
+import { isProductPathEnabled } from "@/utils/product-scope";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -70,7 +71,7 @@ export function useCommandPaletteCommands({
         keywords: ["mail", "inbox", "email"],
       },
       {
-        name: "智能助手",
+        name: "自动化",
         href: prefixPath(emailAccountId, "/automation"),
         icon: SparklesIcon,
         keywords: ["ai", "assistant", "rules", "auto"],
@@ -130,8 +131,9 @@ export function useCommandPaletteCommands({
         keywords: ["block", "cold", "spam", "filter"],
       },
     ];
-    const navigationCommands: Command[] = navigationItems.map(
-      (item, index) => ({
+    const navigationCommands: Command[] = navigationItems
+      .filter((item) => isProductPathEnabled(item.href))
+      .map((item, index) => ({
         id: `nav-${item.name.toLowerCase().replace(/\s+/g, "-")}`,
         label: `前往 ${item.name}`,
         icon: item.icon,
@@ -139,14 +141,13 @@ export function useCommandPaletteCommands({
         priority: index + 10,
         keywords: [item.name.toLowerCase(), ...item.keywords],
         action: () => router.push(item.href),
-      }),
-    );
+      }));
 
     const settingsCommands: Command[] = [
       {
         id: "settings-assistant",
         label: "助手设置",
-        description: "配置智能助手行为",
+        description: "配置自动化行为",
         icon: SparklesIcon,
         section: "settings",
         priority: 2,
@@ -201,7 +202,9 @@ export function useCommandPaletteCommands({
     return [
       ...navigationCommands,
       ...generalSettingsCommands,
-      ...settingsCommands,
+      ...settingsCommands
+        .filter((command) => command.id !== "settings-organization")
+        .filter((command) => command.id !== "settings-usage"),
       ...ruleCommands,
     ];
   }, [

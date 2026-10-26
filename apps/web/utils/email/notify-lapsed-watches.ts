@@ -5,7 +5,7 @@ import {
   getUserTier,
   hasAiAccess,
   premiumEntitlementSelect,
-} from "@/utils/premium";
+} from "@/utils/feature-access";
 import {
   addUserErrorMessageWithNotification,
   ErrorType,

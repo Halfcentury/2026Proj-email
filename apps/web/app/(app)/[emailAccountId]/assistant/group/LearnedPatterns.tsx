@@ -78,7 +78,8 @@ export function LearnedPatternsDialog({
         <DialogHeader>
           <DialogTitle>已学习的规律</DialogTitle>
           <DialogDescription>
-            AI 从邮件历史中学习规律。匹配该规律时，将直接选择此规则并跳过其他条件。
+            AI
+            从邮件历史中学习规律。匹配该规律时，将直接选择此规则并跳过其他条件。
           </DialogDescription>
         </DialogHeader>
 

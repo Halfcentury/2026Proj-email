@@ -11,7 +11,6 @@ import type {
   MailLayoutMode,
 } from "@/app/(app)/[emailAccountId]/mail/types";
 import { EmailDate } from "@/components/email-list/EmailDate";
-import { SentMessageOpenStatus } from "@/components/email-list/SentMessageOpenStatus";
 import { getEmailThreadLabels } from "@/components/EmailMessageCellLabels";
 import { Tooltip } from "@/components/Tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -104,9 +103,7 @@ export const ThreadRow = memo(function ThreadRow({
       compact={compact}
       date={
         <div className="flex items-center justify-end gap-1.5">
-          {sentMessageOpen ? (
-            <SentMessageOpenStatus compact open={sentMessageOpen} />
-          ) : null}
+          {sentMessageOpen ? null : null}
           <EmailDate
             className="font-normal text-xs"
             date={internalDateToDate(message.internalDate)}

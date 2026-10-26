@@ -229,8 +229,7 @@ export function ConditionSteps({
 
                 if (uniqueUITypes.size !== configuredTypes.length) {
                   toastError({
-                    description:
-                      "每种类型只能添加一个条件。",
+                    description: "每种类型只能添加一个条件。",
                   });
                   return;
                 }

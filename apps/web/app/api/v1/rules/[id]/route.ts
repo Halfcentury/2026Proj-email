@@ -8,7 +8,7 @@ import {
   rulePathParamsSchema,
   ruleRequestBodySchema,
 } from "@/app/api/v1/rules/validation";
-import { assertCanUseDigestsIfNeeded } from "@/utils/premium/server";
+import { assertCanUseDigestsIfNeeded } from "@/utils/feature-access";
 import {
   createPublicApiMethodNotAllowedHandler,
   publicApiErrorResponse,

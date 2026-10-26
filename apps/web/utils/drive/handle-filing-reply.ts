@@ -1,3 +1,4 @@
+import { confirmPendingFiling } from "@/utils/drive/filing-engine";
 import prisma from "@/utils/prisma";
 import type { ParsedMessage } from "@/utils/types";
 import type { EmailProvider } from "@/utils/email/types";
@@ -117,6 +118,7 @@ export async function processFilingReply({
     try {
       const actionSucceeded = await applyFilingReplyAction({
         action,
+        emailProvider,
         emailAccountId,
         filing,
         logger: filingLogger,
@@ -378,18 +380,27 @@ async function findNotificationAnchor({
 
 async function applyFilingReplyAction({
   action,
+  emailProvider,
   emailAccountId,
   filing,
   logger,
 }: {
   action: ParseFilingReplyResult["actions"][number];
+  emailProvider: EmailProvider;
   emailAccountId: string;
   filing: Awaited<ReturnType<typeof findFilingsFromThread>>[number];
   logger: Logger;
 }): Promise<boolean> {
   switch (action.action) {
     case "approve":
-      await handleApprove(filing.id);
+      if (filing.status === "PENDING")
+        await confirmPendingFiling({
+          emailAccountId,
+          filingId: filing.id,
+          emailProvider,
+          logger,
+        });
+      else await handleApprove(filing.id);
       return true;
     case "undo":
       return handleUndo({

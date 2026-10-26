@@ -1,57 +1,39 @@
 "use client";
-
 import { useAction } from "next-safe-action/hooks";
+import { SettingCard } from "@/components/SettingCard";
+import { Switch } from "@/components/ui/switch";
 import { toastError, toastSuccess } from "@/components/Toast";
-import { DeliveryChannelsSetting as SharedDeliveryChannelsSetting } from "@/components/messaging/DeliveryChannelsSetting";
 import { useMeetingBriefSettings } from "@/hooks/useMeetingBriefs";
 import { useAccount } from "@/providers/EmailAccountProvider";
-import { MessagingRoutePurpose } from "@/generated/prisma/enums";
-import { updateMeetingBriefsEmailDeliveryAction } from "@/utils/actions/messaging-channels";
+import { updateMeetingBriefsEmailDeliveryAction } from "@/utils/actions/email-delivery";
 import { getActionErrorMessage } from "@/utils/error";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
-
 export function DeliveryChannelsSetting() {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics("meeting_briefs");
-  const {
-    data: briefSettings,
-    isLoading: isLoadingBriefSettings,
-    mutate: mutateBriefSettings,
-  } = useMeetingBriefSettings();
-
-  const { execute: executeEmailDelivery } = useAction(
+  const { data, isLoading, mutate } = useMeetingBriefSettings();
+  const { execute, isPending } = useAction(
     updateMeetingBriefsEmailDeliveryAction.bind(null, emailAccountId),
     {
-      onSuccess: () => {
-        analytics.captureAction("meeting_briefs_email_delivery_saved");
+      onSuccess() {
         toastSuccess({ description: "设置已保存" });
-        mutateBriefSettings();
+        mutate();
       },
-      onError: (error) => {
-        toastError({
-          description: getActionErrorMessage(error.error) ?? "Failed to update",
-        });
+      onError({ error }) {
+        toastError({ description: getActionErrorMessage(error) ?? "保存失败" });
       },
     },
   );
-
   return (
-    <SharedDeliveryChannelsSetting
-      title="接收渠道"
-      description="选择会前简报的接收位置"
-      purpose={MessagingRoutePurpose.MEETING_BRIEFS}
-      featureLabel="meeting briefs"
-      email={{
-        enabled: briefSettings?.meetingBriefsSendEmail ?? true,
-        isLoading: isLoadingBriefSettings,
-        onChange: (sendEmail) => {
-          analytics.captureAction("meeting_briefs_email_delivery_toggled", {
-            enabled: sendEmail,
-          });
-          executeEmailDelivery({ sendEmail });
-        },
-      }}
-      connectSlackCta="Want to receive briefs in Slack?"
+    <SettingCard
+      title="邮件通知"
+      description="通过邮件接收会前简报"
+      right={
+        <Switch
+          aria-label="通过邮件接收会前简报"
+          checked={data?.meetingBriefsSendEmail ?? true}
+          disabled={isLoading || isPending}
+          onCheckedChange={(sendEmail) => execute({ sendEmail })}
+        />
+      }
     />
   );
 }

@@ -33,6 +33,7 @@ const schema = z.object({
 
 export type CalendarAvailabilityContext = z.infer<typeof schema> & {
   timezone?: string | null;
+  queriedRanges?: { start: string; end: string; observedAt: string }[];
 };
 
 type BusyPeriod = { start: string | Date; end: string | Date };
@@ -48,6 +49,7 @@ export async function aiGetCalendarAvailability({
   bookingLinkAvailable = false,
   minimumNoticeMinutes = DEFAULT_MINIMUM_NOTICE_MINUTES,
   currentDate = new Date(),
+  onError,
 }: {
   emailAccount: EmailAccountWithAI;
   messages: EmailForLLM[];
@@ -55,6 +57,7 @@ export async function aiGetCalendarAvailability({
   bookingLinkAvailable?: boolean;
   minimumNoticeMinutes?: number;
   currentDate?: Date;
+  onError?: () => void;
 }): Promise<CalendarAvailabilityContext | null> {
   if (!messages?.length) {
     logger.warn("No messages provided for calendar availability check");
@@ -163,6 +166,9 @@ ${threadContent}
 
   let result: CalendarAvailabilityContext | null = null;
   let lastBusyPeriods: BusyPeriod[] = [];
+  const queriedRanges: { start: string; end: string; observedAt: string }[] =
+    [];
+  let queryFailed = false;
   let lastAvailabilityWindows: AvailabilityWindow[] | null = null;
 
   await generateText({
@@ -192,11 +198,22 @@ ${threadContent}
           const endDate = new Date(timeMax);
 
           try {
+            if (
+              !calendarConnections.some(
+                (connection) => connection.calendars.length,
+              ) ||
+              !Number.isFinite(startDate.getTime()) ||
+              !Number.isFinite(endDate.getTime()) ||
+              endDate <= startDate ||
+              endDate.getTime() - startDate.getTime() > 93 * 86_400_000
+            )
+              throw new Error("Calendar unavailable or invalid range");
             const busyPeriods = await getUnifiedCalendarAvailability({
               emailAccountId: emailAccount.id,
               startDate,
               endDate,
               timezone: userTimezone,
+              failClosed: true,
               logger,
             });
 
@@ -204,6 +221,11 @@ ${threadContent}
               busyPeriods,
             });
 
+            queriedRanges.push({
+              start: startDate.toISOString(),
+              end: endDate.toISOString(),
+              observedAt: new Date().toISOString(),
+            });
             lastBusyPeriods = busyPeriods;
             lastAvailabilityWindows = defaultAvailabilitySchedule
               ? expandWeeklyAvailability({
@@ -234,7 +256,12 @@ ${threadContent}
               : { busyPeriods };
           } catch (error) {
             logger.error("Error checking calendar availability", { error });
-            return { busyPeriods: [] };
+            queryFailed = true;
+            onError?.();
+            return {
+              error:
+                "Calendar query failed. Availability is unknown; do not propose times or claim the calendar is free.",
+            };
           }
         },
       }),
@@ -242,21 +269,39 @@ ${threadContent}
         description: "Return suggested times for a meeting",
         inputSchema: schema,
         execute: async (data) => {
-          const suggestedTimes = data.suggestedTimes.filter((slot) =>
-            isAllowedSuggestedSlot({
-              slot,
-              timezone: userTimezone,
-              busyPeriods: lastBusyPeriods,
-              availabilityWindows: lastAvailabilityWindows,
-              currentDate,
-              minimumNoticeMinutes: effectiveMinimumNoticeMinutes,
-            }),
+          if (queryFailed || !queriedRanges.length) {
+            result = null;
+            return {
+              error: "No verified calendar query. Availability is unknown.",
+            };
+          }
+          const latestRange = queriedRanges.at(-1)!;
+          const suggestedTimes = data.suggestedTimes.filter(
+            (slot) =>
+              (parseModelLocalTime(slot.start, userTimezone)?.getTime() ??
+                Number.NaN) >= new Date(latestRange.start).getTime() &&
+              (parseModelLocalTime(slot.end, userTimezone)?.getTime() ??
+                Number.NaN) <= new Date(latestRange.end).getTime() &&
+              isAllowedSuggestedSlot({
+                slot,
+                timezone: userTimezone,
+                busyPeriods: lastBusyPeriods,
+                availabilityWindows: lastAvailabilityWindows,
+                currentDate,
+                minimumNoticeMinutes: effectiveMinimumNoticeMinutes,
+              }),
           );
 
           result = {
             ...data,
             suggestedTimes,
             timezone: userTimezone,
+            queriedRanges,
+            noAvailability:
+              data.noAvailability &&
+              !suggestedTimes.length &&
+              (lastAvailabilityWindows?.length === 0 ||
+                rangeFullyBusy(latestRange, lastBusyPeriods)),
           };
         },
       }),
@@ -363,4 +408,21 @@ function getUserTimezone(
 
   // Last resort: UTC
   return "UTC";
+}
+
+function rangeFullyBusy(
+  range: { start: string; end: string },
+  periods: BusyPeriod[],
+) {
+  let cursor = new Date(range.start).getTime();
+  const end = new Date(range.end).getTime();
+  for (const period of [...periods].sort(
+    (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+  )) {
+    const start = new Date(period.start).getTime();
+    if (start > cursor) return false;
+    cursor = Math.max(cursor, new Date(period.end).getTime());
+    if (cursor >= end) return true;
+  }
+  return false;
 }

@@ -8,7 +8,7 @@ import { SafeError } from "@/utils/error";
 import prisma from "@/utils/prisma";
 import type { Logger } from "@/utils/logger";
 import { isDuplicateError } from "@/utils/prisma-helpers";
-import { sendHtmlEmailWithOpenTracking } from "@/utils/email/sent-message-open/sent-message-open.server";
+import { sendHtmlEmail } from "@/utils/email/send-html";
 import type { DurableEmailSendBody } from "./durable-email-send.validation";
 
 const PROCESSING_LEASE_MS = 2 * 60 * 1000;
@@ -81,7 +81,7 @@ export async function executeDurableEmailSend({
   try {
     const emailProvider = await getEmailProvider();
     stage = "send";
-    const result = await sendHtmlEmailWithOpenTracking({
+    const result = await sendHtmlEmail({
       emailAccountId,
       threadId: input.threadId,
       email: input.email,

@@ -43,11 +43,17 @@ vi.mock("@/utils/log-error-with-dedupe", () => ({
   logErrorWithDedupe: vi.fn(),
 }));
 
-vi.mock("@/utils/premium", () => ({
-  getPremiumUserFilter: vi.fn(() => ({})),
-  getUserTier: vi.fn(() => "PRO"),
-  hasAiAccess: vi.fn(() => true),
-  premiumEntitlementSelect: {},
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      getPremiumUserFilter: vi.fn(() => ({})),
+      getUserTier: vi.fn(() => "PRO"),
+      hasAiAccess: vi.fn(() => true),
+      premiumEntitlementSelect: {},
+    },
+  },
 }));
 
 const logger = createTestLogger();

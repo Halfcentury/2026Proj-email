@@ -208,7 +208,7 @@ async function seedBulkArchiveData(client: Client, emailAccountId: string) {
     `INSERT INTO "Newsletter" (id, "createdAt", "updatedAt", email, name, "emailAccountId", "categoryId")
      VALUES
        ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $2, 'Cleanup Newsletter', $5, $6),
-       ($3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $4, 'Cleanup Keep', $5, $6)
+       ($3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $4, '保留测试发件人', $5, $6)
      ON CONFLICT (email, "emailAccountId") DO UPDATE
      SET name = EXCLUDED.name, "categoryId" = EXCLUDED."categoryId", "updatedAt" = CURRENT_TIMESTAMP`,
     [

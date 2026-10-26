@@ -212,31 +212,31 @@ async function seedRecordedMeeting(
 ) {
   const transcript = [
     {
-      speakerName: "Alex",
+      speakerName: "亚历克斯",
       startTime: 0,
       endTime: 8,
-      text: "We will ship the onboarding improvements on Friday.",
+      text: "我们将在周五发布入门流程改进。",
       isHost: true,
     },
     {
-      speakerName: "Jordan",
+      speakerName: "乔丹",
       startTime: 9,
       endTime: 16,
-      text: "I will prepare the customer announcement.",
+      text: "我来准备客户公告。",
       isHost: false,
     },
   ];
   const summary = {
-    overview: "The team finalized the launch plan for onboarding improvements.",
-    keyDecisions: ["Release the onboarding improvements on Friday."],
+    overview: "团队确定了入门流程改进的发布计划。",
+    keyDecisions: ["周五发布入门流程改进。"],
     actionItems: [
       {
-        description: "Prepare the customer announcement.",
-        owner: "Jordan",
+        description: "准备客户公告。",
+        owner: "乔丹",
       },
     ],
     openQuestions: [],
-    nextSteps: ["Review the release checklist tomorrow."],
+    nextSteps: ["明天检查发布清单。"],
   };
 
   await client.query(
@@ -263,7 +263,7 @@ async function seedRecordedMeeting(
      )
      VALUES (
        $1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-       'evt_playwright_recorded_meeting', 'Recorded product review',
+       'evt_playwright_recorded_meeting', '产品复盘会议记录',
        CURRENT_TIMESTAMP - INTERVAL '2 hours',
        CURRENT_TIMESTAMP - INTERVAL '1 hour',
        $2::jsonb, 'playwright-host@example.com', true,
@@ -273,8 +273,8 @@ async function seedRecordedMeeting(
     [
       fixture.recordedMeetingId,
       JSON.stringify([
-        { email: "playwright-host@example.com", name: "Alex" },
-        { email: "external-attendee@example.com", name: "Jordan" },
+        { email: "playwright-host@example.com", name: "亚历克斯" },
+        { email: "external-attendee@example.com", name: "乔丹" },
       ]),
       JSON.stringify(summary),
       fixture.recordingId,

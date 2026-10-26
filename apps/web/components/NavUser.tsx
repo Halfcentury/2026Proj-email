@@ -3,17 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  BellIcon,
   CircleHelpIcon,
   ChevronsUpDownIcon,
-  LightbulbIcon,
   ShieldCheckIcon,
   LogOutIcon,
-  Building2Icon,
-  CrownIcon,
-  GiftIcon,
-  GlobeIcon,
-  MessagesSquareIcon,
   SettingsIcon,
 } from "lucide-react";
 import {
@@ -31,10 +24,7 @@ import { logOut } from "@/utils/user";
 import { isGoogleProvider } from "@/utils/email/provider-types";
 import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { EXTENSION_URL } from "@/utils/config";
-import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
-import { env } from "@/env";
-import { Referrals } from "@/components/ReferralDialog";
+import { useCurrentOrganization } from "@/hooks/useAccountScope";
 import { useSettingsDialog } from "@/hooks/useSettingsDialog";
 
 export function NavUser() {
@@ -75,7 +65,7 @@ export function NavUser() {
                     {emailAccount.name || emailAccount.email}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {organizationName || emailAccount.email}
+                    {emailAccount.email}
                   </span>
                 </div>
                 <ChevronsUpDownIcon className="ml-auto size-4" />
@@ -99,62 +89,6 @@ export function NavUser() {
               <SettingsIcon className="mr-2 size-4" />
               设置
             </DropdownMenuItem>
-            {!hasOrganization && (
-              <DropdownMenuItem asChild>
-                <Link
-                  href={prefixPath(
-                    currentEmailAccountId,
-                    "/organization/create",
-                  )}
-                  onClick={() => closeMobileSidebar("left-sidebar")}
-                >
-                  <Building2Icon className="mr-2 size-4" />
-                  创建组织
-                </Link>
-              </DropdownMenuItem>
-            )}
-            {hasOrganization && (
-              <DropdownMenuItem asChild>
-                <Link
-                  href={prefixPath(currentEmailAccountId, "/organization")}
-                  onClick={() => closeMobileSidebar("left-sidebar")}
-                >
-                  <Building2Icon className="mr-2 size-4" />
-                  我的组织
-                </Link>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem asChild>
-              <Link
-                href="/shared"
-                onClick={() => closeMobileSidebar("left-sidebar")}
-              >
-                <MessagesSquareIcon className="mr-2 size-4" />
-                与我共享
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/shared/activity"
-                onClick={() => closeMobileSidebar("left-sidebar")}
-              >
-                <BellIcon className="mr-2 size-4" />
-                动态
-              </Link>
-            </DropdownMenuItem>
-            {isGoogleProvider(provider) && (
-              <DropdownMenuItem asChild>
-                <Link
-                  href={EXTENSION_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => closeMobileSidebar("left-sidebar")}
-                >
-                  <GlobeIcon className="mr-2 size-4" />
-                  安装扩展
-                </Link>
-              </DropdownMenuItem>
-            )}
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
@@ -179,17 +113,6 @@ export function NavUser() {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            {!env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS && (
-              <DropdownMenuItem asChild>
-                <Link
-                  href="/premium"
-                  onClick={() => closeMobileSidebar("left-sidebar")}
-                >
-                  <CrownIcon className="mr-2 size-4" />
-                  高级版
-                </Link>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuItem asChild>
               <Link
                 href="https://docs.getinboxzero.com"
@@ -201,28 +124,6 @@ export function NavUser() {
                 帮助中心
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/feature-requests"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => closeMobileSidebar("left-sidebar")}
-              >
-                <LightbulbIcon className="mr-2 size-4" />
-                功能建议
-              </Link>
-            </DropdownMenuItem>
-            {!env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS && (
-              <DropdownMenuItem
-                onSelect={() => {
-                  closeMobileSidebar("left-sidebar");
-                  setIsReferralDialogOpen(true);
-                }}
-              >
-                <GiftIcon className="mr-2 size-4" />
-                推荐给朋友
-              </DropdownMenuItem>
-            )}
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
@@ -243,7 +144,7 @@ export function NavUser() {
         onOpenChange={setIsReferralDialogOpen}
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
-          <Referrals source="account_menu" />
+          {null}
         </DialogContent>
       </Dialog>
     </>

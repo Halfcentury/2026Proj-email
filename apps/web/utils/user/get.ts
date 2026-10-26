@@ -2,7 +2,6 @@ import prisma from "@/utils/prisma";
 import type { EmailAccountWithAI } from "@/utils/llms/types";
 import type { Prisma } from "@/generated/prisma/client";
 import type { DraftReplyConfidence } from "@/generated/prisma/enums";
-import { env } from "@/env";
 
 export type EmailAccountWithAIAndTokens = Prisma.EmailAccountGetPayload<{
   select: {
@@ -155,17 +154,8 @@ export async function getEmailAccountWithAiAndTokens({
   };
 }
 
-export async function getUserPremium({ userId }: { userId: string }) {
-  if (env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS) {
-    return { lemonSqueezyRenewsAt: null, stripeSubscriptionStatus: "active" };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { premium: true },
-  });
-
-  return user?.premium || null;
+export async function getUserPremium({ userId: _userId }: { userId: string }) {
+  return { lemonSqueezyRenewsAt: null, stripeSubscriptionStatus: "active" };
 }
 
 export async function getWritingStyle({

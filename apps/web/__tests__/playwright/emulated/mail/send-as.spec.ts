@@ -213,10 +213,10 @@ async function gmail(
 
 async function insertMailToAlias(page: Page, subject: string) {
   const message = (await gmail(page, "POST", "messages", {
-    from: "Erin Example <erin@example.com>",
+    from: "艾琳 <erin@example.com>",
     to: `${ALIAS.name} <${ALIAS.email}>`,
     subject,
-    body_text: "Could you help me with my account?",
+    body_text: "请协助处理我的账户问题。",
     labelIds: ["INBOX", "UNREAD"],
     internalDate: String(Date.now()),
   })) as { threadId: string };

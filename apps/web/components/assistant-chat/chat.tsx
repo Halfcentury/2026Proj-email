@@ -32,7 +32,6 @@ import { useSession } from "@/utils/auth-client";
 import type { UseChatHelpers } from "@ai-sdk/react";
 import type { ChatMessage } from "@/components/assistant-chat/types";
 import type { MessageContext } from "@/utils/ai/assistant/chat-context-validation";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { ChatHistoryItem } from "@/components/assistant-chat/ChatHistoryItem";
 import {
   type ChatHistoryEntry,
@@ -60,7 +59,6 @@ export function Chat({
   open: boolean;
   onClose?: () => void;
 }) {
-  const analytics = useProductAnalytics("assistant_chat");
   const {
     chat,
     chatId,
@@ -136,15 +134,10 @@ export function Chat({
       const results = await Promise.all(filesToProcess.map(readFileAsDataUrl));
       const valid = results.filter((a): a is Attachment => a !== undefined);
 
-      analytics.captureAction("chat_attachments_added", {
-        requested_file_count: files.length,
-        accepted_file_count: valid.length,
-        existing_attachment_count: attachments.length,
-      });
       setAttachments((prev) => [...prev, ...valid]);
       setUploadQueue([]);
     },
-    [analytics, attachments.length, readFileAsDataUrl, setAttachments],
+    [attachments.length, readFileAsDataUrl, setAttachments],
   );
 
   const handleFileChange = useCallback(
@@ -190,12 +183,6 @@ export function Chat({
       onSubmit={(e) => {
         e.preventDefault();
         if (hasContent && (status === "ready" || status === "error")) {
-          analytics.captureAction("chat_message_submitted", {
-            has_text: input.trim().length > 0,
-            attachment_count: attachments.length,
-            has_context: Boolean(context),
-            message_count: messages.length,
-          });
           handleSubmit();
         }
       }}
@@ -250,13 +237,6 @@ export function Chat({
             setInput(input.trim() ? `${input.trim()} ${text}` : text);
           }}
           onSend={(text) => {
-            analytics.captureAction("chat_message_submitted", {
-              has_text: true,
-              attachment_count: attachments.length,
-              has_context: Boolean(context),
-              message_count: messages.length,
-              via_voice: true,
-            });
             submitTextMessage(text).catch(() => undefined);
           }}
         />
@@ -268,9 +248,6 @@ export function Chat({
             aria-label="添加图片"
             className="size-9 rounded-full"
             onClick={() => {
-              analytics.captureAction("chat_attach_button_clicked", {
-                attachment_count: attachments.length,
-              });
               fileInputRef.current?.click();
             }}
             disabled={attachments.length >= MAX_FILES}
@@ -292,9 +269,6 @@ export function Chat({
           }
           onClick={(e) => {
             if (status === "streaming" || status === "submitted") {
-              analytics.captureAction("chat_generation_stopped", {
-                status,
-              });
               e.preventDefault();
               stop();
               setMessages((messages) => messages);
@@ -333,9 +307,6 @@ export function Chat({
           firstName={firstName}
           inputArea={inputArea}
           onSuggestionClick={(text) => {
-            analytics.captureAction("chat_suggestion_clicked", {
-              suggestion_index: CHAT_EXAMPLES.indexOf(text),
-            });
             chat.sendMessage({
               role: "user",
               parts: [{ type: "text", text }],
@@ -408,9 +379,9 @@ function ChatMessagesView({
 }
 
 const CHAT_EXAMPLES = [
-  "Help me handle my inbox today",
-  "Clean up my inbox",
-  "Suggest rules I should add",
+  "帮我处理今天的收件箱",
+  "整理我的收件箱",
+  "推荐我可以添加的规则",
 ];
 
 function NewChatView({
@@ -422,11 +393,16 @@ function NewChatView({
   inputArea: React.ReactNode;
   onSuggestionClick: (text: string) => void;
 }) {
+  const [localHour, setLocalHour] = useState<number>();
+  useEffect(() => {
+    setLocalHour(new Date().getHours());
+  }, []);
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-[var(--chat-px)]">
       <div className="w-full max-w-[var(--chat-max-w)]">
         <h1 className="mb-6 text-center text-2xl sm:text-3xl md:text-4xl font-extralight tracking-tight">
-          {getGreeting(firstName)}
+          {getGreeting(firstName, localHour)}
         </h1>
         {inputArea}
         <div className="mt-3 flex flex-wrap justify-center gap-2">
@@ -568,9 +544,7 @@ function ChatHistoryDropdown() {
                 />
               ))
             ) : (
-              <DropdownMenuItem disabled>
-                暂无历史对话
-              </DropdownMenuItem>
+              <DropdownMenuItem disabled>暂无历史对话</DropdownMenuItem>
             )}
           </LoadingContent>
         </DropdownMenuContent>
@@ -602,10 +576,9 @@ function ChatHistoryDropdown() {
   );
 }
 
-function getGreeting(firstName: string | undefined): string {
-  const hour = new Date().getHours();
-  const name = firstName ? `, ${firstName}` : "";
-  if (hour < 5) return `你好${name}`;
+function getGreeting(firstName: string | undefined, hour?: number): string {
+  const name = firstName ? `，${firstName}` : "";
+  if (hour === undefined || hour < 5) return `你好${name}`;
   if (hour < 12) return `早上好${name}`;
   if (hour < 18) return `下午好${name}`;
   return `晚上好${name}`;

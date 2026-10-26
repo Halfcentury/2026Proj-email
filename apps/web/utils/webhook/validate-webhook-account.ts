@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { env } from "@/env";
 import {
   getUserTier,
   hasAiAccess,
-  isPremiumRecord,
   premiumEntitlementSelect,
-} from "@/utils/premium";
+} from "@/utils/feature-access";
 import { unwatchEmails } from "@/utils/email/watch-manager";
 import { createEmailProvider } from "@/utils/email/provider";
 import {
@@ -295,20 +293,16 @@ export async function validateWebhookAccount(
 function getWebhookAccountPremium(
   emailAccount: NonNullable<ValidatedWebhookAccountData>,
 ) {
-  return env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS
-    ? {
-        tier: "PROFESSIONAL_ANNUALLY" as const,
-        stripeSubscriptionStatus: "active",
-        lemonSqueezyRenewsAt: null,
-        appleSubscriptionStatus: null,
-        appleExpiresAt: null,
-        appleRevokedAt: null,
-        adminGrantExpiresAt: null,
-        adminGrantTier: null,
-      }
-    : isPremiumRecord(emailAccount.user.premium)
-      ? emailAccount.user.premium
-      : undefined;
+  return {
+    tier: "PROFESSIONAL_ANNUALLY" as const,
+    stripeSubscriptionStatus: "active",
+    lemonSqueezyRenewsAt: null,
+    appleSubscriptionStatus: null,
+    appleExpiresAt: null,
+    appleRevokedAt: null,
+    adminGrantExpiresAt: null,
+    adminGrantTier: null,
+  };
 }
 
 async function createEmailProviderForWebhookCleanup({

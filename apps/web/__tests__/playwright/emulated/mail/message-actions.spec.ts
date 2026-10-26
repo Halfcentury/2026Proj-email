@@ -22,7 +22,7 @@ test("shows matched reasons only for the selected message", async ({
       waitUntil: "domcontentloaded",
     });
     await expect(
-      page.getByRole("heading", { name: "Matched Reason Message" }),
+      page.getByRole("heading", { name: "规则匹配依据测试邮件" }),
     ).toBeVisible({ timeout: 60_000 });
     const expand = page.getByRole("button", {
       name: "展开全部邮件",
@@ -72,10 +72,9 @@ test("shows matched reasons only for the selected message", async ({
         page.getByText("Draft Reply", { exact: true }),
       ).toBeVisible();
       await expect(
-        page.getByText(
-          id === EARLIER_MESSAGE_ID ? "已应用操作" : "规则操作",
-          { exact: true },
-        ),
+        page.getByText(id === EARLIER_MESSAGE_ID ? "已应用操作" : "规则操作", {
+          exact: true,
+        }),
       ).toBeVisible();
       if (id === LATER_MESSAGE_ID) {
         await expect(

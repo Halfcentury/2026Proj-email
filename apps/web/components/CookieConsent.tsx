@@ -20,11 +20,10 @@ export function CookieConsentBanner() {
       className="fixed inset-x-3 bottom-3 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-sm"
     >
       <div className="rounded-xl border bg-background p-4 shadow-lg">
-        <p className="text-sm font-medium text-foreground">
-          尊重你的隐私
-        </p>
+        <p className="text-sm font-medium text-foreground">尊重你的隐私</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          我们使用 Cookie 了解使用情况，产品： {BRAND_NAME} ，并评估推广效果。你可以随时修改选择。{" "}
+          我们使用 Cookie 了解使用情况，产品： {BRAND_NAME}{" "}
+          ，并评估推广效果。你可以随时修改选择。{" "}
           <Link
             href="/privacy"
             className="underline underline-offset-4 hover:text-foreground"

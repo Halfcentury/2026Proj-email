@@ -16,7 +16,7 @@ import {
   type ShortcutScope,
 } from "@/lib/shortcuts/registry";
 import { shortcutsDialogOpenAtom } from "@/store/command-palette";
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
+import { getInboxZeroDesktopApp } from "@/utils/browser-platform";
 
 const SCOPES: readonly ShortcutScope[] = ["global", "mail"];
 
@@ -38,9 +38,7 @@ export function ShortcutsDialog() {
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>键盘快捷键</DialogTitle>
-          <DialogDescription>
-            这里的操作都可通过键盘完成。
-          </DialogDescription>
+          <DialogDescription>这里的操作都可通过键盘完成。</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 sm:grid-cols-2">

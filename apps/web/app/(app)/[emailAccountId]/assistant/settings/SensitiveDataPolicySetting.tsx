@@ -97,10 +97,7 @@ export function SensitiveDataPolicySetting() {
             onValueChange={handlePolicyChange}
             disabled={isExecuting || !data}
           >
-            <SelectTrigger
-              aria-label="敏感数据保护"
-              className="w-full md:w-56"
-            >
+            <SelectTrigger aria-label="敏感数据保护" className="w-full md:w-56">
               <SelectValue>{getPolicyLabel(policy)}</SelectValue>
             </SelectTrigger>
             <SelectContent align="end" className="w-72">

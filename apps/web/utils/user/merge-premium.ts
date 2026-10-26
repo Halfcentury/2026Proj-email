@@ -1,7 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import prisma from "@/utils/prisma";
 import type { Logger } from "@/utils/logger";
-import { isOnHigherTier } from "@/utils/premium";
+import { isOnHigherTier } from "@/utils/feature-access";
 
 /**
  * Prepare premium mutations to execute atomically with the account merge

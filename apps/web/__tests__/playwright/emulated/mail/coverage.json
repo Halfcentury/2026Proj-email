@@ -14,22 +14,6 @@
     "app/api/mail/v1/accounts/[accountId]/assistant-state/route.ts",
     "utils/mail-engine/MailEngineHost.tsx"
   ],
-  "hosted-electron-send.spec.ts": [
-    "utils/mail-engine/MailEngineHost.tsx",
-    "utils/mail-engine/desktop-ipc.ts",
-    "app/(app)/[emailAccountId]/compose/ComposeEmailForm.tsx",
-    "app/(app)/[emailAccountId]/compose/undo-send.ts"
-  ],
-  "hosted-electron-archive.spec.ts": [
-    "utils/mail-engine/MailEngineHost.tsx",
-    "utils/mail-engine/desktop-ipc.ts",
-    "utils/mail-engine/runtime-mode.ts",
-    "utils/mail-engine/MailEngineConnectionBanner.tsx",
-    "app/(app)/[emailAccountId]/compose/ComposeEmailForm.tsx",
-    "app/(app)/[emailAccountId]/mail/ThreadActionsMenu.tsx",
-    "utils/mail-api/assistant-state.ts",
-    "app/api/mail/v1/accounts/[accountId]/assistant-state/route.ts"
-  ],
   "attachment-previews.spec.ts": ["components/email-list/EmailAttachments.tsx"],
   "cached-settings.spec.ts": ["hooks/useMailSettings.ts"],
   "calendar-invitation.spec.ts": [
@@ -88,13 +72,6 @@
   "layout.spec.ts": [
     "app/(app)/[emailAccountId]/mail/ThreadList.tsx",
     "app/(app)/[emailAccountId]/mail/ReaderToolbar.tsx"
-  ],
-  "mail-engine-inspect.spec.ts": [
-    "utils/mail-engine/MailEngineHost.tsx",
-    "utils/mail-engine/MailEngineConnectionBanner.tsx",
-    "utils/mail-engine/connection-notice.ts",
-    "utils/mail-engine/coverage.ts",
-    "app/(app)/[emailAccountId]/mail/use-engine-mail-threads.ts"
   ],
   "mail-queue.spec.ts": [
     "app/(app)/[emailAccountId]/debug/mail-queue/page.tsx",
@@ -165,16 +142,6 @@
     "app/(app)/[emailAccountId]/mail/use-thread-actions.ts",
     "components/CommandK.tsx",
     "lib/shortcuts/registry.ts"
-  ],
-  "team-comments-access.spec.ts": [
-    "utils/team-comments/access.ts",
-    "utils/team-comments/conversations.ts",
-    "components/team-comments/ConversationDiscussion.tsx"
-  ],
-  "team-comments.spec.ts": [
-    "components/team-comments/PublisherDiscussion.tsx",
-    "components/team-comments/ConversationDiscussion.tsx",
-    "app/(app)/shared/[conversationId]/SharedConversationReader.tsx"
   ],
   "theme.spec.ts": ["components/CommandK.tsx", "components/theme-provider.tsx"],
   "thread-navigation.spec.ts": [

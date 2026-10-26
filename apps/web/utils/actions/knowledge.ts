@@ -13,7 +13,7 @@ import {
   KNOWLEDGE_BASIC_MAX_CHARS,
 } from "@/utils/config";
 import { PremiumTier } from "@/generated/prisma/enums";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 
 export const createKnowledgeAction = actionClient
   .metadata({ name: "createKnowledge" })

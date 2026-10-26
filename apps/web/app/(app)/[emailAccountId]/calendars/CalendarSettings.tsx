@@ -13,11 +13,10 @@ import { useAction } from "next-safe-action/hooks";
 import { updateEmailAccountTimezoneAction } from "@/utils/actions/calendar";
 import { getSupportedTimezonesWithOffsets } from "@/utils/timezone";
 import { isValidTimeZone } from "@inboxzero/scheduling";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 export function CalendarSettings() {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics("calendars");
+
   const { data, isLoading, error, mutate } = useCalendars();
   const timezone = data?.timezone || null;
 
@@ -48,9 +47,6 @@ export function CalendarSettings() {
   const { execute: executeUpdateTimezone, isExecuting: isUpdatingTimezone } =
     useAction(updateEmailAccountTimezoneAction.bind(null, emailAccountId), {
       onSuccess: async () => {
-        analytics.captureAction("calendar_timezone_saved", {
-          had_existing_timezone: Boolean(timezone),
-        });
         toastSuccess({ description: "时区已更新！" });
         try {
           await mutate();
@@ -61,9 +57,6 @@ export function CalendarSettings() {
     });
 
   const handleSaveTimezone = () => {
-    analytics.captureAction("calendar_timezone_save_started", {
-      matches_detected: timezoneValue === detectedTimezone,
-    });
     executeUpdateTimezone({ timezone: timezoneValue });
   };
 

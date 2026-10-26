@@ -68,7 +68,7 @@ export async function expectThreadReaderBody(
           (await page.getByTestId("thread-reader").getByText(text).count()) > 0
         )
           return true;
-        const frames = page.locator('iframe[title="Email content preview"]');
+        const frames = page.locator('iframe[title="邮件内容预览"]');
         const n = await frames.count();
         for (let i = 0; i < n; i += 1) {
           if ((await frames.nth(i).contentFrame().getByText(text).count()) > 0)
@@ -229,7 +229,7 @@ export async function seedDefaultSplitRule(emailAccountId: string) {
       `INSERT INTO "Action"
         (id, type, "ruleId", "emailAccountId", label, "labelId",
          "createdAt", "updatedAt")
-       VALUES ($1, 'LABEL', $2, $3, 'Project Alpha', $4,
+       VALUES ($1, 'LABEL', $2, $3, '项目甲', $4,
                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
       [
         DEFAULT_SPLIT_ACTION_ID,
@@ -298,7 +298,7 @@ export async function insertInboxMailInConversation(
         from: input.from,
         to: email,
         subject: input.subject,
-        body_text: "New mail in the archived conversation.",
+        body_text: "归档会话中收到的新邮件。",
         labelIds: ["INBOX", "UNREAD"],
         internalDate: String(Date.now()),
       },
@@ -335,7 +335,7 @@ async function insertOutlookInboxReply(
         subject: input.subject,
         body: {
           contentType: "text",
-          content: "New mail in the archived conversation.",
+          content: "归档会话中收到的新邮件。",
         },
         isRead: false,
       },

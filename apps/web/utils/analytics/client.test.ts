@@ -12,7 +12,9 @@ describe("parseDesktopAppVersion", () => {
 
   it("tolerates the product name keeping its space or changing case", () => {
     expect(
-      parseDesktopAppVersion("Mozilla/5.0 十组邮件小助手/1.0.0-beta.1 Chrome/140"),
+      parseDesktopAppVersion(
+        "Mozilla/5.0 十组邮件小助手/1.0.0-beta.1 Chrome/140",
+      ),
     ).toBe("1.0.0-beta.1");
     expect(parseDesktopAppVersion("Mozilla/5.0 inboxzero/2.3.4")).toBe("2.3.4");
   });

@@ -40,9 +40,7 @@ export default function PermissionsConsentPage() {
 
   return (
     <div className="flex flex-col items-center justify-center sm:p-20 md:p-32">
-      <PageHeading className="text-center">
-        缺少所需权限
-      </PageHeading>
+      <PageHeading className="text-center">缺少所需权限</PageHeading>
 
       <TypographyP className="mx-auto mt-4 max-w-prose text-center">
         {isMicrosoft
@@ -52,7 +50,8 @@ export default function PermissionsConsentPage() {
 
       {isMicrosoft && (
         <TypographyP className="mx-auto mt-3 max-w-prose text-center text-muted-foreground">
-          若组织限制用户授权，请联系 Microsoft 365 管理员批准 {BRAND_NAME} ，然后重新连接账户。
+          若组织限制用户授权，请联系 Microsoft 365 管理员批准 {BRAND_NAME}{" "}
+          ，然后重新连接账户。
         </TypographyP>
       )}
       {!isMicrosoft && (

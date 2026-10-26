@@ -1,3 +1,12 @@
+import type {
+  GetEmailWorkspaceResourcesTool,
+  AnalyzeEmailTool,
+  GenerateReplyTool,
+  MeetingContextTool,
+  SuggestAttachmentFilingTool,
+  ManageBookingTool,
+  ConfigureMeetingRecordingTool,
+} from "@/utils/ai/assistant/chat-workspace-tools";
 import type { UIMessage } from "ai";
 import type { AddToKnowledgeBaseTool } from "@/utils/ai/assistant/tools/rules/add-to-knowledge-base-tool";
 import type { CreateRuleTool } from "@/utils/ai/assistant/tools/rules/create-rule-tool";
@@ -37,6 +46,13 @@ import type { GetCalendarEventsTool } from "@/utils/ai/assistant/chat-calendar-t
 // export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 export type ChatTools = {
+  getEmailWorkspaceResources: GetEmailWorkspaceResourcesTool;
+  configureMeetingRecording: ConfigureMeetingRecordingTool;
+  getMeetingContext: MeetingContextTool;
+  suggestAttachmentFiling: SuggestAttachmentFilingTool;
+  manageBooking: ManageBookingTool;
+  analyzeEmail: AnalyzeEmailTool;
+  generateReply: GenerateReplyTool;
   getAssistantCapabilities: GetAssistantCapabilitiesTool;
   updateAssistantSettings: UpdateAssistantSettingsTool;
   getAccountOverview: GetAccountOverviewTool;

@@ -30,8 +30,14 @@ vi.mock("@/utils/prisma", () => ({
   default: mockPrisma,
 }));
 
-vi.mock("@/utils/premium", () => ({
-  getPremiumUserFilter: vi.fn(() => ({})),
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      getPremiumUserFilter: vi.fn(() => ({})),
+    },
+  },
 }));
 
 vi.mock("@/utils/meeting-briefs/process", () => ({

@@ -9,11 +9,11 @@ import {
 import { ConditionType } from "@/utils/config";
 import { NINETY_DAYS_MINUTES } from "@/utils/date";
 import { validateLabelNameBasic } from "@/utils/gmail/label-validation";
-import { findIntegration } from "@/utils/mcp/integrations";
+import { findIntegration } from "@/utils/optional-features";
 import {
   getIntegrationArgKeys,
   getIntegrationToolSpec,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 import { addMissingRecipientIssue } from "@/utils/rule/recipient-validation";
 import { attachmentSourceInputSchema } from "@/utils/attachments/source-schema";
 import { addDisabledRuleActionIssue } from "@/utils/rule-action-feature-gates";

@@ -12,7 +12,7 @@ import {
   sweepRecordings,
 } from "@/utils/meeting-recorder/reconcile";
 import { withError } from "@/utils/middleware";
-import { getPremiumUserFilter } from "@/utils/premium";
+import { getPremiumUserFilter } from "@/utils/feature-access";
 import prisma from "@/utils/prisma";
 
 export const maxDuration = 800;

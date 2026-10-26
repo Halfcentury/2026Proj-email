@@ -60,7 +60,8 @@ export function PreviewBatch({ job }: { job: CleanupJob }) {
         </CardDescription>
         <CardDescription>
           如需撤销，请将鼠标移到“
-          {job.action === CleanAction.ARCHIVE ? "归档" : "标为已读"}”标记上，点击撤销。
+          {job.action === CleanAction.ARCHIVE ? "归档" : "标为已读"}
+          ”标记上，点击撤销。
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center gap-4">

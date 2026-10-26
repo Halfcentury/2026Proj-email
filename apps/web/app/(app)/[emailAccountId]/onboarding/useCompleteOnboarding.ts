@@ -12,7 +12,7 @@ import { captureException, getActionErrorMessage } from "@/utils/error";
 import { toastError } from "@/components/Toast";
 import { prefixPath } from "@/utils/path";
 import { useAccount } from "@/providers/EmailAccountProvider";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/hooks/useFeatureAccess";
 
 // Marks onboarding complete and redirects to the app (or the upgrade page for
 // non-premium users). Shared by the step-based and chat onboarding flows so

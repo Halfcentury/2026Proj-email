@@ -1,4 +1,4 @@
-import { stripBrandingSignatures } from "@/utils/referral/signature";
+import { stripBrandingSignatures } from "@/utils/email/legacy-signature";
 import he from "he";
 import * as stringSimilarity from "string-similarity";
 import {

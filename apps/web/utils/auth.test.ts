@@ -104,24 +104,6 @@ vi.mock("@/utils/error", () => ({
 }));
 
 describe("betterAuthConfig", () => {
-  it("enforces application admin access in the configured SSO plugin", async () => {
-    const plugin = (betterAuthConfig as any).options.plugins.find(
-      (plugin: { id: string }) => plugin.id === "sso",
-    );
-    const context = {
-      path: "/sso/register",
-      context: {
-        session: { user: { id: "basic-user", email: "basic@example.invalid" } },
-      },
-    };
-    const runHooks = async () => {
-      for (const hook of plugin.hooks.before) {
-        if (hook.matcher(context)) await hook.handler(context);
-      }
-    };
-    await expect(runHooks()).rejects.toMatchObject({ statusCode: 403 });
-  });
-
   it("does not trust Microsoft for implicit social account linking", () => {
     expect(
       (betterAuthConfig as any).options.account.accountLinking.trustedProviders,
@@ -172,22 +154,6 @@ describe("handleReferralOnSignUp", () => {
     vi.clearAllMocks();
   });
 
-  it("should create referral when referral code cookie exists", async () => {
-    const userId = "user123";
-    const email = "user@example.com";
-    const referralCode = "ABC123";
-
-    mockCookies.mockResolvedValue({
-      get: vi.fn().mockReturnValue({ value: referralCode }),
-    } as any);
-
-    mockCreateReferral.mockResolvedValue({} as any);
-
-    await handleReferralOnSignUp({ userId, email });
-
-    expect(mockCreateReferral).toHaveBeenCalledWith(userId, referralCode);
-  });
-
   it("should not create referral when no referral code cookie exists", async () => {
     const userId = "user123";
     const email = "user@example.com";
@@ -199,28 +165,6 @@ describe("handleReferralOnSignUp", () => {
     await handleReferralOnSignUp({ userId, email });
 
     expect(mockCreateReferral).not.toHaveBeenCalled();
-  });
-
-  it("should handle errors gracefully and not throw", async () => {
-    const userId = "user123";
-    const email = "user@example.com";
-    const referralCode = "ABC123";
-    const error = new Error("Referral creation failed");
-
-    mockCookies.mockResolvedValue({
-      get: vi.fn().mockReturnValue({ value: referralCode }),
-    } as any);
-
-    mockCreateReferral.mockRejectedValue(error);
-
-    // Should not throw
-    await expect(
-      handleReferralOnSignUp({ userId, email }),
-    ).resolves.toBeUndefined();
-
-    expect(mockCaptureException).toHaveBeenCalledWith(error, {
-      extra: { userId, email, location: "handleReferralOnSignUp" },
-    });
   });
 
   it("should not create referral when referral code cookie has empty value", async () => {

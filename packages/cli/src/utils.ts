@@ -107,10 +107,6 @@ export function generateEnvFile(config: {
   // ─────────────────────────────────────────────────────────────────────────
 
   setValue("NEXT_PUBLIC_BASE_URL", env.NEXT_PUBLIC_BASE_URL);
-  setValue(
-    "NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS",
-    env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS,
-  );
 
   // ─────────────────────────────────────────────────────────────────────────
   // Secrets

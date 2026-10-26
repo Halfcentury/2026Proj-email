@@ -14,7 +14,6 @@ import { createScopedLogger, type Logger } from "@/utils/logger";
 import { flushLoggerSafely } from "@/utils/logger-flush";
 import { auth } from "@/utils/auth";
 import { getEmailAccount } from "@/utils/redis/account-validation";
-import { getCallerEmailAccount } from "@/utils/organizations/access";
 import { recordRateLimitFromApiError } from "@/utils/email/rate-limit";
 import { isProviderRateLimitModeError } from "@/utils/email/rate-limit-mode-error";
 import {
@@ -383,86 +382,6 @@ async function emailAccountMiddleware(
     });
 
     const emailAccountLogger = middlewareLogger.with({ email });
-
-    if (!email && options?.allowOrgAdmins) {
-      // Check if user is admin or owner and is in the same org as the target email account
-      const callerEmailAccount = await runTimedMiddlewareStep({
-        logger: emailAccountLogger,
-        step: "resolve-org-admin-caller-account",
-        operation: () => getCallerEmailAccount(userId, emailAccountId),
-      });
-
-      if (!callerEmailAccount) {
-        emailAccountLogger.error("Org admin access denied");
-        return NextResponse.json(
-          { error: "Insufficient permissions", isKnownError: true },
-          { status: 403 },
-        );
-      }
-
-      // Check if target member has consented to org admin analytics access
-      const targetMember = await runTimedMiddlewareStep({
-        logger: emailAccountLogger,
-        step: "check-org-admin-consent",
-        operation: () =>
-          prisma.member.findFirst({
-            where: {
-              emailAccountId,
-              organization: {
-                members: {
-                  some: {
-                    emailAccountId: callerEmailAccount.id,
-                  },
-                },
-              },
-            },
-            select: { allowOrgAdminAnalytics: true },
-          }),
-      });
-
-      if (!targetMember?.allowOrgAdminAnalytics) {
-        emailAccountLogger.error(
-          "Member has not enabled org admin analytics access",
-        );
-        return NextResponse.json(
-          {
-            error: "Analytics access not permitted by this member",
-            isKnownError: true,
-          },
-          { status: 403 },
-        );
-      }
-
-      const targetEmailAccount = await runTimedMiddlewareStep({
-        logger: emailAccountLogger,
-        step: "resolve-org-admin-target-account",
-        operation: () =>
-          prisma.emailAccount.findUnique({
-            where: { id: emailAccountId },
-            select: { email: true },
-          }),
-      });
-
-      if (targetEmailAccount) {
-        setAuditContext({
-          actorType: "admin",
-          emailAccountId,
-          userId,
-        });
-
-        const emailAccountReq = authReq as RequestWithEmailAccount;
-        emailAccountReq.auth = {
-          userId,
-          emailAccountId,
-          email: targetEmailAccount.email,
-        };
-        emailAccountReq.logger = emailAccountLogger.with({
-          isOrgAdmin: true,
-          email: targetEmailAccount.email,
-        });
-        return emailAccountReq;
-      }
-    }
 
     if (!email) {
       emailAccountLogger.error("Invalid email account ID");

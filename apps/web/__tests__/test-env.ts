@@ -5,6 +5,8 @@
  * this via setupFiles; standalone eval scripts get it by importing this first.
  */
 setEnvDefault("NODE_ENV", "test");
+// Existing suites exercise the reusable upstream modules. Scope tests opt into course mode.
+setEnvDefault("NEXT_PUBLIC_COURSE_MODE", "false");
 setEnvDefault(
   "DATABASE_URL",
   "postgresql://postgres:password@localhost:5432/inboxzero",

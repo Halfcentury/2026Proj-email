@@ -26,9 +26,7 @@ test("completes account setup and persists onboarding choices", async ({
     page.getByRole("heading", { name: "公司有多少人？" }),
   ).toBeVisible({ timeout: 60_000 });
 
-  await page
-    .getByRole("button", { name: "11–100 人", exact: true })
-    .click();
+  await page.getByRole("button", { name: "11–100 人", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "How did you hear about 十组邮件小助手?",
@@ -80,9 +78,7 @@ test("completes account setup and persists onboarding choices", async ({
   await page.reload();
   expect((await (await userResponse).json()).id).toBeTruthy();
   await expect(
-    page
-      .getByRole("button", { name: "免费试用 7 天", exact: true })
-      .first(),
+    page.getByRole("button", { name: "免费试用 7 天", exact: true }).first(),
   ).toBeVisible();
   await page.screenshot({
     path: testInfo.outputPath("welcome-upgrade.png"),

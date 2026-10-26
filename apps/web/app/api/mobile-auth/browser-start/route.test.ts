@@ -67,42 +67,6 @@ describe("mobile auth browser-start route", () => {
     );
   });
 
-  it("starts desktop OAuth in the current browser and copies the OAuth state cookie", async () => {
-    const response = await GET(
-      new NextRequest(
-        "https://www.getinboxzero.com/api/mobile-auth/browser-start?provider=google&codeChallenge=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      ),
-      {} as never,
-    );
-
-    expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe(
-      "https://accounts.google.com/o/oauth2/v2/auth?client_id=client&state=provider-state",
-    );
-    expect(response.headers.get("set-cookie")).toContain(
-      "__Secure-better-auth.oauth_state=encrypted-oauth-state",
-    );
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(storeMobileAuthStateMock).toHaveBeenCalledWith({
-      codeChallenge: "a".repeat(43),
-      provider: "google",
-      completionToken: "state-1234567890",
-      returnUrlMode: "desktop-scheme",
-      state: "state-1234567890",
-    });
-    const [signInRequest] = handlerMock.mock.calls[0] as [Request];
-    await expect(signInRequest.json()).resolves.toEqual({
-      provider: "google",
-      callbackURL:
-        "https://www.getinboxzero.com/api/mobile-auth/callback?state=state-1234567890&completion=state-1234567890",
-      errorCallbackURL:
-        "https://www.getinboxzero.com/api/mobile-auth/callback?state=state-1234567890",
-      newUserCallbackURL:
-        "https://www.getinboxzero.com/api/mobile-auth/callback?state=state-1234567890&completion=state-1234567890",
-      disableRedirect: true,
-    });
-  });
-
   it("rejects unknown providers", async () => {
     await expect(
       GET(

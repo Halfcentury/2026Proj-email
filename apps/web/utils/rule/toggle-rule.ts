@@ -4,7 +4,7 @@ import { SafeError } from "@/utils/error";
 import type { Logger } from "@/utils/logger";
 import { createEmailProvider } from "@/utils/email/provider";
 import { resolveLabelNameAndId } from "@/utils/label/resolve-label";
-import { assertRuleIsNotOrgManaged } from "@/utils/organizations/rules";
+import { assertRuleIsNotOrgManaged } from "@/utils/rule/legacy-rule-guard";
 import {
   getRuleConfig,
   getSystemRuleActionTypes,

@@ -14,11 +14,11 @@ test("applies an existing label from the reader menu and keeps the conversation 
   const conversation = conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Navigation Message",
+    "回复：阅读器导航测试邮件",
   );
   await conversation.click();
   await expect(
-    page.getByRole("heading", { name: "Re: Reader Navigation Message" }),
+    page.getByRole("heading", { name: "回复：阅读器导航测试邮件" }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: /更多操作/ }).click();
@@ -26,15 +26,13 @@ test("applies an existing label from the reader menu and keeps the conversation 
   const picker = page.getByRole("dialog", { name: "为会话添加标签" });
   await picker.getByRole("combobox").fill("Project");
   await expect(
-    picker.getByRole("option", { name: "Project Alpha", exact: true }),
+    picker.getByRole("option", { name: "项目甲", exact: true }),
   ).toBeVisible();
   await capturePlaywrightCheckpoint(page, testInfo, "search-label-picker");
-  await picker
-    .getByRole("option", { name: "Project Alpha", exact: true })
-    .click();
+  await picker.getByRole("option", { name: "项目甲", exact: true }).click();
   await expect(picker).toBeHidden();
   await expect(
-    page.getByRole("link", { name: "Project Alpha", exact: true }).last(),
+    page.getByRole("link", { name: "项目甲", exact: true }).last(),
   ).toBeVisible();
   await expect
     .poll(
@@ -87,13 +85,9 @@ test("applies an existing label from the reader menu and keeps the conversation 
       { timeout: 60_000 },
     )
     .toBe(true);
-  await page
-    .getByRole("button", { name: "返回收件箱", exact: true })
-    .click();
+  await page.getByRole("button", { name: "返回收件箱", exact: true }).click();
   await expect(conversation).toBeVisible();
-  await expect(
-    conversation.getByText("Project Alpha", { exact: true }),
-  ).toBeVisible();
+  await expect(conversation.getByText("项目甲", { exact: true })).toBeVisible();
 });
 
 test("creates and applies a label to selected conversations with L", async ({
@@ -104,12 +98,12 @@ test("creates and applies a label to selected conversations with L", async ({
   const first = conversationWithSubject(
     page,
     conversations,
-    "Playwright Test Message",
+    "邮件功能测试邮件",
   );
   const second = conversationWithSubject(
     page,
     conversations,
-    "Read Command Message",
+    "已读状态测试邮件",
   );
   await first.getByRole("checkbox").click();
   await second.getByRole("checkbox").click();
@@ -171,12 +165,12 @@ test("L labels the open conversation after it leaves the unread list, and its ch
   const conversation = conversationWithSubject(
     page,
     conversations,
-    "Second Unread Command Message",
+    "第二封未读操作测试邮件",
   );
   // Restore unread state through the UI so retries do not inherit the prior read.
   await conversation.click();
   await expect(
-    page.getByRole("heading", { name: "Second Unread Command Message" }),
+    page.getByRole("heading", { name: "第二封未读操作测试邮件" }),
   ).toBeVisible();
   await page
     .getByRole("group", { name: "会话操作" })
@@ -197,15 +191,13 @@ test("L labels the open conversation after it leaves the unread list, and its ch
   await expect(conversations).toBeVisible();
   const emptyReader = page.getByText("未选择邮件", { exact: true });
   if (!(await emptyReader.isVisible())) {
-    await page
-      .getByRole("button", { name: "切换列表或分栏视图" })
-      .click();
+    await page.getByRole("button", { name: "切换列表或分栏视图" }).click();
   }
   await expect(emptyReader).toBeVisible();
   await page.getByRole("button", { name: "未读", exact: true }).click();
   await conversation.click();
   const heading = page.getByRole("heading", {
-    name: "Second Unread Command Message",
+    name: "第二封未读操作测试邮件",
   });
   await expect(heading).toBeVisible();
   // In split view the list stays mounted: disappearance now proves filtering,
@@ -220,9 +212,9 @@ test("L labels the open conversation after it leaves the unread list, and its ch
   await expect(heading).toBeVisible();
   await expect(page.locator("body")).toBeFocused();
   await page.keyboard.press("l");
-  await picker.getByRole("combobox").fill("Project Alpha");
+  await picker.getByRole("combobox").fill("项目甲");
   await expect(
-    picker.getByRole("option", { name: "Project Alpha", exact: true }),
+    picker.getByRole("option", { name: "项目甲", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(picker).toBeHidden();
@@ -261,7 +253,7 @@ test("L labels the open conversation after it leaves the unread list, and its ch
     .toBe(true);
 
   const removeLabel = page.getByRole("button", {
-    name: "Remove Project Alpha label",
+    name: "Remove 项目甲 label",
   });
   // The remove control only takes pointer events while its chip is hovered.
   await removeLabel.locator("..").hover();
@@ -306,13 +298,13 @@ test("keeps a queued label visible while provider execute is held", async ({
   const conversation = conversationWithSubject(
     page,
     conversations,
-    "Keyboard Navigation Message",
+    "键盘导航测试邮件",
   );
   await conversation.getByRole("checkbox").click();
   await page.keyboard.press("l");
   const picker = page.getByRole("dialog", { name: "为会话添加标签" });
   const labelOption = picker.getByRole("option", {
-    name: "Project Alpha",
+    name: "项目甲",
     exact: true,
   });
   await expect(labelOption).toBeVisible();
@@ -337,7 +329,7 @@ test("keeps a queued label visible while provider execute is held", async ({
     await labelOption.click();
     await expect(picker).toBeHidden();
     await expect(
-      conversation.getByText("Project Alpha", { exact: true }),
+      conversation.getByText("项目甲", { exact: true }),
     ).toBeVisible();
     await expect
       .poll(() =>

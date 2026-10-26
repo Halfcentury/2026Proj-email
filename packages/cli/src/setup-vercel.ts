@@ -89,7 +89,6 @@ export function buildVercelEnvValues(config: {
   };
 
   const sharedEnv: EnvConfig = {
-    NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: "true",
     GOOGLE_CLIENT_ID: config.google?.clientId || "skipped",
     GOOGLE_CLIENT_SECRET: config.google?.clientSecret || "skipped",
     GOOGLE_PUBSUB_TOPIC_NAME:

@@ -59,7 +59,6 @@ import { MailProductFrame } from "@inboxzero/mail-ui/MailProductFrame";
 import { MailEngineConnectionBanner } from "@/utils/mail-engine/MailEngineConnectionBanner";
 import { useThreadSelection } from "@/app/(app)/[emailAccountId]/mail/use-thread-selection";
 import { useWarmNeighbourThreads } from "@/app/(app)/[emailAccountId]/mail/use-warm-neighbour-threads";
-import { useMailPerformanceTelemetry } from "@/app/(app)/[emailAccountId]/mail/use-mail-performance-telemetry";
 import {
   isThreadArchived,
   isThreadUnread,
@@ -107,9 +106,8 @@ import { getActionErrorMessage } from "@/utils/error";
 import { prefixPath } from "@/utils/path";
 import { getMailAccountUrl } from "@/app/(app)/[emailAccountId]/mail/mail-account-url";
 import { redirectToSafeUrl } from "@/utils/redirect";
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
+import { getInboxZeroDesktopApp } from "@/utils/browser-platform";
 import { LoadingContent } from "@/components/LoadingContent";
-import { useTeamCommentsAvailable } from "@/components/team-comments/use-team-comments-available";
 import { getEmailMessageCellActions } from "@/components/EmailMessageCellActions";
 import type { ThreadsQuery } from "@/utils/threads/validation";
 
@@ -237,9 +235,7 @@ export function MailShell() {
           rollbackOnError: true,
         },
       ).catch((error) => {
-        toast.error(
-          error instanceof Error ? error.message : "保存失败",
-        );
+        toast.error(error instanceof Error ? error.message : "保存失败");
       });
     },
     [emailAccountId, mutateSettings, settings],
@@ -488,10 +484,7 @@ export function MailShell() {
   const readerSelectionSettled = readerThreadKey === openReaderThreadKey;
   const [visibleReaderThreadKey, setVisibleReaderThreadKey] =
     useState<string>();
-  useMailPerformanceTelemetry({
-    openThreadKey: openReaderThreadKey,
-    visibleThreadKey: visibleReaderThreadKey,
-  });
+
   const {
     data: openThreadData,
     error: openThreadError,
@@ -537,7 +530,7 @@ export function MailShell() {
       });
     };
   }, [openMessages, readerEmailAccountId, translateThread]);
-  const teamCommentsAvailable = useTeamCommentsAvailable(readerEmailAccountId);
+  const teamCommentsAvailable = false;
   const openTeamComments = useMemo(
     () =>
       // The listener mounts with the thread's messages, so an earlier request

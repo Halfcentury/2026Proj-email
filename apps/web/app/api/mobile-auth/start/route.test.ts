@@ -249,38 +249,6 @@ describe("mobile auth start route", () => {
     expect(storeMobileAuthStateMock).not.toHaveBeenCalled();
   });
 
-  it("starts desktop social auth with a desktop-scheme return URL when requested", async () => {
-    const response = await POST(
-      new NextRequest("https://www.getinboxzero.com/api/mobile-auth/start", {
-        body: JSON.stringify({
-          provider: "google",
-          codeChallenge: "a".repeat(43),
-          returnUrlMode: "desktop-scheme",
-        }),
-        headers: {
-          "content-type": "application/json",
-        },
-        method: "POST",
-      }),
-      {} as never,
-    );
-
-    await expect(response.json()).resolves.toEqual({
-      authorizationURL:
-        "https://accounts.google.com/o/oauth2/v2/auth?client_id=client&state=provider-state",
-      authSessionReturnUrl: "inboxzero://auth-callback",
-      oauthState: "encrypted-oauth-state",
-      state: "state-1234567890",
-    });
-    expect(storeMobileAuthStateMock).toHaveBeenCalledWith({
-      codeChallenge: "a".repeat(43),
-      provider: "google",
-      completionToken: "state-1234567890",
-      returnUrlMode: "desktop-scheme",
-      state: "state-1234567890",
-    });
-  });
-
   it("rejects non-http authorization URLs", async () => {
     handlerMock.mockResolvedValue(
       new Response(

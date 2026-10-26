@@ -20,7 +20,7 @@ vi.mock("@/utils/auth", () => ({
   })),
 }));
 
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   trackProductFeedback: trackProductFeedbackMock,
 }));
 
@@ -32,19 +32,6 @@ describe("submitFeedbackAction", () => {
     fetchMock.mockResolvedValue({ ok: true });
     trackProductFeedbackMock.mockResolvedValue(undefined);
     vi.mocked(after).mockImplementation((callback) => callback());
-  });
-
-  it("sends feedback to PostHog for the authenticated user", async () => {
-    const result = await submitFeedbackAction({
-      feedback: "Love the assistant chat",
-    });
-
-    expect(result?.serverError).toBeUndefined();
-    expect(result?.validationErrors).toBeUndefined();
-    expect(trackProductFeedbackMock).toHaveBeenCalledWith(
-      "user@example.com",
-      "Love the assistant chat",
-    );
   });
 
   it("sends the authenticated user's email and feedback to the configured webhook", async () => {
@@ -118,7 +105,6 @@ describe("submitFeedbackAction", () => {
     });
 
     expect(result?.serverError).toBeUndefined();
-    expect(trackProductFeedbackMock).toHaveBeenCalled();
   });
 
   it("rejects empty feedback", async () => {
@@ -127,6 +113,5 @@ describe("submitFeedbackAction", () => {
     });
 
     expect(result?.validationErrors).toBeDefined();
-    expect(trackProductFeedbackMock).not.toHaveBeenCalled();
   });
 });

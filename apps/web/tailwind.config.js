@@ -61,9 +61,19 @@ module.exports = {
         "hero-word": "hero-reveal 0.6s ease-out both",
       },
       fontFamily: {
-        sans: ["var(--font-geist)", "Microsoft YaHei", "PingFang SC", ...fontFamily.sans],
+        sans: [
+          "var(--font-geist)",
+          "Microsoft YaHei",
+          "PingFang SC",
+          ...fontFamily.sans,
+        ],
         inter: ["var(--font-inter)", ...fontFamily.sans],
-        title: ["var(--font-title)", "Microsoft YaHei", "PingFang SC", ...fontFamily.sans],
+        title: [
+          "var(--font-title)",
+          "Microsoft YaHei",
+          "PingFang SC",
+          ...fontFamily.sans,
+        ],
       },
       colors: {
         // shadcn/ui

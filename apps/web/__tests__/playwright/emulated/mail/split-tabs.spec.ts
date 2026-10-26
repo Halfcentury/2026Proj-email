@@ -83,9 +83,7 @@ test("restores a deleted All tab and protects it from removal", async ({
   });
   await expect(allTab).toBeVisible();
   await allTab.click({ button: "right" });
-  await expect(
-    page.getByRole("menuitem", { name: "关闭分栏" }),
-  ).toBeHidden();
+  await expect(page.getByRole("menuitem", { name: "关闭分栏" })).toBeHidden();
   await capturePlaywrightCheckpoint(page, testInfo, "mail-protected-all-split");
   await page.getByRole("button", { name: "新建分栏", exact: true }).click();
   await expect(
@@ -178,9 +176,12 @@ test("builds a split from conditions and shows only matching mail", async ({
     .getByLabel("条件字段")
     .first()
     .selectOption(isMicrosoft ? "LABEL" : "CATEGORY");
-  await page.getByLabel("条件值").first().selectOption({
-    label: "Promotions",
-  });
+  await page
+    .getByLabel("条件值")
+    .first()
+    .selectOption({
+      label: isMicrosoft ? "推广邮件" : "Promotions",
+    });
   await page.getByLabel("分栏名称").fill("Promos");
   await capturePlaywrightCheckpoint(page, testInfo, "mail-new-split-builder");
 
@@ -190,7 +191,7 @@ test("builds a split from conditions and shows only matching mail", async ({
   await expect(promosSplit).toBeVisible();
   await expect(promosSplit).toHaveAttribute("aria-current", "true");
   await expect(
-    conversationWithSubject(page, conversations, "Promotion Category Message"),
+    conversationWithSubject(page, conversations, "推广分类测试邮件"),
   ).toBeVisible();
   await expect(conversations.getByRole("option")).toHaveCount(1);
   await hideDevIndicator(page);
@@ -314,7 +315,7 @@ test("Other excludes enabled splits and restores mail when a split is disabled",
   const promotion = conversationWithSubject(
     page,
     conversations,
-    "Promotion Category Message",
+    "推广分类测试邮件",
   );
   await expect(promotion).toBeVisible();
 
@@ -337,10 +338,7 @@ test("Other excludes enabled splits and restores mail when a split is disabled",
   await page.getByRole("button", { name: "新建分栏" }).click();
   await page.getByRole("button", { name: "自定义" }).click();
   await page.getByLabel("条件字段").first().selectOption("CATEGORY");
-  await page
-    .getByLabel("条件值")
-    .first()
-    .selectOption({ label: "Promotions" });
+  await page.getByLabel("条件值").first().selectOption({ label: "Promotions" });
   await page.getByLabel("分栏名称").fill("Promos");
   await page.getByRole("button", { name: "添加分栏" }).click();
   await expect(promotion).toBeVisible();

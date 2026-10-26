@@ -7,25 +7,20 @@ import { after } from "next/server";
 import { Inter } from "next/font/google";
 import { SideNavWithTopNav } from "@/components/SideNavWithTopNav";
 import { auth } from "@/utils/auth";
-import { PostHogIdentify } from "@/providers/PostHogProvider";
 import { CommandK } from "@/components/CommandK";
 import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { AppProviders } from "@/providers/AppProviders";
 import { AssessUser } from "@/app/(app)/[emailAccountId]/assess";
 import { SentryIdentify } from "@/app/(app)/sentry-identify";
-import { AiAutomationStatusBanner } from "@/app/(app)/AiAutomationStatusBanner";
 import { ErrorMessages } from "@/app/(app)/ErrorMessages";
-import { DesktopMailIndicators } from "@/app/(app)/DesktopMailIndicators";
 import { ProviderRateLimitBanner } from "@/app/(app)/ProviderRateLimitBanner";
 import { MailEngineRuntime } from "@/utils/mail-engine/MailEngineHost";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EmailViewer } from "@/components/EmailViewer";
 import { SettingsDialog } from "@/app/(app)/settings/SettingsDialog";
-import { AnnouncementDialog } from "@/components/feature-announcements/AnnouncementDialog";
 import { captureException } from "@/utils/error";
 import prisma from "@/utils/prisma";
 import { createScopedLogger } from "@/utils/logger";
-import { booleanString } from "@/utils/zod";
 
 const logger = createScopedLogger("AppLayout");
 
@@ -66,8 +61,7 @@ export default async function AppLayout({
 
   const cookieStore = await cookies();
   const isClosed = cookieStore.get("left-sidebar:state")?.value === "false";
-  const bypassPremiumChecks =
-    booleanString.parse(process.env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS) ?? false;
+  const bypassPremiumChecks = true;
   const feedbackEnabled =
     !bypassPremiumChecks || Boolean(process.env.FEEDBACK_WEBHOOK_URL);
 
@@ -93,19 +87,16 @@ export default async function AppLayout({
               defaultOpen={!isClosed}
               feedbackEnabled={feedbackEnabled}
             >
-              <DesktopMailIndicators />
-              <AiAutomationStatusBanner />
+              {null}
               <ErrorMessages />
               <ProviderRateLimitBanner />
               {children}
             </SideNavWithTopNav>
             <EmailViewer />
             <SettingsDialog />
-            <AnnouncementDialog />
+
             {feedbackEnabled && <FeedbackDialog />}
             <ErrorBoundary extra={{ component: "AppLayout" }}>
-              <PostHogIdentify />
-
               <CommandK feedbackEnabled={feedbackEnabled} />
               <AssessUser />
               <SentryIdentify email={session.user.email} />

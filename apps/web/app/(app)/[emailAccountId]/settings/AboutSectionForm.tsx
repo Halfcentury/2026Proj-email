@@ -83,7 +83,9 @@ const AboutSectionForm = ({
         label=""
         registerProps={register("about")}
         error={errors.about}
-        placeholder={"我是公司创始人。- 抄送给我的邮件不归为“待回复” - jane@accounting.com 发来的邮件不归为“通知”"}
+        placeholder={
+          "我是公司创始人。- 抄送给我的邮件不归为“待回复” - jane@accounting.com 发来的邮件不归为“通知”"
+        }
       />
       <Button type="submit" className="mt-8" loading={isExecuting}>
         保存

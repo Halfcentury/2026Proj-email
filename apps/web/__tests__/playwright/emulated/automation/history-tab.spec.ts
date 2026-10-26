@@ -52,9 +52,7 @@ test("shows persisted execution history and preserves rule filters", async ({
     page,
     page.getByText(HISTORY_RULE_NAME, { exact: true }),
   );
-  await expect(
-    page.getByText("已手动应用", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("已手动应用", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "全部规则" }).click();
   await page.getByRole("menuitem", { name: HISTORY_RULE_NAME }).click();
@@ -66,9 +64,7 @@ test("shows persisted execution history and preserves rule filters", async ({
     page,
     page.getByRole("button", { name: HISTORY_RULE_NAME }),
   );
-  await expect(
-    page.getByText("已手动应用", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("已手动应用", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: HISTORY_RULE_NAME }).click();
   await page.getByRole("menuitem", { name: "未匹配" }).click();
@@ -158,30 +154,20 @@ test("groups conversations and lazily pages older messages without duplicating t
   expect(detailRequests).toHaveLength(0);
   await page.getByRole("button", { name: "展开会话" }).click();
   await expect(page.getByText("Page 1 of 2", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("邮件不可用", { exact: true }),
-  ).toHaveCount(50);
-  await expect(page.getByText("已手动应用", { exact: true })).toHaveCount(
-    1,
-  );
+  await expect(page.getByText("邮件不可用", { exact: true })).toHaveCount(50);
+  await expect(page.getByText("已手动应用", { exact: true })).toHaveCount(1);
   await page.screenshot({
     path: testInfo.outputPath("history-expanded.png"),
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "下一页邮件", exact: true })
-    .click();
+  await page.getByRole("button", { name: "下一页邮件", exact: true }).click();
   await expect(page.getByText("Page 2 of 2", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("邮件不可用", { exact: true }),
-  ).toHaveCount(1);
+  await expect(page.getByText("邮件不可用", { exact: true })).toHaveCount(1);
   await expect(
     page.getByRole("button", { name: "下一页邮件", exact: true }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "收起会话" }).click();
-  await expect(
-    page.getByText("邮件不可用", { exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByText("邮件不可用", { exact: true })).toHaveCount(0);
   await page.screenshot({
     path: testInfo.outputPath("history-collapsed.png"),
     fullPage: true,

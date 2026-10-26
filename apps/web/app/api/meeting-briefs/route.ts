@@ -4,7 +4,7 @@ import { withError } from "@/utils/middleware";
 import { hasCronSecret, hasPostCronSecret } from "@/utils/cron";
 import { captureException } from "@/utils/error";
 import type { Logger } from "@/utils/logger";
-import { getPremiumUserFilter } from "@/utils/premium";
+import { getPremiumUserFilter } from "@/utils/feature-access";
 import { processMeetingBriefings } from "@/utils/meeting-briefs/process";
 import { runWithBoundedConcurrency } from "@/utils/async";
 

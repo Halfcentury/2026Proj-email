@@ -7,7 +7,13 @@ import {
 } from "@/__tests__/mocks/email-provider.mock";
 import { Prisma } from "@/generated/prisma/client";
 import { createTestLogger } from "@/__tests__/helpers";
-import { getFilableAttachments, processAttachment } from "./filing-engine";
+import {
+  getFilableAttachments,
+  processAttachment,
+  suggestAttachmentFiling,
+  executeFiling,
+  confirmPendingFiling,
+} from "./filing-engine";
 
 vi.mock("@/utils/prisma");
 vi.mock("@/utils/drive/provider", () => ({
@@ -83,6 +89,84 @@ describe("processAttachment", () => {
     vi.mocked(sendFilingMessagingNotifications).mockResolvedValue(undefined);
   });
 
+  it("suggests without writes and executes the exact confirmed plan without a second model call", async () => {
+    const options = {
+      ...setupSuccessfulFiling({ confidence: 0.95 }),
+      logger,
+      sendNotification: false,
+    };
+    const plan = await suggestAttachmentFiling(options);
+    expect(prisma.documentFiling.create).not.toHaveBeenCalled();
+    expect(options.uploadFile).not.toHaveBeenCalled();
+    vi.mocked(analyzeDocument).mockResolvedValue({
+      action: "create_new",
+      folderPath: "Unreviewed",
+      folderId: null,
+      confidence: 1,
+      reasoning: "Changed model",
+    });
+    const result = await executeFiling({ ...options, plan, confirmed: true });
+    expect(result.success).toBe(true);
+    expect(analyzeDocument).toHaveBeenCalledTimes(1);
+    expect(options.uploadFile).toHaveBeenCalledWith(
+      expect.objectContaining({ folderId: "folder-1" }),
+    );
+  });
+  it("rejects changed confirmation parameters before claiming or uploading", async () => {
+    const options = { ...setupSuccessfulFiling({ confidence: 0.95 }), logger };
+    const plan = await suggestAttachmentFiling(options);
+    const result = await executeFiling({
+      ...options,
+      plan: { ...plan, folderPath: "Other" },
+      confirmed: true,
+    });
+    expect(result.success).toBe(false);
+    expect(prisma.documentFiling.create).not.toHaveBeenCalled();
+    expect(options.uploadFile).not.toHaveBeenCalled();
+  });
+  it("does not substitute a different folder when the reviewed target disappears", async () => {
+    const options = { ...setupSuccessfulFiling({ confidence: 0.95 }), logger };
+    const plan = await suggestAttachmentFiling(options);
+    prisma.filingFolder.findMany.mockResolvedValue([]);
+    const result = await executeFiling({ ...options, plan, confirmed: true });
+    expect(result.success).toBe(false);
+    expect(options.uploadFile).not.toHaveBeenCalled();
+  });
+  it("uploads a pending filing to its saved target on approval without asking the model again", async () => {
+    const options = setupSuccessfulFiling({ confidence: 0.4 });
+    const pending = {
+      id: "pending",
+      status: "PENDING",
+      emailAccountId: options.emailAccount.id,
+      messageId: options.message.id,
+      attachmentId: options.attachment.attachmentId,
+      filename: options.attachment.filename,
+      driveConnectionId: "drive-connection-1",
+      folderId: "folder-1",
+      folderPath: "Invoices",
+      confidence: 0.4,
+      reasoning: "Original reviewed suggestion",
+      driveConnection: { provider: "google", email: "user@example.com" },
+    };
+    prisma.documentFiling.findFirst.mockResolvedValue(pending as never);
+    prisma.emailAccount.findUnique.mockResolvedValue(
+      options.emailAccount as never,
+    );
+    vi.mocked(options.emailProvider.getMessage).mockResolvedValue(
+      options.message,
+    );
+    const result = await confirmPendingFiling({
+      emailAccountId: options.emailAccount.id,
+      filingId: "pending",
+      emailProvider: options.emailProvider,
+      logger,
+    });
+    expect(result.success).toBe(true);
+    expect(analyzeDocument).not.toHaveBeenCalled();
+    expect(options.uploadFile).toHaveBeenCalledWith(
+      expect.objectContaining({ folderId: "folder-1" }),
+    );
+  });
   it("sends filed confirmation emails by default", async () => {
     const { attachment, emailAccount, emailProvider, message, uploadFile } =
       setupSuccessfulFiling({
@@ -225,7 +309,7 @@ describe("processAttachment", () => {
     expect(analyzeDocument).not.toHaveBeenCalled();
   });
 
-  it("does not download, analyze, or upload when a concurrent process already claimed the attachment", async () => {
+  it("does not upload when a concurrent process already claimed the attachment", async () => {
     const existingFiling = {
       id: "filing-existing",
       filename: "invoice.pdf",
@@ -275,9 +359,9 @@ describe("processAttachment", () => {
       },
       filingId: "filing-existing",
     });
-    expect(emailProvider.getAttachment).not.toHaveBeenCalled();
+    expect(emailProvider.getAttachment).toHaveBeenCalled();
     expect(uploadFile).not.toHaveBeenCalled();
-    expect(analyzeDocument).not.toHaveBeenCalled();
+    expect(analyzeDocument).toHaveBeenCalled();
   });
 
   it("continues filing when a duplicate claim conflict finds a stale claim that can be reclaimed", async () => {
@@ -364,7 +448,7 @@ describe("processAttachment", () => {
     expect(analyzeDocument).not.toHaveBeenCalled();
   });
 
-  it("reclaims a stale filing claim before downloading it", async () => {
+  it("reclaims a stale filing claim before uploading it", async () => {
     prisma.documentFiling.findFirst.mockResolvedValue({
       id: "filing-stale-processing",
       filename: "invoice.pdf",
@@ -403,13 +487,11 @@ describe("processAttachment", () => {
         reasoning: null,
       }),
     });
-    expect(prisma.documentFiling.updateMany).toHaveBeenCalledBefore(
-      emailProvider.getAttachment as any,
-    );
+    expect(prisma.documentFiling.updateMany).toHaveBeenCalledBefore(uploadFile);
   });
 
-  it("claims an attachment before downloading it", async () => {
-    const { attachment, emailAccount, emailProvider, message } =
+  it("claims an attachment before uploading it", async () => {
+    const { attachment, emailAccount, emailProvider, message, uploadFile } =
       setupSuccessfulFiling({
         confidence: 0.95,
       });
@@ -430,9 +512,7 @@ describe("processAttachment", () => {
         status: "PROCESSING",
       }),
     });
-    expect(prisma.documentFiling.create).toHaveBeenCalledBefore(
-      emailProvider.getAttachment as any,
-    );
+    expect(prisma.documentFiling.create).toHaveBeenCalledBefore(uploadFile);
   });
 
   it("retries an error filing record without creating a duplicate row", async () => {
@@ -474,9 +554,7 @@ describe("processAttachment", () => {
         status: "PROCESSING",
       }),
     });
-    expect(prisma.documentFiling.updateMany).toHaveBeenCalledBefore(
-      emailProvider.getAttachment as any,
-    );
+    expect(prisma.documentFiling.updateMany).toHaveBeenCalledBefore(uploadFile);
     expect(prisma.documentFiling.update).toHaveBeenCalledWith({
       where: { id: "filing-error" },
       data: expect.objectContaining({
@@ -486,7 +564,7 @@ describe("processAttachment", () => {
     });
   });
 
-  it("does not duplicate expensive work when another retry already reclaimed an error filing", async () => {
+  it("does not upload when another retry already reclaimed an error filing", async () => {
     prisma.documentFiling.findFirst
       .mockResolvedValueOnce({
         id: "filing-error",
@@ -533,9 +611,9 @@ describe("processAttachment", () => {
       error: "Attachment is already being filed",
       filingId: "filing-error",
     });
-    expect(emailProvider.getAttachment).not.toHaveBeenCalled();
+    expect(emailProvider.getAttachment).toHaveBeenCalled();
     expect(uploadFile).not.toHaveBeenCalled();
-    expect(analyzeDocument).not.toHaveBeenCalled();
+    expect(analyzeDocument).toHaveBeenCalled();
   });
 });
 

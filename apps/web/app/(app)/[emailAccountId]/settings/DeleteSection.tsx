@@ -26,23 +26,11 @@ import {
 import { deleteAccountAction } from "@/utils/actions/user";
 import { logOut } from "@/utils/user";
 import { useStatLoader } from "@/providers/StatLoaderProvider";
-import { usePremium } from "@/hooks/usePremium";
-import { hasActiveAppleSubscription } from "@/utils/premium";
 
 export function DeleteSection() {
   const { onCancelLoadBatch } = useStatLoader();
-  const { premium } = usePremium();
-  const hasAppleSubscription = hasActiveAppleSubscription(
-    premium?.appleExpiresAt || null,
-    premium?.appleRevokedAt || null,
-    premium?.appleSubscriptionStatus || null,
-  );
-
-  const hasSubscription =
-    premium?.stripeSubscriptionId ||
-    premium?.lemonSqueezySubscriptionId ||
-    hasAppleSubscription;
-
+  const hasSubscription = false;
+  const hasAppleSubscription = false;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [hasConfirmedCancellation, setHasConfirmedCancellation] =
     useState(false);
@@ -80,9 +68,7 @@ export function DeleteSection() {
     <Item size="sm">
       <ItemContent>
         <ItemTitle>删除账户</ItemTitle>
-        <ItemDescription>
-          永久删除账户及全部数据。
-        </ItemDescription>
+        <ItemDescription>永久删除账户及全部数据。</ItemDescription>
       </ItemContent>
       <ItemActions>
         <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -94,22 +80,16 @@ export function DeleteSection() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {shouldBlockDeletion
-                  ? "请先取消订阅"
-                  : "确定继续吗？"}
+                {shouldBlockDeletion ? "请先取消订阅" : "确定继续吗？"}
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div>
                   {shouldBlockDeletion ? (
                     <>
-                      <p className="mb-3">
-                        删除账户前请先取消订阅。
-                      </p>
+                      <p className="mb-3">删除账户前请先取消订阅。</p>
                       <p className="mb-3">
                         {hasAppleSubscription ? (
-                          <>
-                            可在 iPhone 或 iPad 的订阅设置中管理订阅。
-                          </>
+                          <>可在 iPhone 或 iPad 的订阅设置中管理订阅。</>
                         ) : (
                           <>
                             可点击上方“管理订阅”，或前往{" "}
@@ -129,9 +109,7 @@ export function DeleteSection() {
                       </p>
                     </>
                   ) : (
-                    <p>
-                      此操作无法撤销，将永久删除用户及全部关联账户。
-                    </p>
+                    <p>此操作无法撤销，将永久删除用户及全部关联账户。</p>
                   )}
                 </div>
               </AlertDialogDescription>

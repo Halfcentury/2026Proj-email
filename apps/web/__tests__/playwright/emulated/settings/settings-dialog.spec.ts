@@ -98,8 +98,8 @@ test("opens mail from Command K", async ({ page }, testInfo) => {
   await page.getByRole("option", { name: "Go to Mail", exact: true }).click();
 
   await expect(page).toHaveURL(new RegExp(`/${emailAccountId}/mail$`));
-  await expect(
-    page.getByRole("listbox", { name: "会话" }),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("listbox", { name: "会话" })).toBeVisible({
+    timeout: 60_000,
+  });
   await capturePlaywrightCheckpoint(page, testInfo, "command-k-go-to-mail");
 });

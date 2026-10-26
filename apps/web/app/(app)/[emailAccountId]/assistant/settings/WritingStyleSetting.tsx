@@ -100,9 +100,7 @@ function WritingStyleDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>写作风格</DialogTitle>
-          <DialogDescription>
-            用于起草符合你表达风格的回复。
-          </DialogDescription>
+          <DialogDescription>用于起草符合你表达风格的回复。</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -119,7 +117,9 @@ function WritingStyleDialog({
                   className="prose prose-sm dark:prose-invert max-w-none [&_p.is-editor-empty:first-child::before]:pointer-events-none [&_p.is-editor-empty:first-child::before]:float-left [&_p.is-editor-empty:first-child::before]:h-0 [&_p.is-editor-empty:first-child::before]:text-muted-foreground [&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]"
                   autofocus={false}
                   preservePastedLineBreaks
-                  placeholder={"典型长度：2–3 句话；语气：自然且专业；常用称呼：你好；特点：措辞简洁，直接回应，结尾简短。"}
+                  placeholder={
+                    "典型长度：2–3 句话；语气：自然且专业；常用称呼：你好；特点：措辞简洁，直接回应，结尾简短。"
+                  }
                 />
               </div>
             )}

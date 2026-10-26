@@ -9,7 +9,7 @@ const opfs = vi.hoisted(() => ({ wipe: vi.fn() }));
 const senderQueue = vi.hoisted(() => ({ clear: vi.fn() }));
 const searchHistory = vi.hoisted(() => ({ clear: vi.fn() }));
 
-vi.mock("@/utils/desktop-app", () => ({
+vi.mock("@/utils/browser-platform", () => ({
   getInboxZeroDesktopApp: () => desktop.app,
 }));
 vi.mock("@/utils/mail-engine/wasm-sqlite", () => ({

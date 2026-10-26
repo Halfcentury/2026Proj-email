@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { SettingCard } from "@/components/SettingCard";
-import { MutedText } from "@/components/Typography";
-import { prefixPath } from "@/utils/path";
 import {
   Dialog,
   DialogContent,
@@ -306,8 +303,7 @@ function FollowUpSettingsDialog({
             onClick={() => {
               startScanTiming();
               toast.info("正在扫描邮件…", {
-                description:
-                  "所需时间取决于待检查邮件的数量，可能需要几分钟。",
+                description: "所需时间取决于待检查邮件的数量，可能需要几分钟。",
               });
               executeScan({});
             }}
@@ -315,19 +311,6 @@ function FollowUpSettingsDialog({
             查找待跟进会话
           </Button>
         </div>
-
-        {showChannelsHint && (
-          <MutedText>
-            在聊天应用中接收提醒{" "}
-            <Link
-              href={prefixPath(emailAccountId, "/channels")}
-              className="text-foreground underline"
-            >
-              前往消息渠道页面配置
-            </Link>
-            .
-          </MutedText>
-        )}
       </form>
     </DialogContent>
   );

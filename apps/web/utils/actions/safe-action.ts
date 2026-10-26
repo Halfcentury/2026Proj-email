@@ -1,3 +1,4 @@
+import { isProductActionEnabled } from "@/utils/product-scope";
 import { createSafeActionClient } from "next-safe-action";
 import * as Sentry from "@sentry/nextjs";
 import { withServerActionInstrumentation } from "@sentry/nextjs";
@@ -93,6 +94,8 @@ const baseClient = createSafeActionClient({
     return UNEXPECTED_ACTION_ERROR_MESSAGE;
   },
 }).use(async ({ next, metadata }) => {
+  if (!isProductActionEnabled(metadata.name))
+    throw new SafeError("此功能不在当前项目范围内");
   const requestId = randomUUID();
   const logger = createScopedLogger(metadata.name).with({ requestId });
 

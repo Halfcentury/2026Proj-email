@@ -12,7 +12,7 @@ import {
 
 const THREAD_ID = "thr_playwright_archive";
 const MESSAGE_ID = "msg_playwright_archive";
-const SUBJECT = "Archive Action Message";
+const SUBJECT = "归档操作测试邮件";
 const RULE_ID = "playwright-mail-assistant-archive-rule";
 const PREMIUM_ID = `${RULE_ID}-premium`;
 const ARRIVAL_SUBJECT = "Assistant catch-up processing example";

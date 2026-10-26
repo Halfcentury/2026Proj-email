@@ -1,4 +1,3 @@
-import { PageHeaderVideoButton } from "@/components/PageHeaderVideoButton";
 import { PageHeading, PageSubHeading } from "@/components/Typography";
 
 type Video = {
@@ -23,7 +22,7 @@ export function PageHeader({ title, video, description }: PageHeaderProps) {
             <PageSubHeading className="mt-1">{description}</PageSubHeading>
           )}
         </div>
-        {video && <PageHeaderVideoButton video={video} />}
+        {video && null}
       </div>
     </div>
   );

@@ -1,18 +1,10 @@
 import { createAuthClient } from "better-auth/react";
-import { ssoClient } from "@better-auth/sso/client";
-import { emailOTPClient, organizationClient } from "better-auth/client/plugins";
+import { emailOTPClient } from "better-auth/client/plugins";
 
-export const {
-  signIn,
-  signOut,
-  signUp,
-  useSession,
-  getSession,
-  sso,
-  emailOtp,
-} = createAuthClient({
-  plugins: [ssoClient(), organizationClient(), emailOTPClient()],
-});
+export const { signIn, signOut, signUp, useSession, getSession, emailOtp } =
+  createAuthClient({
+    plugins: [emailOTPClient()],
+  });
 
 export async function signInWithSocialRedirect(
   options: Parameters<typeof signIn.social>[0],

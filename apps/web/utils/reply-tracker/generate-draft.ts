@@ -1,3 +1,8 @@
+import { collectIncomingAttachmentContext } from "@/utils/attachments/read-email-attachment";
+import { randomUUID } from "node:crypto";
+import { buildDraftSources } from "@/utils/ai/email-workspace/draft-sources";
+import { resolveKnowledgeSources } from "@/utils/ai/email-workspace/context-sources";
+import type { ContextIssue } from "@/utils/ai/email-workspace/types";
 import type { ParsedMessage } from "@/utils/types";
 import { internalDateToDate, sortByInternalDate } from "@/utils/date";
 import { getEmailForLLM } from "@/utils/get-email-from-message";
@@ -15,7 +20,6 @@ import type { EmailProvider } from "@/utils/email/types";
 import { buildDraftReplyBody } from "@/utils/email/reply-body";
 import { aiCollectReplyContext } from "@/utils/ai/reply/reply-context-collector";
 import { aiGetCalendarAvailability } from "@/utils/ai/calendar/availability";
-import { mcpAgent } from "@/utils/ai/mcp/mcp-agent";
 import {
   getMeetingContext,
   formatMeetingContextForPrompt,
@@ -33,7 +37,14 @@ import { getReplyMemoriesForPrompt } from "@/utils/ai/reply/reply-memory";
 import type { DraftContextMetadata } from "@/utils/ai/reply/draft-context-metadata";
 import { collectSenderReplyExamples } from "@/utils/reply-tracker/sender-reply-examples";
 
+export type DraftGenerationOptions = {
+  initialIssues?: ContextIssue[];
+  replyInstructions?: string;
+  bypassCache?: boolean;
+};
 export type DraftGenerationResult = {
+  textDraft?: string;
+
   attachments?: SelectedAttachment[];
   draft: string | null;
   confidence: DraftReplyConfidence;
@@ -77,10 +88,17 @@ export async function fetchMessagesAndGenerateDraftWithConfidenceThreshold(
   logger: Logger,
   minimumConfidence: DraftReplyConfidence,
   selectedRuleId?: string,
+  options: DraftGenerationOptions = {},
 ): Promise<DraftGenerationResult> {
+  const initialIssues: ContextIssue[] = [];
   const { threadMessages, previousConversationMessages } = testMessage
     ? { threadMessages: [testMessage], previousConversationMessages: null }
-    : await fetchThreadAndConversationMessages(threadId, client);
+    : await fetchThreadAndConversationMessages(
+        threadId,
+        client,
+        logger,
+        initialIssues,
+      );
 
   const { draft, confidence, attribution, attachments, draftContextMetadata } =
     await generateDraftContent(
@@ -91,6 +109,7 @@ export async function fetchMessagesAndGenerateDraftWithConfidenceThreshold(
       logger,
       minimumConfidence,
       selectedRuleId,
+      { ...options, initialIssues },
     );
 
   if (draft == null) {
@@ -99,7 +118,7 @@ export async function fetchMessagesAndGenerateDraftWithConfidenceThreshold(
       confidence,
       attribution,
       draftContextMetadata,
-      ...(selectedRuleId ? { attachments } : {}),
+      ...(attachments?.length ? { attachments } : {}),
     };
   }
 
@@ -111,10 +130,11 @@ export async function fetchMessagesAndGenerateDraftWithConfidenceThreshold(
 
   return {
     draft: finalResult,
+    textDraft: draft,
     confidence,
     attribution,
     draftContextMetadata,
-    ...(selectedRuleId ? { attachments } : {}),
+    ...(attachments?.length ? { attachments } : {}),
   };
 }
 
@@ -124,19 +144,27 @@ export async function fetchMessagesAndGenerateDraftWithConfidenceThreshold(
 async function fetchThreadAndConversationMessages(
   threadId: string,
   client: EmailProvider,
+  logger: Logger,
+  issues: ContextIssue[],
 ): Promise<{
   threadMessages: ParsedMessage[];
   previousConversationMessages: ParsedMessage[] | null;
 }> {
   // Providers return chronological order; sort defensively since drafting
   // logic breaks silently if messages arrive out of order.
-  const threadMessages = (await client.getThreadMessages(threadId)).sort(
-    sortByInternalDate("asc"),
+  const threadMessages = (await client.getThreadMessages(threadId))
+    .filter((message) => !message.labelIds?.includes("DRAFT"))
+    .sort(sortByInternalDate("asc"));
+  const previousConversationMessages = await optionalReplyContext(
+    "同发件人历史邮件",
+    () =>
+      client.getPreviousConversationMessages(
+        threadMessages.map((msg) => msg.id),
+      ),
+    null,
+    issues,
+    logger,
   );
-  const previousConversationMessages =
-    await client.getPreviousConversationMessages(
-      threadMessages.map((msg) => msg.id),
-    );
 
   return {
     threadMessages,
@@ -152,16 +180,23 @@ async function generateDraftContent(
   logger: Logger,
   minimumConfidence: DraftReplyConfidence,
   selectedRuleId?: string,
+  options: DraftGenerationOptions = {},
 ): Promise<DraftGenerationResult> {
   const lastMessage = threadMessages.at(-1);
 
   if (!lastMessage) throw new Error("No message provided");
 
-  const cachedReply = await getReplyWithConfidence({
-    emailAccountId: emailAccount.id,
-    messageId: lastMessage.id,
-    ruleId: selectedRuleId,
-  });
+  const cachedReply =
+    options.bypassCache || options.replyInstructions?.trim()
+      ? null
+      : await getReplyWithConfidence({
+          emailAccountId: emailAccount.id,
+          messageId: lastMessage.id,
+          ruleId: selectedRuleId,
+        }).catch((error) => {
+          logger.warn("Draft cache unavailable", { error });
+          return null;
+        });
 
   if (cachedReply) {
     const meetsThreshold = meetsDraftReplyConfidenceRequirement({
@@ -206,11 +241,25 @@ async function generateDraftContent(
     }),
   }));
 
-  // 1. Get knowledge base entries
-  const knowledgeBase = await prisma.knowledge.findMany({
-    where: { emailAccountId: emailAccount.id },
-    orderBy: { updatedAt: "desc" },
+  const contextIssues: ContextIssue[] = [...(options.initialIssues ?? [])];
+  const incomingAttachmentsPromise = collectIncomingAttachmentContext({
+    emailAccountId: emailAccount.id,
+    emailProvider,
+    message: lastMessage,
+    logger,
   });
+  // 1. Get knowledge base entries
+  const knowledgeBase = await optionalReplyContext(
+    "知识库",
+    async () =>
+      prisma.knowledge.findMany({
+        where: { emailAccountId: emailAccount.id },
+        orderBy: { updatedAt: "desc" },
+      }),
+    [],
+    contextIssues,
+    logger,
+  );
 
   // If we have knowledge base entries, extract relevant knowledge and draft with it
   // 2a. Extract relevant knowledge
@@ -221,15 +270,16 @@ async function generateDraftContent(
   const currentMessageIds = new Set(threadMessages.map((msg) => msg.id));
   const historicalMessagesForLLM = previousConversationMessages
     ?.filter((msg) => !currentMessageIds.has(msg.id))
-    .map((msg) =>
-      getEmailForLLM(msg, {
+    .map((msg) => ({
+      ...getEmailForLLM(msg, {
         maxLength: 1000,
         extractReply: true,
         removeForwarded: false,
         includeLinkUrls: true,
         includeImageAltText: true,
       }),
-    );
+      threadId: msg.threadId,
+    }));
   const senderEmail = extractEmailAddress(lastMessage.headers.from);
 
   if (historicalMessagesForLLM?.length) {
@@ -238,35 +288,52 @@ async function generateDraftContent(
       sender: lastMessage.headers.from,
     });
   }
-  const attachmentSelectionPromise = selectedRuleId
-    ? selectDraftAttachmentsForRule({
-        emailAccount,
-        ruleId: selectedRuleId,
-        emailContent: lastMessageContent,
-        logger,
-      }).catch((error) => {
-        logger.error("Failed to select draft attachments", {
-          error,
+  const attachmentSelectionPromise =
+    selectedRuleId || options.bypassCache
+      ? selectDraftAttachmentsForRule({
+          emailAccount,
           ruleId: selectedRuleId,
-        });
-        return {
+          emailContent: lastMessageContent,
+          logger,
+        }).catch((error) => {
+          contextIssues.push({
+            source: "回复附件",
+            message: "附件选择暂时不可用，请在发送前检查所需附件。",
+          });
+          logger.error("Failed to select draft attachments", {
+            error,
+            ruleId: selectedRuleId,
+          });
+          return {
+            selectedAttachments: [],
+            attachmentContext: null,
+          };
+        })
+      : Promise.resolve({
           selectedAttachments: [],
           attachmentContext: null,
-        };
-      })
-    : Promise.resolve({
-        selectedAttachments: [],
-        attachmentContext: null,
-      });
-  const activeBookingLinksPromise = prisma.bookingLink.findMany({
-    where: { emailAccountId: emailAccount.id, isActive: true },
-    orderBy: { createdAt: "desc" },
-    take: 1,
-    select: { slug: true, minimumNoticeMinutes: true },
-  });
+        });
+  const activeBookingLinksPromise = optionalReplyContext(
+    "预约链接",
+    async () =>
+      prisma.bookingLink.findMany({
+        where: { emailAccountId: emailAccount.id, isActive: true },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { slug: true, minimumNoticeMinutes: true },
+      }),
+    [],
+    contextIssues,
+    logger,
+  );
   const calendarAvailabilityPromise = activeBookingLinksPromise.then(
     (activeBookingLinks) =>
       aiGetCalendarAvailability({
+        onError: () =>
+          contextIssues.push({
+            source: "日历",
+            message: "日历查询失败，无法判断空闲时间。请重新查询后再约定时间。",
+          }),
         emailAccount,
         messages,
         logger,
@@ -289,7 +356,6 @@ async function generateDraftContent(
     calendarAvailability,
     writingStyle,
     emailAccountSettings,
-    mcpResult,
     upcomingMeetings,
     recordedMeetings,
     emailHistorySummary,
@@ -297,59 +363,178 @@ async function generateDraftContent(
     activeBookingLinks,
     senderReplyExamples,
   ] = await Promise.all([
-    aiExtractRelevantKnowledge({
-      knowledgeBase,
-      emailContent: lastMessageContent,
-      emailAccount,
-      logger,
-    }),
-    getReplyMemoriesForPrompt({
-      emailAccount,
-      senderEmail,
-      emailContent: lastMessageContent,
-      logger,
-    }),
-    aiCollectReplyContext({
-      currentThread: messages,
-      emailAccount,
-      emailProvider,
-    }),
-    calendarAvailabilityPromise,
-    getWritingStyle({ emailAccountId: emailAccount.id }),
-    prisma.emailAccount.findUnique({
-      where: { id: emailAccount.id },
-      select: { learnedWritingStyle: true, signature: true },
-    }),
-    mcpAgent({ emailAccount, messages }),
-    getMeetingContext({
-      emailAccountId: emailAccount.id,
-      recipientEmail: senderEmail,
-      additionalRecipients,
-      logger,
-    }),
-    getRecordedMeetingContext({
-      emailAccountId: emailAccount.id,
-      recipientEmail: senderEmail,
-      additionalRecipients,
-      logger,
-    }),
-    historicalMessagesForLLM?.length
-      ? aiExtractFromEmailHistory({
-          currentThreadMessages: messages,
-          historicalMessages: historicalMessagesForLLM,
+    optionalReplyContext(
+      "知识库",
+      async () =>
+        aiExtractRelevantKnowledge({
+          onError: () => {
+            if (!contextIssues.some((issue) => issue.source === "知识库"))
+              contextIssues.push({
+                source: "知识库",
+                message: "知识库暂时无法查询，请核对相关事实。",
+              });
+          },
+          knowledgeBase,
+          emailContent: lastMessageContent,
           emailAccount,
           logger,
-        })
-      : Promise.resolve(null),
-    attachmentSelectionPromise,
-    activeBookingLinksPromise,
-    collectSenderReplyExamples({
-      emailAccount,
-      emailProvider,
-      senderEmail,
-      currentMessageIds,
+        }),
+      null,
+      contextIssues,
       logger,
-    }),
+    ),
+    optionalReplyContext(
+      "回复经验",
+      async () =>
+        getReplyMemoriesForPrompt({
+          onError: () => {
+            if (!contextIssues.some((issue) => issue.source === "回复经验"))
+              contextIssues.push({
+                source: "回复经验",
+                message: "回复经验暂时无法查询，请核对相关事实。",
+              });
+          },
+          emailAccount,
+          senderEmail,
+          emailContent: lastMessageContent,
+          logger,
+        }),
+      { content: null, selectedMemories: [] },
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "历史邮件",
+      async () =>
+        aiCollectReplyContext({
+          onError: () => {
+            if (!contextIssues.some((issue) => issue.source === "历史邮件"))
+              contextIssues.push({
+                source: "历史邮件",
+                message: "历史邮件暂时无法查询，请核对相关事实。",
+              });
+          },
+          currentThread: messages,
+          emailAccount,
+          emailProvider,
+        }),
+      null,
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "日历",
+      async () => calendarAvailabilityPromise,
+      null,
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "写作偏好",
+      async () => getWritingStyle({ emailAccountId: emailAccount.id }),
+      null,
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "账户偏好",
+      async () =>
+        prisma.emailAccount.findUnique({
+          where: { id: emailAccount.id },
+          select: { learnedWritingStyle: true, signature: true },
+        }),
+      null,
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "日历会议",
+      async () =>
+        getMeetingContext({
+          onError: () => {
+            if (!contextIssues.some((issue) => issue.source === "日历会议"))
+              contextIssues.push({
+                source: "日历会议",
+                message: "日历会议暂时无法查询，请核对相关事实。",
+              });
+          },
+          emailAccountId: emailAccount.id,
+          recipientEmail: senderEmail,
+          additionalRecipients,
+          logger,
+        }),
+      [],
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "会议记录",
+      async () =>
+        getRecordedMeetingContext({
+          onError: () => {
+            if (!contextIssues.some((issue) => issue.source === "会议记录"))
+              contextIssues.push({
+                source: "会议记录",
+                message: "会议记录暂时无法查询，请核对相关事实。",
+              });
+          },
+          emailAccountId: emailAccount.id,
+          recipientEmail: senderEmail,
+          additionalRecipients,
+          logger,
+        }),
+      [],
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "历史摘要",
+      async () =>
+        historicalMessagesForLLM?.length
+          ? aiExtractFromEmailHistory({
+              currentThreadMessages: messages,
+              historicalMessages: historicalMessagesForLLM,
+              emailAccount,
+              logger,
+            })
+          : Promise.resolve(null),
+      null,
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "回复附件",
+      async () => attachmentSelectionPromise,
+      { selectedAttachments: [], attachmentContext: null },
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "预约链接",
+      async () => activeBookingLinksPromise,
+      [],
+      contextIssues,
+      logger,
+    ),
+    optionalReplyContext(
+      "历史回复示例",
+      async () =>
+        collectSenderReplyExamples({
+          onError: () =>
+            contextIssues.push({
+              source: "历史回复示例",
+              message: "历史回复示例查询失败，请核对个人表达与相关事实。",
+            }),
+          emailAccount,
+          emailProvider,
+          senderEmail,
+          currentMessageIds,
+          logger,
+        }),
+      null,
+      contextIssues,
+      logger,
+    ),
   ]);
   const {
     content: replyMemoryContent,
@@ -365,6 +550,10 @@ async function generateDraftContent(
   );
   const precedentThreadCount = emailHistoryContext?.relevantEmails.length ?? 0;
   const draftContextMetadata: DraftContextMetadata = {
+    aiRunId: randomUUID(),
+    messageId: lastMessage.id,
+    threadId: lastMessage.threadId,
+    observedAt: new Date().toISOString(),
     replyMemories: {
       count: selectedReplyMemories.length,
       ids: selectedReplyMemories.map((m) => m.id),
@@ -389,7 +578,7 @@ async function generateDraftContent(
       suggestedTimesCount: calendarAvailability?.suggestedTimes?.length ?? 0,
     },
     writingStyle: { custom: !!writingStyle },
-    externalTools: { injected: !!mcpResult?.response },
+    externalTools: { injected: false },
     meetings: { injected: !!meetingContext, count: upcomingMeetings.length },
     recordedMeetings: {
       injected: !!recordedMeetingContext,
@@ -414,30 +603,123 @@ async function generateDraftContent(
     });
   }
 
+  const incomingAttachments = await incomingAttachmentsPromise;
+  contextIssues.push(...incomingAttachments.issues);
+  const attachmentContext =
+    [incomingAttachments.content, attachmentSelection.attachmentContext]
+      .filter(Boolean)
+      .join("\n\n") || null;
+  draftContextMetadata.attachments.injected = Boolean(attachmentContext);
   // 3. Draft reply
-  const { reply, confidence, attribution } = await aiDraftReplyWithConfidence({
-    messages,
-    emailAccount: { ...emailAccount, bookingLinks: activeBookingLinks },
-    knowledgeBaseContent: knowledgeResult?.relevantContent || null,
-    replyMemoryContent,
-    emailHistorySummary,
-    emailHistoryContext,
-    senderReplyExamples: senderReplyExamples?.content ?? null,
-    calendarAvailability,
-    writingStyle,
-    learnedWritingStyle: emailAccountSettings?.learnedWritingStyle ?? null,
-    hasConfiguredSignature: !!emailAccountSettings?.signature?.trim(),
-    mcpContext: mcpResult?.response || null,
-    meetingContext,
-    recordedMeetingContext,
-    attachmentContext: attachmentSelection.attachmentContext,
-  });
+  const { reply, confidence, attribution, missingInformation } =
+    await aiDraftReplyWithConfidence({
+      replyInstructions: options.replyInstructions,
+      unavailableContext: contextIssues.map(
+        (issue) => `${issue.source}：${issue.message}`,
+      ),
+      messages,
+      emailAccount: { ...emailAccount, bookingLinks: activeBookingLinks },
+      knowledgeBaseContent: knowledgeResult?.relevantContent || null,
+      replyMemoryContent,
+      emailHistorySummary,
+      emailHistoryContext,
+      senderReplyExamples: senderReplyExamples?.content ?? null,
+      calendarAvailability,
+      writingStyle,
+      learnedWritingStyle: emailAccountSettings?.learnedWritingStyle ?? null,
+      hasConfiguredSignature: !!emailAccountSettings?.signature?.trim(),
+      mcpContext: null,
+      meetingContext,
+      recordedMeetingContext,
+      attachmentContext: attachmentSelection.attachmentContext,
+      incomingAttachmentContext: incomingAttachments.content,
+    });
 
   const meetsThreshold = meetsDraftReplyConfidenceRequirement({
     draftConfidence: confidence,
     minimumConfidence,
   });
   draftContextMetadata.draft = { confidence };
+  draftContextMetadata.missingInformation = missingInformation ?? [];
+  draftContextMetadata.issues = contextIssues;
+  draftContextMetadata.sources = buildDraftSources({
+    emailAccountId: emailAccount.id,
+    messages,
+    knowledge: resolveKnowledgeSources({
+      emailAccountId: emailAccount.id,
+      knowledge: knowledgeBase,
+      citations: knowledgeResult?.sources ?? [],
+    }),
+    memories: selectedReplyMemories,
+    history: [
+      ...(emailHistoryContext?.sources ?? []),
+      ...(senderReplyExamples?.sources ?? []),
+    ],
+    historicalSummary: {
+      messages: historicalMessagesForLLM ?? [],
+      text: emailHistorySummary,
+    },
+    calendar: calendarAvailability
+      ? {
+          messageId: lastMessage.id,
+          text: [
+            calendarAvailability.noAvailability
+              ? "查询范围内没有可用时间"
+              : "建议时间",
+            ...calendarAvailability.suggestedTimes.map(
+              (time) => `${time.start} 至 ${time.end}`,
+            ),
+            ...(calendarAvailability.queriedRanges ?? []).map(
+              (range) =>
+                `查询范围：${range.start} 至 ${range.end}；查询时间：${range.observedAt}`,
+            ),
+            `时区：${calendarAvailability.timezone ?? emailAccount.timezone ?? "UTC"}`,
+          ].join("\n"),
+        }
+      : null,
+    meetings: [
+      ...upcomingMeetings.map((meeting) => ({
+        id: meeting.eventId,
+        title: meeting.eventTitle,
+        excerpt:
+          formatMeetingContextForPrompt([meeting], emailAccount.timezone) ?? "",
+        date: meeting.eventTime,
+        href: meeting.eventUrl,
+      })),
+      ...recordedMeetings.map((meeting) => ({
+        id: meeting.id,
+        href: meeting.id
+          ? `/${emailAccount.id}/meetings?meeting-id=${encodeURIComponent(meeting.id)}`
+          : undefined,
+        title: meeting.eventTitle,
+        excerpt:
+          formatRecordedMeetingContextForPrompt(
+            [meeting],
+            emailAccount.timezone,
+          ) ?? "",
+        date: meeting.startTime,
+      })),
+    ],
+    attachments: attachmentSelection.selectedAttachments,
+    incomingAttachments: incomingAttachments.sources,
+    writingStyle:
+      [
+        writingStyle,
+        emailAccountSettings?.learnedWritingStyle,
+        emailAccount.about,
+      ]
+        .filter(Boolean)
+        .join("\n\n") || null,
+  });
+  if (
+    emailHistoryContext?.relevantEmails.length &&
+    !emailHistoryContext.sources?.length
+  ) {
+    contextIssues.push({
+      source: "历史邮件",
+      message: "检索未返回可定位的邮件来源，请核对相关事实。",
+    });
+  }
 
   if (!meetsThreshold) {
     // A suppressed draft creates no action and therefore no ExecutedAction row.
@@ -450,6 +732,42 @@ async function generateDraftContent(
     });
 
     try {
+      if (!options.replyInstructions?.trim())
+        await saveReply({
+          emailAccountId: emailAccount.id,
+          messageId: lastMessage.id,
+          reply,
+          confidence,
+          attribution,
+          draftContextMetadata,
+          ...(selectedRuleId
+            ? {
+                attachments: attachmentSelection.selectedAttachments,
+                ruleId: selectedRuleId,
+              }
+            : {}),
+        });
+    } catch (error) {
+      logger.error("Failed to cache low-confidence draft", {
+        error,
+        messageId: lastMessage.id,
+        confidence,
+      });
+    }
+
+    return {
+      draft: null,
+      confidence,
+      attribution,
+      draftContextMetadata,
+      ...(attachmentSelection.selectedAttachments.length
+        ? { attachments: attachmentSelection.selectedAttachments }
+        : {}),
+    };
+  }
+
+  try {
+    if (!options.replyInstructions?.trim())
       await saveReply({
         emailAccountId: emailAccount.id,
         messageId: lastMessage.id,
@@ -464,40 +782,6 @@ async function generateDraftContent(
             }
           : {}),
       });
-    } catch (error) {
-      logger.error("Failed to cache low-confidence draft", {
-        error,
-        messageId: lastMessage.id,
-        confidence,
-      });
-    }
-
-    return {
-      draft: null,
-      confidence,
-      attribution,
-      draftContextMetadata,
-      ...(selectedRuleId
-        ? { attachments: attachmentSelection.selectedAttachments }
-        : {}),
-    };
-  }
-
-  try {
-    await saveReply({
-      emailAccountId: emailAccount.id,
-      messageId: lastMessage.id,
-      reply,
-      confidence,
-      attribution,
-      draftContextMetadata,
-      ...(selectedRuleId
-        ? {
-            attachments: attachmentSelection.selectedAttachments,
-            ruleId: selectedRuleId,
-          }
-        : {}),
-    });
   } catch (error) {
     logger.error("Failed to cache draft", {
       error,
@@ -511,8 +795,28 @@ async function generateDraftContent(
     confidence,
     attribution,
     draftContextMetadata,
-    ...(selectedRuleId
+    ...(attachmentSelection.selectedAttachments.length
       ? { attachments: attachmentSelection.selectedAttachments }
       : {}),
   };
+}
+
+async function optionalReplyContext<T>(
+  source: string,
+  task: () => Promise<T>,
+  fallback: T,
+  issues: ContextIssue[],
+  logger: Logger,
+): Promise<T> {
+  try {
+    return await task();
+  } catch (error) {
+    logger.warn("Reply context source unavailable", { source, error });
+    if (!issues.some((issue) => issue.source === source))
+      issues.push({
+        source,
+        message: `${source}暂时无法查询，请核对涉及这部分资料的事实。`,
+      });
+    return fallback;
+  }
 }

@@ -9,12 +9,12 @@ import { saasFounderMixedInbox } from "../__tests__/fixtures/inboxes/demo-inboxe
 
 const DEFAULT_BASE_URL = "http://localhost:3000";
 const GOOGLE_EMAIL = "developer@example.com";
-const GOOGLE_NAME = "Developer";
+const GOOGLE_NAME = "测试用户";
 const MICROSOFT_EMAIL = "developer@outlook.test";
-const MICROSOFT_NAME = "Developer";
+const MICROSOFT_NAME = "测试用户";
 const TEAMMATE_GOOGLE_EMAIL = "teammate@example.com";
 const TEAMMATE_MICROSOFT_EMAIL = "teammate@outlook.test";
-const TEAMMATE_NAME = "Teammate";
+const TEAMMATE_NAME = "测试同事";
 
 export function buildEmulateSeed(baseUrl = DEFAULT_BASE_URL) {
   const normalizedBaseUrl = baseUrl.replace(/\/+$/u, "");
@@ -53,7 +53,7 @@ export function buildEmulateSeed(baseUrl = DEFAULT_BASE_URL) {
         {
           id: "drv_root_child",
           user_email: GOOGLE_EMAIL,
-          name: "Smoke Docs",
+          name: "测试文档",
           mime_type: "application/vnd.google-apps.folder",
           parent_ids: ["root"],
         },

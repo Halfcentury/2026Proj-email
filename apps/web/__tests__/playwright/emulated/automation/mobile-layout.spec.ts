@@ -170,9 +170,7 @@ test("keeps learned patterns closable and the add form usable on phones", async 
     name: "已学习的规律",
     exact: true,
   });
-  await dialog
-    .getByRole("button", { name: "添加规律", exact: true })
-    .click();
+  await dialog.getByRole("button", { name: "添加规律", exact: true }).click();
   const input = dialog.getByPlaceholder("e.g. hello@company.com");
   await input.fill("receipts@example.com");
   await capturePlaywrightCheckpoint(page, testInfo, "mobile-patterns-add");

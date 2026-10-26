@@ -21,8 +21,7 @@ export const GET = withError("unsubscribe", async (request) => {
     return createUnsubscribeResponse(request, {
       status: 400,
       title: "链接不可用",
-      message:
-        "退订链接无效或已使用，请从新的通知邮件中重新尝试。",
+      message: "退订链接无效或已使用，请从新的通知邮件中重新尝试。",
       json: {
         error:
           "Invalid unsubscribe token. You might have already unsubscribed.",
@@ -52,8 +51,7 @@ export const POST = withError("unsubscribe", async (request) => {
     return createUnsubscribeResponse(request, {
       status: 400,
       title: "链接不可用",
-      message:
-        "退订链接无效或已使用，请从新的通知邮件中重新尝试。",
+      message: "退订链接无效或已使用，请从新的通知邮件中重新尝试。",
       json: {
         error:
           "Invalid unsubscribe token. You might have already unsubscribed.",
@@ -84,8 +82,7 @@ export const POST = withError("unsubscribe", async (request) => {
     return createUnsubscribeResponse(request, {
       status: 500,
       title: "退订失败",
-      message:
-        "暂时无法更新邮件偏好，请前往设置手动退订。",
+      message: "暂时无法更新邮件偏好，请前往设置手动退订。",
       json: {
         success: false,
         message:

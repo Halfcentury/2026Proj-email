@@ -4,7 +4,7 @@ import {
   getUserTier,
   hasAiAccess,
   premiumEntitlementSelect,
-} from "@/utils/premium";
+} from "@/utils/feature-access";
 import type { Logger } from "@/utils/logger";
 import { createEmailProvider } from "@/utils/email/provider";
 import { captureException, isInvalidGrantError } from "@/utils/error";

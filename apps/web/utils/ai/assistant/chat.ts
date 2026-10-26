@@ -1,3 +1,12 @@
+import {
+  getEmailWorkspaceResourcesTool,
+  analyzeEmailTool,
+  generateReplyTool,
+  getMeetingContextTool,
+  suggestAttachmentFilingTool,
+  manageBookingTool,
+  configureMeetingRecordingTool,
+} from "./chat-workspace-tools";
 import type { JSONValue, ModelMessage } from "ai";
 import type { Logger } from "@/utils/logger";
 import type { MessageContext } from "@/utils/ai/assistant/chat-context-validation";
@@ -38,7 +47,7 @@ import {
 import { saveMemoryTool, searchMemoriesTool } from "./chat-memory-tools";
 import { getCalendarEventsTool } from "./chat-calendar-tools";
 import { hasUsableCalendarConnection } from "@/utils/calendar/event-provider";
-import type { MessagingPlatform } from "@/utils/messaging/platforms";
+import type { MessagingPlatform } from "@/utils/retired-notifications";
 import type { SerializedMatchReason } from "@/utils/ai/choose-rule/types";
 import {
   buildFreshRuleContextMessage,
@@ -48,12 +57,12 @@ import {
 } from "./chat-rule-state";
 import { getAssistantChatProvider } from "./chat-provider-shared";
 import { LlmUseCase } from "@/utils/llms/use-cases";
-import { isIntegrationActionEnabledForUserId } from "@/utils/integration-action.server";
+import { isIntegrationActionEnabledForUserId } from "@/utils/optional-features";
 import { trimStaleToolResults } from "@/utils/ai/assistant/trim-stale-tool-results";
 
 export const maxDuration = 800;
 // Increment when chat prompts, tools, or routing change so run quality remains attributable.
-export const ASSISTANT_CHAT_PIPELINE_VERSION = 14;
+export const ASSISTANT_CHAT_PIPELINE_VERSION = 16;
 const ASSISTANT_CHAT_TOOL_BUDGET_MS = {
   web: 720_000,
   messaging: 60_000,
@@ -291,6 +300,13 @@ export async function aiProcessAssistantChat({
     manageSenderCategory: manageSenderCategoryTool(toolOptions),
     searchInbox: searchInboxTool(toolOptions),
     readEmail: readEmailTool(toolOptions),
+    analyzeEmail: analyzeEmailTool(toolOptions),
+    generateReply: generateReplyTool(toolOptions),
+    getMeetingContext: getMeetingContextTool(toolOptions),
+    configureMeetingRecording: configureMeetingRecordingTool(toolOptions),
+    suggestAttachmentFiling: suggestAttachmentFilingTool(toolOptions),
+    getEmailWorkspaceResources: getEmailWorkspaceResourcesTool(toolOptions),
+    manageBooking: manageBookingTool(toolOptions),
     manageInbox: manageInboxTool(toolOptions),
     getUserRulesAndSettings: getUserRulesAndSettingsTool(toolOptions),
     getRuleExecutionForMessage: getRuleExecutionForMessageTool(toolOptions),
@@ -646,6 +662,7 @@ function getEmailCapabilitiesPolicy({
     '- When the user asks to "draft" an email or reply, use sendEmail, replyEmail, or forwardEmail. The pending-action confirmation flow acts as the draft.',
     "- Write replyEmail content in the language of the email being replied to (its new body, not quoted history), not the chat language, unless the user explicitly requests another language. Apply the same rule to any note text you add with forwardEmail.",
     '- When the user asks to forward an existing email, activate "forward" and use forwardEmail with a messageId from searchInbox results. Do not recreate forwards with sendEmail.',
+    "- Use analyzeEmail for email analysis and generateReply for drafting a reply with full retrieval and traceable sources. Do not compose unsupported business facts. A one-time edit must not update permanent memories or rules. Use replyEmail only to prepare the reviewed draft for explicit send confirmation.",
     "- When the user asks to reply to an existing email, use replyEmail with a messageId from searchInbox results. Do not recreate replies with sendEmail.",
     "- Chat-uploaded files are not available as outgoing email attachments. If the user asks to send, forward, or attach a file from chat, explain that this is unsupported and do not call sendEmail, replyEmail, or forwardEmail for that file.",
     "- Only send emails when the user clearly asks to send now.",

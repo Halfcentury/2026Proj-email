@@ -11,17 +11,17 @@ import {
   testAiCustomContentBody,
 } from "@/utils/actions/ai-rule.validation";
 import { setRuleRunOnThreads } from "@/utils/rule/rule";
-import { assertRuleIsNotOrgManaged } from "@/utils/organizations/rules";
+import { assertRuleIsNotOrgManaged } from "@/utils/rule/legacy-rule-guard";
 import { actionClient } from "@/utils/actions/safe-action";
 import { flushLoggerSafely } from "@/utils/logger-flush";
 import { getEmailAccountForRuleExecution } from "@/utils/user/get";
 import { SafeError } from "@/utils/error";
 import { createEmailProvider } from "@/utils/email/provider";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 import {
   RERUN_MINIMUM_TIER,
   RERUN_UPGRADE_MESSAGE,
-} from "@/utils/premium/rerun";
+} from "@/utils/feature-access";
 
 export const runRulesAction = actionClient
   .metadata({ name: "runRules" })

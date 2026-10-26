@@ -73,7 +73,7 @@ describe("startMobileSocialAuth", () => {
     const started = await startMobileSocialAuth({
       provider: "google",
       codeChallenge: "a".repeat(43),
-      returnUrlMode: "desktop-scheme",
+      returnUrlMode: "app-scheme",
     });
 
     expect(started.authorizationURL).toBe(
@@ -95,7 +95,7 @@ describe("startMobileSocialAuth", () => {
     const started = await startMobileSocialAuth({
       provider: "google",
       codeChallenge: "a".repeat(43),
-      returnUrlMode: "desktop-scheme",
+      returnUrlMode: "app-scheme",
     });
 
     expect(started.authorizationURL).toBe(

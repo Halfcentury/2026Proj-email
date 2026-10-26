@@ -1,6 +1,7 @@
 "use client";
 
 import { useOpenedConversationAttachments } from "./OpenedConversationAttachments";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const PREVIEW_MAX_BYTES = 50 * 1024 * 1024;
 
 export function EmailAttachments({ message }: { message: ThreadMessage }) {
   const { emailAccountId } = useAccount();
+  const requestedAttachment = useSearchParams().get("attachment-id");
   const [isDownloading, setIsDownloading] = useState(false);
   const [previewingId, setPreviewingId] = useState<string>();
   const previewing = message.attachments?.find(
@@ -47,6 +49,18 @@ export function EmailAttachments({ message }: { message: ThreadMessage }) {
           attachmentId: previewing.attachmentId,
         })
       : "";
+  useEffect(() => {
+    if (!requestedAttachment) return;
+    const attachment = message.attachments?.find(
+      (a) => a.attachmentId === requestedAttachment,
+    );
+    if (!attachment) return;
+    document
+      .getElementById(`attachment-${message.id}-${attachment.attachmentId}`)
+      ?.scrollIntoView({ block: "center" });
+    if (isPreviewableAttachment(attachment))
+      setPreviewingId(attachment.attachmentId);
+  }, [requestedAttachment, message.id, message.attachments]);
   const controller = useRef(new AbortController());
   useEffect(() => {
     if (!emailAccountId || !message.id) return;
@@ -74,8 +88,7 @@ export function EmailAttachments({ message }: { message: ThreadMessage }) {
       signal.throwIfAborted();
       saveBlob(blob, filename);
     } catch {
-      if (!signal.aborted)
-        toastError({ description: "下载附件失败" });
+      if (!signal.aborted) toastError({ description: "下载附件失败" });
     } finally {
       setIsDownloading(false);
     }
@@ -98,8 +111,11 @@ export function EmailAttachments({ message }: { message: ThreadMessage }) {
         return (
           <CardBasic
             key={attachment.attachmentId}
+            id={`attachment-${message.id}-${attachment.attachmentId}`}
             className={cn(
               "relative overflow-hidden p-0",
+              requestedAttachment === attachment.attachmentId &&
+                "ring-2 ring-primary",
               canPreview && "transition-colors hover:bg-muted/40",
             )}
           >
@@ -232,9 +248,7 @@ function AttachmentPreviewDialogContent({
         <DialogTitle className="min-w-0 flex-1 truncate font-medium text-sm">
           {filename}
         </DialogTitle>
-        <DialogDescription className="sr-only">
-          附件预览
-        </DialogDescription>
+        <DialogDescription className="sr-only">附件预览</DialogDescription>
         <Button
           variant="outline"
           size="sm"

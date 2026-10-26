@@ -8,7 +8,7 @@ import { SafeError } from "@/utils/error";
 import { getLatestNonDraftMessage } from "@/utils/email/latest-message";
 import { getMessageTimestamp } from "@/utils/email/message-timestamp";
 import { emailToContent } from "@/utils/mail";
-import { assertHasAiAccess } from "@/utils/premium/limits";
+import { assertHasAiAccess } from "@/utils/feature-access.server";
 import { getEmailAccountWithAi } from "@/utils/user/get";
 
 export const translateThreadAction = actionClient

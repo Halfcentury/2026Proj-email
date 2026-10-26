@@ -1,7 +1,7 @@
 import { ActionType } from "@/generated/prisma/enums";
-import type { GetMessagingChannelsResponse } from "@/app/api/user/messaging-channels/route";
+import type { GetMessagingChannelsResponse } from "@/utils/retired-notifications";
 import { Card, CardContent } from "@/components/ui/card";
-import { getActionIcon } from "@/utils/action-display";
+import { ACTION_TYPE_LABELS, getActionIcon } from "@/utils/action-display";
 import { SectionHeader } from "@/components/Typography";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useMessagingChannels } from "@/hooks/useMessagingChannels";
@@ -10,36 +10,13 @@ import {
   getExtraActions,
 } from "@/utils/ai/rule/create-rule-schema";
 import { TooltipExplanation } from "@/components/TooltipExplanation";
-import { getMessagingProviderName } from "@/utils/messaging/platforms";
-import { getConnectedRuleNotificationChannels } from "@/utils/messaging/routes";
-import { getIntegrationActionLabel } from "@/utils/mcp/tool-specs";
+import { getMessagingProviderName } from "@/utils/retired-notifications";
+import { getConnectedRuleNotificationChannels } from "@/utils/retired-notifications";
 import { useIntegrationActionsEnabled } from "@/hooks/useFeatureFlags";
 
-const actionNames: Record<ActionType, string> = {
-  [ActionType.LABEL]: "Label",
-  [ActionType.MOVE_FOLDER]: "Move to folder",
-  [ActionType.ARCHIVE]: "Archive",
-  [ActionType.DELETE]: "Delete",
-  [ActionType.DRAFT_EMAIL]: "Draft replies",
-  [ActionType.DRAFT_MESSAGING_CHANNEL]: "Draft replies",
-  [ActionType.REPLY]: "Send replies",
-  [ActionType.FORWARD]: "Forward",
-  [ActionType.MARK_READ]: "Mark as read",
-  [ActionType.STAR]: "Star",
-  [ActionType.MARK_SPAM]: "Mark as spam",
-  [ActionType.SEND_EMAIL]: "Send email",
-  [ActionType.CALL_WEBHOOK]: "Call webhook",
-  [ActionType.DIGEST]: "Add to digest",
-  [ActionType.NOTIFY_MESSAGING_CHANNEL]: "Notify",
-  [ActionType.NOTIFY_SENDER]: "Notify sender",
-  [ActionType.INTEGRATION]: getIntegrationActionLabel(),
-};
-
 const actionTooltips: Partial<Record<ActionType, string>> = {
-  [ActionType.CALL_WEBHOOK]:
-    "For developers: trigger external integrations by sending email data to a custom URL",
-  [ActionType.DIGEST]:
-    "Group emails together and receive them as a daily summary",
+  [ActionType.CALL_WEBHOOK]: "向指定网址发送邮件数据以触发 Webhook",
+  [ActionType.DIGEST]: "汇总邮件并以每日摘要的形式发送",
 };
 
 export function AvailableActionsPanel() {
@@ -90,7 +67,7 @@ function ActionSection({
               <span className="text-sm">
                 {actionType === ActionType.NOTIFY_MESSAGING_CHANNEL
                   ? notifyActionName
-                  : actionNames[actionType]}
+                  : ACTION_TYPE_LABELS[actionType]}
               </span>
               {tooltip && <TooltipExplanation text={tooltip} size="sm" />}
             </div>
@@ -116,8 +93,8 @@ function getNotifyActionName(
   );
 
   return providerNames.length > 0
-    ? `Notify on ${formatProviderList(providerNames)}`
-    : "Notify";
+    ? `通知 ${formatProviderList(providerNames)}`
+    : "通知";
 }
 
 function formatProviderList(providerNames: string[]) {

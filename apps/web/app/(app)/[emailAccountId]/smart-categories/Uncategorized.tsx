@@ -2,24 +2,21 @@
 
 import useSWRInfinite from "swr/infinite";
 import { useMemo, useCallback } from "react";
-import { ChevronsDownIcon, SparklesIcon, StopCircleIcon } from "lucide-react";
+import { ChevronsDownIcon, StopCircleIcon } from "lucide-react";
 import { ClientOnly } from "@/components/ClientOnly";
 import { SendersTable } from "@/components/GroupedTable";
 import { LoadingContent } from "@/components/LoadingContent";
 import { Button } from "@/components/ui/button";
 import type { UncategorizedSendersResponse } from "@/app/api/user/categorize/senders/uncategorized/route";
 import { TopBar } from "@/components/TopBar";
-import { toastError } from "@/components/Toast";
 import {
   useHasProcessingItems,
-  pushToAiCategorizeSenderQueueAtom,
   stopAiCategorizeSenderQueue,
 } from "@/store/ai-categorize-sender-queue";
 import { SectionDescription } from "@/components/Typography";
 import { ButtonLoader } from "@/components/Loading";
-import { PremiumTooltip } from "@/components/PremiumAlert";
-import { usePremium } from "@/hooks/usePremium";
-import { usePremiumModal } from "@/app/(app)/premium/PremiumModal";
+import { usePremium } from "@/hooks/useFeatureAccess";
+import { usePremiumModal } from "@/hooks/useFeatureAccess";
 import { Toggle } from "@/components/Toggle";
 import { setAutoCategorizeAction } from "@/utils/actions/categorize";
 import { TooltipExplanation } from "@/components/TooltipExplanation";
@@ -55,29 +52,7 @@ export function Uncategorized({
     <LoadingContent loading={!senderAddresses && isLoading}>
       <TopBar>
         <div className="flex gap-2">
-          <PremiumTooltip
-            showTooltip={!hasAiAccess}
-            openModal={openPremiumModal}
-          >
-            <Button
-              loading={hasProcessingItems}
-              disabled={!hasAiAccess}
-              onClick={async () => {
-                if (!senderAddresses?.length) {
-                  toastError({ description: "暂无待分类发件人" });
-                  return;
-                }
-
-                pushToAiCategorizeSenderQueueAtom({
-                  pushIds: senderAddresses.map((s) => s.email),
-                  emailAccountId,
-                });
-              }}
-            >
-              <SparklesIcon className="mr-2 size-4" />
-              使用 AI 为全部分类
-            </Button>
-          </PremiumTooltip>
+          {null}
 
           {hasProcessingItems && (
             <Button
@@ -94,10 +69,7 @@ export function Uncategorized({
 
         <div className="flex items-center">
           <div className="mr-1.5">
-            <TooltipExplanation
-              size="sm"
-              text="收到新发件人邮件时自动分类"
-            />
+            <TooltipExplanation size="sm" text="收到新发件人邮件时自动分类" />
           </div>
           <AutoCategorizeToggle
             autoCategorizeSenders={autoCategorizeSenders}

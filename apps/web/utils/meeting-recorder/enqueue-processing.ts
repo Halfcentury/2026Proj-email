@@ -2,7 +2,7 @@ import type { MeetingRecorderProcessBody } from "@/app/api/meeting-recorder/proc
 import type { MeetingRecorderTranscriptBody } from "@/app/api/meeting-recorder/transcript/validation";
 import type { Logger } from "@/utils/logger";
 import { MEETING_RECORDER_MIN_TIER } from "@/utils/meeting-recorder/config";
-import { getPremiumUserFilter } from "@/utils/premium";
+import { getPremiumUserFilter } from "@/utils/feature-access";
 import prisma from "@/utils/prisma";
 import { enqueueBackgroundJob } from "@/utils/queue/dispatch";
 

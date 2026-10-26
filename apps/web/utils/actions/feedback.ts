@@ -5,13 +5,11 @@ import { env } from "@/env";
 import { actionClientUser } from "@/utils/actions/safe-action";
 import { submitFeedbackBody } from "@/utils/actions/feedback.validation";
 import type { Logger } from "@/utils/logger";
-import { trackProductFeedback } from "@/utils/posthog";
 
 export const submitFeedbackAction = actionClientUser
   .metadata({ name: "submitFeedback" })
   .inputSchema(submitFeedbackBody)
   .action(async ({ ctx: { userEmail, logger }, parsedInput: { feedback } }) => {
-    await trackProductFeedback(userEmail, feedback);
     after(() => sendFeedbackToWebhook({ email: userEmail, feedback, logger }));
 
     return { success: true };

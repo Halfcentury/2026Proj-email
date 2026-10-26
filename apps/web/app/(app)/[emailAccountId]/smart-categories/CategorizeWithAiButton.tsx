@@ -5,9 +5,8 @@ import { SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { bulkCategorizeSendersAction } from "@/utils/actions/categorize";
-import { PremiumTooltip } from "@/components/PremiumAlert";
-import { usePremium } from "@/hooks/usePremium";
-import { usePremiumModal } from "@/app/(app)/premium/PremiumModal";
+import { usePremium } from "@/hooks/useFeatureAccess";
+import { usePremiumModal } from "@/hooks/useFeatureAccess";
 import type { ButtonProps } from "@/components/ui/button";
 import { useCategorizeProgress } from "@/app/(app)/[emailAccountId]/smart-categories/CategorizeProgress";
 import { Tooltip } from "@/components/Tooltip";
@@ -121,9 +120,5 @@ function CategorizeWithAiButtonTooltip({
     );
   }
 
-  return (
-    <PremiumTooltip showTooltip={!hasAiAccess} openModal={openPremiumModal}>
-      {children}
-    </PremiumTooltip>
-  );
+  return null;
 }

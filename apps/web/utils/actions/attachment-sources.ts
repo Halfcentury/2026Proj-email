@@ -6,7 +6,7 @@ import { upsertRuleAttachmentSourcesBody } from "@/utils/actions/attachment-sour
 import { getAttachmentSourceKey } from "@/utils/attachments/source-schema";
 import prisma from "@/utils/prisma";
 import { SafeError } from "@/utils/error";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 
 export const upsertRuleAttachmentSourcesAction = actionClient
   .metadata({ name: "upsertRuleAttachmentSources" })

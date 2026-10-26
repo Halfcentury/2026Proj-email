@@ -19,8 +19,8 @@ vi.mock("@upstash/qstash", () => ({
 
 const providerSends = vi.hoisted(() => ({ count: 0 }));
 
-vi.mock("@/utils/email/sent-message-open/sent-message-open.server", () => ({
-  sendHtmlEmailWithOpenTracking: vi.fn(async () => {
+vi.mock("@/utils/email/send-html", () => ({
+  sendHtmlEmail: vi.fn(async () => {
     providerSends.count += 1;
     // Widens the window in which a racing undo or second worker could slip in.
     await new Promise((resolve) => setTimeout(resolve, 25));

@@ -31,38 +31,31 @@ type ExampleCategory = {
 const EXAMPLE_CATEGORIES: ExampleCategory[] = [
   {
     name: "团队",
-    description:
-      "使用 @company.com 邮箱的内部成员，包括员工和同事",
+    description: "使用 @company.com 邮箱的内部成员，包括员工和同事",
   },
   {
     name: "客户",
-    description:
-      "客户邮箱，包括寻求支持或与客户服务团队联系的人员",
+    description: "客户邮箱，包括寻求支持或与客户服务团队联系的人员",
   },
   {
     name: "候选人",
-    description:
-      "求职者、潜在雇员及面试候选人",
+    description: "求职者、潜在雇员及面试候选人",
   },
   {
     name: "求职申请",
-    description:
-      "已申请或正在面试的公司、招聘平台及招聘人员",
+    description: "已申请或正在面试的公司、招聘平台及招聘人员",
   },
   {
     name: "投资者",
-    description:
-      "当前及潜在投资者、投资机构和风投联系人",
+    description: "当前及潜在投资者、投资机构和风投联系人",
   },
   {
     name: "创业者",
-    description:
-      "寻求投资或合作的创业者及潜在被投公司",
+    description: "寻求投资或合作的创业者及潜在被投公司",
   },
   {
     name: "供应商",
-    description:
-      "为公司提供产品或服务的供应商和合作伙伴",
+    description: "为公司提供产品或服务的供应商和合作伙伴",
   },
   {
     name: "服务器错误",
@@ -70,18 +63,15 @@ const EXAMPLE_CATEGORIES: ExampleCategory[] = [
   },
   {
     name: "媒体",
-    description:
-      "寻求采访或报道的记者、媒体、公关机构和行业刊物",
+    description: "寻求采访或报道的记者、媒体、公关机构和行业刊物",
   },
   {
     name: "会议活动",
-    description:
-      "活动主办方、会议协调人员及行业演讲联系人",
+    description: "活动主办方、会议协调人员及行业演讲联系人",
   },
   {
     name: "公益组织",
-    description:
-      "慈善机构、非政府组织、公益组织和基金会",
+    description: "慈善机构、非政府组织、公益组织和基金会",
   },
 ];
 

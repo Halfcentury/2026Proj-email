@@ -52,7 +52,7 @@ vi.mock("@/components/Toast", () => ({
     mockToastError(...args),
 }));
 
-vi.mock("posthog-js/react", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   usePostHog: () => ({ capture: mockPosthogCapture }),
 }));
 

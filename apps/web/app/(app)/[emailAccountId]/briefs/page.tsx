@@ -6,7 +6,6 @@ import { SettingCard } from "@/components/SettingCard";
 import { Toggle } from "@/components/Toggle";
 import { toastSuccess, toastError } from "@/components/Toast";
 import { LoadingContent } from "@/components/LoadingContent";
-import { PremiumAlertWithData } from "@/components/PremiumAlert";
 import { useCalendars } from "@/hooks/useCalendars";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useAction } from "next-safe-action/hooks";
@@ -15,9 +14,7 @@ import { useMeetingBriefSettings } from "@/hooks/useMeetingBriefs";
 import { TimeDurationSetting } from "@/app/(app)/[emailAccountId]/briefs/TimeDurationSetting";
 import { UpcomingMeetings } from "@/app/(app)/[emailAccountId]/briefs/UpcomingMeetings";
 import { BriefsOnboarding } from "@/app/(app)/[emailAccountId]/briefs/Onboarding";
-import { IntegrationsSetting } from "@/app/(app)/[emailAccountId]/briefs/IntegrationsSetting";
 import { DeliveryChannelsSetting } from "@/app/(app)/[emailAccountId]/briefs/DeliveryChannelsSetting";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { TimezoneDetector } from "@/components/TimezoneDetector";
 
 export default function MeetingBriefsPage() {
@@ -31,7 +28,7 @@ export default function MeetingBriefsPage() {
 
 function MeetingBriefsPageContent() {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics("meeting_briefs");
+
   const { data: calendarsData, isLoading: isLoadingCalendars } = useCalendars();
   const { data, isLoading, error, mutate } = useMeetingBriefSettings();
 
@@ -42,7 +39,6 @@ function MeetingBriefsPageContent() {
     updateMeetingBriefsEnabledAction.bind(null, emailAccountId),
     {
       onSuccess: () => {
-        analytics.captureAction("meeting_briefs_enabled_saved");
         toastSuccess({ description: "设置已保存！" });
         mutate();
       },
@@ -68,9 +64,6 @@ function MeetingBriefsPageContent() {
         emailAccountId={emailAccountId}
         hasCalendarConnected={hasCalendarConnected}
         onEnable={() => {
-          analytics.captureAction("meeting_briefs_enable_started", {
-            has_calendar_connected: Boolean(hasCalendarConnected),
-          });
           execute({ enabled: true });
         }}
         isEnabling={status === "executing"}
@@ -83,7 +76,7 @@ function MeetingBriefsPageContent() {
       <PageHeader title="会前简报" />
 
       <div className="mt-4 space-y-4 max-w-3xl">
-        <PremiumAlertWithData />
+        {null}
 
         <LoadingContent loading={isLoading} error={error}>
           <div className="space-y-2">
@@ -95,9 +88,6 @@ function MeetingBriefsPageContent() {
                   name="enabled"
                   enabled={!!data?.enabled}
                   onChange={(enabled) => {
-                    analytics.captureAction("meeting_briefs_toggled", {
-                      enabled,
-                    });
                     execute({ enabled });
                   }}
                   disabled={!hasCalendarConnected}
@@ -121,7 +111,7 @@ function MeetingBriefsPageContent() {
 
                 <DeliveryChannelsSetting />
 
-                <IntegrationsSetting />
+                {null}
               </>
             )}
           </div>

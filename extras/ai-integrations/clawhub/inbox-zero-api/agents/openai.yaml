@@ -1,7 +1,0 @@
-interface:
-  display_name: "十组邮件小助手 API CLI"
-  short_description: "Manage 十组邮件小助手 rules and stats"
-  default_prompt: "Use $inbox-zero-api to inspect or update 十组邮件小助手 rules and analytics through the API CLI."
-
-policy:
-  allow_implicit_invocation: true

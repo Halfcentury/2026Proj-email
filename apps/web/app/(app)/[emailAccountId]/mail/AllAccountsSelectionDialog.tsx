@@ -55,9 +55,7 @@ export function AllAccountsSelectionDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>选择账户</DialogTitle>
-          <DialogDescription>
-            选择“全部账户”中显示的邮箱。
-          </DialogDescription>
+          <DialogDescription>选择“全部账户”中显示的邮箱。</DialogDescription>
         </DialogHeader>
 
         <div className="grid max-h-[50vh] gap-1 overflow-y-auto py-2">

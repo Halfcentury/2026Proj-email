@@ -10,6 +10,8 @@ import { cn } from "@/utils";
 interface Context {
   defaultValue: string;
   hrefFor: (value: string) => LinkProps["href"];
+  id: string;
+  onValueChange?: (value: string) => void;
   searchParam: string;
   selected: string;
 }
@@ -22,7 +24,9 @@ export function Tabs(props: {
   /**
    * The default tab
    */
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   /**
    * Which search param to use
    * @default "tab"
@@ -30,9 +34,11 @@ export function Tabs(props: {
   searchParam?: string;
 }) {
   const { children, className, searchParam = "tab", ...other } = props;
+  const id = React.useId();
   const searchParams = useSearchParams();
 
-  const selected = searchParams.get(searchParam) || props.defaultValue;
+  const selected =
+    props.value ?? searchParams.get(searchParam) ?? props.defaultValue ?? "";
 
   const pathname = usePathname();
   const hrefFor: Context["hrefFor"] = React.useCallback(
@@ -52,7 +58,16 @@ export function Tabs(props: {
   );
 
   return (
-    <TabsContext.Provider value={{ ...other, hrefFor, searchParam, selected }}>
+    <TabsContext.Provider
+      value={{
+        ...other,
+        id,
+        defaultValue: props.defaultValue ?? "",
+        hrefFor,
+        searchParam,
+        selected,
+      }}
+    >
       <div className={className}>{children}</div>
     </TabsContext.Provider>
   );
@@ -73,9 +88,43 @@ export function TabsList(props: {
   children: React.ReactNode;
   className?: string;
 }) {
+  const context = React.useContext(TabsContext);
+  const controlled = Boolean(context?.onValueChange);
   return (
     <div
       {...props}
+      role={controlled ? "tablist" : undefined}
+      onKeyDown={
+        controlled
+          ? (event) => {
+              if (
+                !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)
+              )
+                return;
+              const tabs = Array.from(
+                event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                  '[role="tab"]',
+                ),
+              );
+              const index = tabs.indexOf(
+                document.activeElement as HTMLButtonElement,
+              );
+              const next =
+                event.key === "Home"
+                  ? 0
+                  : event.key === "End"
+                    ? tabs.length - 1
+                    : (index +
+                        (event.key === "ArrowRight" ? 1 : -1) +
+                        tabs.length) %
+                      tabs.length;
+              event.preventDefault();
+              event.stopPropagation();
+              tabs[next]?.focus();
+              tabs[next]?.click();
+            }
+          : undefined
+      }
       className={cn(
         "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
         props.className,
@@ -90,6 +139,27 @@ export const TabsTrigger = (props: {
   value: string;
 }) => {
   const context = useContext();
+
+  if (context.onValueChange) {
+    return (
+      <button
+        type="button"
+        role="tab"
+        id={`tab-${context.id}-${props.value}`}
+        aria-controls={`panel-${context.id}-${props.value}`}
+        tabIndex={context.selected === props.value ? 0 : -1}
+        aria-selected={context.selected === props.value}
+        data-state={context.selected === props.value ? "active" : "inactive"}
+        onClick={() => context.onValueChange?.(props.value)}
+        className={cn(
+          "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+          props.className,
+        )}
+      >
+        {props.children}
+      </button>
+    );
+  }
 
   return (
     <Link
@@ -120,6 +190,13 @@ export function TabsContent(props: {
   return (
     <div
       {...props}
+      {...(context.onValueChange
+        ? {
+            role: "tabpanel",
+            id: `panel-${context.id}-${props.value}`,
+            "aria-labelledby": `tab-${context.id}-${props.value}`,
+          }
+        : {})}
       className={cn(
         "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         props.className,

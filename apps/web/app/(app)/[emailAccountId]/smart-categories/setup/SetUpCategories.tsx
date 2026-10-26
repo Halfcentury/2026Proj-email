@@ -116,7 +116,7 @@ export function SetUpCategories({
         <CardHeader>
           <CardTitle>配置发件人分类</CardTitle>
           <CardDescription className="max-w-sm">
-            自动分类发件人，用于批量归档和智能助手。
+            自动分类发件人，用于批量归档和自动化。
           </CardDescription>
         </CardHeader>
 

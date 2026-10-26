@@ -53,7 +53,8 @@ export function getMobileAuthBaseUrlOrigin(): string {
 function getCustomSchemeCallbackUrl(
   envName: "MOBILE_AUTH_ORIGIN" | "DESKTOP_AUTH_ORIGIN",
 ): string {
-  const origin = env[envName];
+  const origin =
+    envName === "MOBILE_AUTH_ORIGIN" ? env.MOBILE_AUTH_ORIGIN : undefined;
   if (!origin) {
     throw new Error(`${envName} is required for this auth callback scheme`);
   }

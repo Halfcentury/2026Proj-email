@@ -50,7 +50,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMeetingDetailState } from "@/app/(app)/[emailAccountId]/meetings/meeting-detail-state";
 import { useMeetingRecorderMeeting } from "@/hooks/useMeetingRecorder";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { deleteMeetingNotesAction } from "@/utils/actions/meeting-recorder";
 import { getActionErrorMessage } from "@/utils/error";
 import { formatTranscriptTimestamp } from "@/utils/meeting-recorder/transcript-prompt";
@@ -64,7 +63,7 @@ export function MeetingDetail({
   onClose: () => void;
 }) {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics();
+
   const { mutate } = useSWRConfig();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const {
@@ -184,14 +183,10 @@ export function MeetingDetail({
           )}
 
           {state === "processing" && (
-            <MutedText>
-              正在处理录音，笔记生成后会显示在这里。
-            </MutedText>
+            <MutedText>正在处理录音，笔记生成后会显示在这里。</MutedText>
           )}
 
-          {state === "not-recorded" && (
-            <MutedText>此会议尚未录制。</MutedText>
-          )}
+          {state === "not-recorded" && <MutedText>此会议尚未录制。</MutedText>}
 
           {!summary && state === "notes" && (
             <MutedText>正在生成摘要。</MutedText>
@@ -246,9 +241,7 @@ export function MeetingDetail({
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center gap-2">
                   <MailPlusIcon className="size-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium">
-                    跟进草稿已准备好
-                  </span>
+                  <span className="text-sm font-medium">跟进草稿已准备好</span>
                 </div>
                 <MutedText>
                   草稿已保存，收件人为其他参会者，尚未发送。
@@ -258,11 +251,7 @@ export function MeetingDetail({
                     href={getFollowUpDraftUrl(data.id, emailAccountId)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() =>
-                      analytics.captureAction(
-                        "meeting_recorder_follow_up_draft_opened",
-                      )
-                    }
+                    onClick={() => undefined}
                   >
                     前往草稿箱
                   </a>
@@ -317,9 +306,7 @@ export function MeetingDetail({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>
-                取消
-              </AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 disabled={isDeleting || !meetingId}

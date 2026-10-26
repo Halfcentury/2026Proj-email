@@ -5,7 +5,7 @@ import { createRule } from "@/utils/rule/rule";
 import { toRuleWriteInput } from "@/app/api/v1/rules/request";
 import { apiRuleSelect, serializeRule } from "@/app/api/v1/rules/serializers";
 import { ruleRequestBodySchema } from "@/app/api/v1/rules/validation";
-import { assertCanUseDigestsIfNeeded } from "@/utils/premium/server";
+import { assertCanUseDigestsIfNeeded } from "@/utils/feature-access";
 import {
   createPublicApiMethodNotAllowedHandler,
   readPublicApiJson,

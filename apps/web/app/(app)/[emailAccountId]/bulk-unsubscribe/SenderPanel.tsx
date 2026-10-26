@@ -10,7 +10,7 @@ import type {
   SenderEmailsQuery,
   SenderEmailsResponse,
 } from "@/app/api/user/stats/sender-emails/route";
-import { BarChart } from "@/app/(app)/[emailAccountId]/stats/BarChart";
+import { BarChart } from "@/components/mail-data/BarChart";
 import { ActionCell } from "@/app/(app)/[emailAccountId]/bulk-unsubscribe/common";
 import type { NewsletterFilterType } from "@/app/(app)/[emailAccountId]/bulk-unsubscribe/types";
 import { isUnsubscribeSuggestion } from "@/app/(app)/[emailAccountId]/bulk-unsubscribe/suggestions";

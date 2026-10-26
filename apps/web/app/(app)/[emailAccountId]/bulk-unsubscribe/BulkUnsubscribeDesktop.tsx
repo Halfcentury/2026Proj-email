@@ -53,9 +53,7 @@ export function BulkUnsubscribeDesktop({
           <TableRow>
             <TableHead className="w-10 pr-0">
               <ButtonCheckbox
-                label={
-                  isAllSelected ? "取消选择全部发件人" : "选择全部发件人"
-                }
+                label={isAllSelected ? "取消选择全部发件人" : "选择全部发件人"}
                 checked={isAllSelected}
                 indeterminate={isSomeSelected && !isAllSelected}
                 onChange={() => onToggleSelectAll()}

@@ -126,8 +126,7 @@ export function StepHowYouHeard({ onNext }: { onNext: () => void }) {
             extra: { context: "onboarding", step: "source" },
           });
           toastError({
-            description:
-              "未能保存此回答，你可以继续。",
+            description: "未能保存此回答，你可以继续。",
           });
         });
     },

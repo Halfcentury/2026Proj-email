@@ -1,12 +1,12 @@
 "use client";
 
+import { useQueryState } from "nuqs";
 import { useState } from "react";
 import { CalendarIcon, MicIcon, SettingsIcon } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { LoadingContent } from "@/components/LoadingContent";
 import { PageHeader } from "@/components/PageHeader";
 import { PageWrapper } from "@/components/PageWrapper";
-import { PremiumAlertWithData } from "@/components/PremiumAlert";
 import { TimezoneDetector } from "@/components/TimezoneDetector";
 import { toastError } from "@/components/Toast";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import type { MeetingJoinRule } from "@/generated/prisma/enums";
 import { useCalendars } from "@/hooks/useCalendars";
 import { useMeetingRecorderEnabled } from "@/hooks/useFeatureFlags";
 import { useMeetingRecorderSettings } from "@/hooks/useMeetingRecorder";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { updateMeetingRecorderSettingsAction } from "@/utils/actions/meeting-recorder";
 import { getActionErrorMessage } from "@/utils/error";
@@ -61,9 +60,9 @@ function MeetingsPageContent() {
 
 function MeetingRecorderPageContent() {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics();
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [openMeetingId, setOpenMeetingId] = useState<string | null>(null);
+  const [openMeetingId, setOpenMeetingId] = useQueryState("meeting-id");
 
   const {
     data: calendarsData,
@@ -81,7 +80,6 @@ function MeetingRecorderPageContent() {
     updateMeetingRecorderSettingsAction.bind(null, emailAccountId),
     {
       onSuccess: () => {
-        analytics.captureAction("meeting_recorder_enabled");
         mutate();
       },
       onError: ({ error }) => {
@@ -110,30 +108,23 @@ function MeetingRecorderPageContent() {
   const hasCalendarConnected = hasConnectedCalendar(calendarsData?.connections);
 
   const openMeeting = (meetingId: string) => {
-    analytics.captureAction("meeting_recorder_meeting_opened");
     setOpenMeetingId(meetingId);
   };
 
-  // Enabling is entitlement-gated server-side, so a non-premium user needs the
-  // upgrade path on the onboarding screen too, not just once they are set up.
   if (!settings?.enabled) {
     return (
       <PageWrapper>
-        <div className="mx-auto max-w-lg">
-          <PremiumAlertWithData />
-        </div>
-
         <MeetingRecorderOnboarding
           emailAccountId={emailAccountId}
           hasCalendarConnected={hasCalendarConnected}
           onEnable={(joinRule: MeetingJoinRule) => {
-            analytics.captureAction("meeting_recorder_enable_started", {
-              join_rule: joinRule,
-              has_calendar_connected: hasCalendarConnected,
-            });
             execute({ enabled: true, joinRule });
           }}
           isEnabling={status === "executing"}
+        />
+        <MeetingDetail
+          meetingId={openMeetingId}
+          onClose={() => setOpenMeetingId(null)}
         />
       </PageWrapper>
     );
@@ -154,8 +145,6 @@ function MeetingRecorderPageContent() {
       </div>
 
       <div className="mt-6 max-w-3xl space-y-8">
-        <PremiumAlertWithData />
-
         {!hasCalendarConnected && (
           <ActionCard
             variant="blue"
@@ -163,9 +152,7 @@ function MeetingRecorderPageContent() {
             title="重新连接日历"
             description={
               <div className="space-y-4">
-                <p>
-                  会议记录功能仍已启用，连接日历后即可查找即将开始的会议。
-                </p>
+                <p>会议记录功能仍已启用，连接日历后即可查找即将开始的会议。</p>
                 <ConnectCalendar
                   analyticsPage="meetings"
                   onboardingReturnPath={`/${emailAccountId}/meetings`}

@@ -210,9 +210,7 @@ function ApiKeysForm({ mutate }: { mutate: () => void }) {
         </Select>
       </div>
 
-      <SectionDescription>
-        此密钥仅适用于所选邮箱账户。
-      </SectionDescription>
+      <SectionDescription>此密钥仅适用于所选邮箱账户。</SectionDescription>
 
       <Button
         type="submit"
@@ -224,9 +222,7 @@ function ApiKeysForm({ mutate }: { mutate: () => void }) {
     </form>
   ) : (
     <div className="space-y-2">
-      <SectionDescription>
-        密钥仅显示一次，请复制保存：
-      </SectionDescription>
+      <SectionDescription>密钥仅显示一次，请复制保存：</SectionDescription>
       <CopyInput value={secretKey} />
     </div>
   );

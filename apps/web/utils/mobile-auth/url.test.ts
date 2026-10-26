@@ -50,12 +50,6 @@ describe("mobile auth URL helpers", () => {
     );
   });
 
-  it("builds desktop-scheme callback URLs when requested", () => {
-    expect(getMobileAuthAppCallbackUrl("desktop-scheme").toString()).toBe(
-      "inboxzero://auth-callback",
-    );
-  });
-
   it("fails custom-scheme callback URL requests when the scheme is not configured", () => {
     mockEnv.MOBILE_AUTH_ORIGIN = "";
 

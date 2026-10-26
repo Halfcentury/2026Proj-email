@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import type { ParsedMessage } from "@/utils/types";
-import { stripBrandingSignatures } from "@/utils/referral/signature";
+import { stripBrandingSignatures } from "@/utils/email/legacy-signature";
 import { calculateSimilarityDetails } from "@/utils/similarity-score";
 
 const BODY_SIMILARITY_STATUS = {

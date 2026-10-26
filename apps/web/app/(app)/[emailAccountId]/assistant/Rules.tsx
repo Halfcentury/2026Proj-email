@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { deleteRuleAction, toggleRuleAction } from "@/utils/actions/rule";
-import { setMemberOrganizationRuleEnabledAction } from "@/utils/actions/organization-rule";
 import { Badge } from "@/components/Badge";
 import { Tooltip } from "@/components/Tooltip";
 import { getActionColor } from "@/components/PlanBadge";
@@ -88,15 +87,13 @@ export function Rules({
   const { executeAsync: toggleRule } = useAction(
     toggleRuleAction.bind(null, emailAccountId),
   );
-  const { executeAsync: toggleMemberOrgRule } = useAction(
-    setMemberOrganizationRuleEnabledAction.bind(null, emailAccountId),
-  );
 
   const handleToggle = async (
     rule: RulesResponse[number],
     enabled: boolean,
   ) => {
     const isOrgManaged = !!rule.organizationRuleId;
+    if (isOrgManaged) return;
     const isSystemRule = !!rule.systemType;
 
     mutate(
@@ -114,13 +111,11 @@ export function Rules({
       { revalidate: false },
     );
 
-    const result = isOrgManaged
-      ? await toggleMemberOrgRule({ ruleId: rule.id, enabled })
-      : await toggleRule({
-          ruleId: isSystemRule ? undefined : rule.id,
-          systemType: rule.systemType || undefined,
-          enabled,
-        });
+    const result = await toggleRule({
+      ruleId: isSystemRule ? undefined : rule.id,
+      systemType: rule.systemType || undefined,
+      enabled,
+    });
 
     if (result?.serverError) {
       toastError({
@@ -216,6 +211,7 @@ export function Rules({
                 {rules.map((rule) => {
                   const isPlaceholder = rule.id.startsWith("placeholder-");
                   const isOrgManaged = !!rule.organizationRuleId;
+                  if (isOrgManaged) return;
                   const isDisabledByOrg =
                     isOrgManaged && rule.organizationRule?.enabled === false;
 

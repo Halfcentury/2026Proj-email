@@ -62,7 +62,7 @@ const parsedEnv = createEnv({
     ),
 
     AUTH_SECRET: z.string().optional(),
-    SCIM_CREDENTIAL_HASH_SECRET: z.string().min(32).optional(),
+
     NEXTAUTH_SECRET: z.string().optional(),
     AUTH_ALLOWED_EMAILS: z
       .string()
@@ -149,7 +149,7 @@ const parsedEnv = createEnv({
     // Deprecated: use DRAFT_LLMS instead. Kept so older deployments are converted at startup.
     DRAFT_LLM_MODEL: z.string().optional(),
     AI_NANO_WEEKLY_SPEND_LIMIT_USD: z.coerce.number().positive().optional(),
-    AI_TRIAL_WEEKLY_SPEND_LIMIT_USD: z.coerce.number().positive().optional(),
+
     // Unset defaults to ALLOW. Used when an account has not chosen a policy.
     SENSITIVE_DATA_POLICY_DEFAULT: z
       .enum(["ALLOW", "REDACT", "BLOCK"])
@@ -263,15 +263,10 @@ const parsedEnv = createEnv({
     ),
 
     // Lemon Squeezy
-    LEMON_SQUEEZY_SIGNING_SECRET: z.string().optional(),
-    LEMON_SQUEEZY_API_KEY: z.string().optional(),
 
     // Stripe
-    STRIPE_SECRET_KEY: z.string().optional(),
-    STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
     // Points the Stripe SDK at a local emulator during browser tests.
-    STRIPE_API_BASE_URL: z.string().url().optional(),
-    STRIPE_AI_GENERATION_OVERAGE_CONFIG: z.string().optional(),
 
     // Apple App Store
     APPLE_IAP_ISSUER_ID: z.string().uuid().optional(),
@@ -299,11 +294,6 @@ const parsedEnv = createEnv({
 
     API_KEY_SALT: z.string().optional(),
 
-    POSTHOG_API_SECRET: z.string().optional(),
-    POSTHOG_PROJECT_ID: z.string().optional(),
-    POSTHOG_FEEDBACK_SURVEY_ID: z.string().optional(),
-    POSTHOG_FEEDBACK_SURVEY_QUESTION_ID: z.string().optional(),
-    POSTHOG_LLM_EVALS_APPROVED_EMAILS: z.string().optional(),
     FEEDBACK_WEBHOOK_URL: z.string().url().optional(),
     SALES_INQUIRY_WEBHOOK_URL: z.string().url().optional(),
 
@@ -323,12 +313,7 @@ const parsedEnv = createEnv({
       .optional()
       .default("十组邮件小助手 <updates@transactional.getinboxzero.com>"),
     CRON_SECRET: z.string().optional(),
-    BLOG_SYNC_WEBHOOK_SECRET: z.string().min(1).optional(),
-    BLOG_SYNC_SANITY_AUTHOR_ID: z.string().min(1).optional(),
-    BLOG_SYNC_IMAGE_ALLOWED_HOSTS: z.string().optional(),
-    SANITY_API_WRITE_TOKEN: z.string().min(1).optional(),
-    LOOPS_API_SECRET: z.string().optional(),
-    LOOPS_WEBHOOK_SIGNING_SECRET: z.string().min(1).optional(),
+
     FB_CONVERSION_API_ACCESS_TOKEN: z.string().optional(),
     FB_PIXEL_ID: z.string().optional(),
     CONVERSION_ANALYTICS_SERVER_URL: z.string().optional(),
@@ -338,19 +323,19 @@ const parsedEnv = createEnv({
       .optional()
       .transform((value) => value?.split(",")),
     WEBHOOK_URL: z.string().optional(),
-    MCP_SERVER_URL_OVERRIDES: z.string().optional(),
+
     // SECURITY: disables the SSRF guard for user-registered MCP servers
     // (allows custom server URLs that point to / resolve to private IP ranges,
     // and allows http). Defaults to false. Only enable on a trusted,
     // single-tenant self-hosted deployment or against a local MCP emulator.
-    MCP_ALLOW_PRIVATE_IPS: booleanString.optional().default(false),
+
     COMPOSIO_API_KEY: z.string().optional(),
     INTERNAL_API_URL: z.string().optional(),
     INTERNAL_API_KEY: z.string(),
     WHITELIST_FROM: z.string().optional(),
     HEALTH_API_KEY: z.string().optional(),
     OAUTH_PROXY_URL: z.string().url().optional(),
-    MCP_SERVER_ENABLED: booleanString.optional().default(false),
+
     // Optional provider:model for structured decisions, e.g. openrouter:typesafe/jev-1.13
     DEFAULT_DECISION_MODEL: z
       .string()
@@ -378,12 +363,7 @@ const parsedEnv = createEnv({
     // Mobile auth trusted origin, e.g. inboxzero://
     MOBILE_AUTH_ORIGIN: z.string().trim().min(1).optional(),
     // Desktop Electron custom-scheme origin for system-browser OAuth return.
-    DESKTOP_AUTH_ORIGIN: z
-      .string()
-      .trim()
-      .min(1)
-      .optional()
-      .default("inboxzero://"),
+
     AUTO_JOIN_ORGANIZATION_ENABLED: booleanString.optional().default(false),
     AUTO_ENABLE_ORG_ANALYTICS: booleanString.optional().default(false),
     // When false, skip writing new AI-source sender-pattern caches. Existing
@@ -399,22 +379,13 @@ const parsedEnv = createEnv({
     LICENSE_10_SEAT_VARIANT_ID: z.coerce.number().optional(),
     LICENSE_25_SEAT_VARIANT_ID: z.coerce.number().optional(),
 
-    DUB_API_KEY: z.string().optional(),
-
     // Slack
-    SLACK_CLIENT_ID: z.string().optional(),
-    SLACK_CLIENT_SECRET: z.string().optional(),
-    SLACK_SIGNING_SECRET: z.string().optional(),
 
     // Chat SDK messaging adapters
-    TEAMS_BOT_APP_ID: z.string().optional(),
-    TEAMS_BOT_APP_PASSWORD: z.string().optional(),
-    TEAMS_BOT_APP_TENANT_ID: z.string().optional(),
-    TELEGRAM_BOT_TOKEN: z.string().optional(),
-    TELEGRAM_BOT_SECRET_TOKEN: z.string().optional(),
+
     APP_REVIEW_DEMO_ENABLED: booleanString.optional().default(false),
     APP_REVIEW_DEMO_ACCOUNTS: z.string().optional(),
-    SSO_LOGIN_ENABLED: booleanString.optional().default(false),
+
     UNSUBSCRIBE_WORKER_URL: z
       .url()
       .refine((value) => new URL(value).protocol === "https:")
@@ -423,19 +394,13 @@ const parsedEnv = createEnv({
   },
   client: {
     // stripe
-    NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID: z.string().optional(),
-    NEXT_PUBLIC_STRIPE_BUSINESS_ANNUALLY_PRICE_ID: z.string().optional(),
-    NEXT_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID: z.string().optional(),
-    NEXT_PUBLIC_STRIPE_PLUS_ANNUALLY_PRICE_ID: z.string().optional(),
-    NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_MONTHLY_PRICE_ID: z.string().optional(),
-    NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_ANNUALLY_PRICE_ID: z.string().optional(),
 
     // apple app store
     NEXT_PUBLIC_APPLE_IAP_STARTER_MONTHLY_PRODUCT_ID: z.string().optional(),
     NEXT_PUBLIC_APPLE_IAP_STARTER_ANNUALLY_PRODUCT_ID: z.string().optional(),
 
     // lemon squeezy
-    NEXT_PUBLIC_LEMON_STORE_ID: z.string().nullish().default("inboxzero"),
+
     NEXT_PUBLIC_BASIC_MONTHLY_VARIANT_ID: z.coerce.number().default(0),
     NEXT_PUBLIC_BASIC_ANNUALLY_VARIANT_ID: z.coerce.number().default(0),
     NEXT_PUBLIC_PRO_MONTHLY_VARIANT_ID: z.coerce.number().default(0),
@@ -451,9 +416,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_CALL_LINK: z
       .string()
       .default("https://cal.com/team/inbox-zero/feedback"),
-    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
-    NEXT_PUBLIC_POSTHOG_API_HOST: z.string().optional(),
-    NEXT_PUBLIC_POSTHOG_ONBOARDING_SURVEY_ID: z.string().optional(),
+
     NEXT_PUBLIC_BASE_URL: z.string(),
     NEXT_PUBLIC_IMAGE_PROXY_BASE_URL: z.string().url().optional(),
     NEXT_PUBLIC_IMAGE_PROXY_USE_APP_ROUTE: booleanString
@@ -462,7 +425,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_BRAND_NAME: z.string().trim().min(1).default("十组邮件小助手"),
     NEXT_PUBLIC_BRAND_LOGO_URL: z.string().optional(),
     NEXT_PUBLIC_BRAND_ICON_URL: z.string().optional().default("/icon.png"),
-    NEXT_PUBLIC_SLACK_BOT_NAME: z.string().trim().min(1).default("十组邮件小助手"),
+
     NEXT_PUBLIC_SELF_HOSTED_LOGIN_FOOTER_TEXT: z.string().optional(),
     NEXT_PUBLIC_CONTACTS_ENABLED: booleanString.optional().default(false),
     NEXT_PUBLIC_COOKIE_CONSENT_ENABLED: booleanString.optional().default(false),
@@ -476,7 +439,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_WEBHOOK_ACTION_ENABLED: booleanString.optional().default(true),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SUPPORT_EMAIL: z.string().optional().default(""),
-    NEXT_PUBLIC_GTM_ID: z.string().optional(),
+
     NEXT_PUBLIC_CONVERSION_ANALYTICS_SCRIPT_URL: z.string().optional(),
     NEXT_PUBLIC_CRISP_WEBSITE_ID: z.string().optional(),
     NEXT_PUBLIC_AXIOM_DATASET: z.string().optional(),
@@ -488,24 +451,25 @@ const parsedEnv = createEnv({
         if (!value) return;
         return value.split(",");
       }),
-    NEXT_PUBLIC_DUB_REFER_DOMAIN: z.string().optional(),
+
     NEXT_PUBLIC_DISABLE_REFERRAL_SIGNATURE: booleanString
       .optional()
       .default(false),
     NEXT_PUBLIC_USE_AEONIK_FONT: booleanString.optional().default(false),
-    NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: booleanString.optional(),
+
     NEXT_PUBLIC_DIGEST_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_MEETING_BRIEFS_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_MEETING_RECORDER_ENABLED: booleanString.optional(),
+    NEXT_PUBLIC_MEETING_BRIEFS_ENABLED: booleanString.optional().default(true),
+    NEXT_PUBLIC_MEETING_RECORDER_ENABLED: booleanString
+      .optional()
+      .default(true),
     NEXT_PUBLIC_VOICE_ENABLED: booleanString.optional(),
     NEXT_PUBLIC_FOLLOW_UP_REMINDERS_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_INTEGRATIONS_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_TEAMS_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_SMART_FILING_ENABLED: booleanString.optional(),
+
+    NEXT_PUBLIC_SMART_FILING_ENABLED: booleanString.optional().default(true),
     NEXT_PUBLIC_CLEANER_ENABLED: booleanString.optional(),
     NEXT_PUBLIC_DELETE_EMAIL_ACTION_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_INTEGRATION_ACTION_ENABLED: booleanString.optional(),
-    NEXT_PUBLIC_BOOKING_LINKS_ENABLED: booleanString.optional(),
+
+    NEXT_PUBLIC_BOOKING_LINKS_ENABLED: booleanString.optional().default(true),
     NEXT_PUBLIC_EXTERNAL_API_ENABLED: booleanString.optional().default(false),
     NEXT_PUBLIC_AUTO_DRAFT_DISABLED: booleanString.optional(),
     NEXT_PUBLIC_AI_MODEL_SETTINGS_DISABLED: booleanString
@@ -524,18 +488,6 @@ const parsedEnv = createEnv({
   // For Next.js >= 13.4.4, you only need to destructure client variables:
   experimental__runtimeEnv: {
     // stripe
-    NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID:
-      process.env.NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID,
-    NEXT_PUBLIC_STRIPE_BUSINESS_ANNUALLY_PRICE_ID:
-      process.env.NEXT_PUBLIC_STRIPE_BUSINESS_ANNUALLY_PRICE_ID,
-    NEXT_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID:
-      process.env.NEXT_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID,
-    NEXT_PUBLIC_STRIPE_PLUS_ANNUALLY_PRICE_ID:
-      process.env.NEXT_PUBLIC_STRIPE_PLUS_ANNUALLY_PRICE_ID,
-    NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_MONTHLY_PRICE_ID:
-      process.env.NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_MONTHLY_PRICE_ID,
-    NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_ANNUALLY_PRICE_ID:
-      process.env.NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_ANNUALLY_PRICE_ID,
 
     // apple app store
     NEXT_PUBLIC_APPLE_IAP_STARTER_MONTHLY_PRODUCT_ID:
@@ -544,7 +496,7 @@ const parsedEnv = createEnv({
       process.env.NEXT_PUBLIC_APPLE_IAP_STARTER_ANNUALLY_PRODUCT_ID,
 
     // lemon squeezy
-    NEXT_PUBLIC_LEMON_STORE_ID: process.env.NEXT_PUBLIC_LEMON_STORE_ID,
+
     NEXT_PUBLIC_BASIC_MONTHLY_VARIANT_ID:
       process.env.NEXT_PUBLIC_BASIC_MONTHLY_VARIANT_ID,
     NEXT_PUBLIC_BASIC_ANNUALLY_VARIANT_ID:
@@ -561,10 +513,7 @@ const parsedEnv = createEnv({
       process.env.NEXT_PUBLIC_COPILOT_MONTHLY_VARIANT_ID,
 
     NEXT_PUBLIC_CALL_LINK: process.env.NEXT_PUBLIC_CALL_LINK,
-    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-    NEXT_PUBLIC_POSTHOG_API_HOST: process.env.NEXT_PUBLIC_POSTHOG_API_HOST,
-    NEXT_PUBLIC_POSTHOG_ONBOARDING_SURVEY_ID:
-      process.env.NEXT_PUBLIC_POSTHOG_ONBOARDING_SURVEY_ID,
+
     NEXT_PUBLIC_BASE_URL: getBaseUrl(),
     NEXT_PUBLIC_IMAGE_PROXY_BASE_URL:
       process.env.NEXT_PUBLIC_IMAGE_PROXY_BASE_URL,
@@ -573,7 +522,7 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_BRAND_NAME: process.env.NEXT_PUBLIC_BRAND_NAME,
     NEXT_PUBLIC_BRAND_LOGO_URL: process.env.NEXT_PUBLIC_BRAND_LOGO_URL,
     NEXT_PUBLIC_BRAND_ICON_URL: process.env.NEXT_PUBLIC_BRAND_ICON_URL,
-    NEXT_PUBLIC_SLACK_BOT_NAME: process.env.NEXT_PUBLIC_SLACK_BOT_NAME,
+
     NEXT_PUBLIC_SELF_HOSTED_LOGIN_FOOTER_TEXT:
       process.env.NEXT_PUBLIC_SELF_HOSTED_LOGIN_FOOTER_TEXT,
     NEXT_PUBLIC_CONTACTS_ENABLED: process.env.NEXT_PUBLIC_CONTACTS_ENABLED,
@@ -590,19 +539,18 @@ const parsedEnv = createEnv({
       process.env.NEXT_PUBLIC_FREE_UNSUBSCRIBE_CREDITS,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
-    NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
+
     NEXT_PUBLIC_CONVERSION_ANALYTICS_SCRIPT_URL:
       process.env.NEXT_PUBLIC_CONVERSION_ANALYTICS_SCRIPT_URL,
     NEXT_PUBLIC_CRISP_WEBSITE_ID: process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID,
     NEXT_PUBLIC_AXIOM_DATASET: process.env.NEXT_PUBLIC_AXIOM_DATASET,
     NEXT_PUBLIC_AXIOM_TOKEN: process.env.NEXT_PUBLIC_AXIOM_TOKEN,
     NEXT_PUBLIC_LOG_SCOPES: process.env.NEXT_PUBLIC_LOG_SCOPES,
-    NEXT_PUBLIC_DUB_REFER_DOMAIN: process.env.NEXT_PUBLIC_DUB_REFER_DOMAIN,
+
     NEXT_PUBLIC_DISABLE_REFERRAL_SIGNATURE:
       process.env.NEXT_PUBLIC_DISABLE_REFERRAL_SIGNATURE,
     NEXT_PUBLIC_USE_AEONIK_FONT: process.env.NEXT_PUBLIC_USE_AEONIK_FONT,
-    NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS:
-      process.env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS,
+
     NEXT_PUBLIC_DIGEST_ENABLED: process.env.NEXT_PUBLIC_DIGEST_ENABLED,
     NEXT_PUBLIC_MEETING_BRIEFS_ENABLED:
       process.env.NEXT_PUBLIC_MEETING_BRIEFS_ENABLED,
@@ -611,16 +559,13 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_VOICE_ENABLED: process.env.NEXT_PUBLIC_VOICE_ENABLED,
     NEXT_PUBLIC_FOLLOW_UP_REMINDERS_ENABLED:
       process.env.NEXT_PUBLIC_FOLLOW_UP_REMINDERS_ENABLED,
-    NEXT_PUBLIC_INTEGRATIONS_ENABLED:
-      process.env.NEXT_PUBLIC_INTEGRATIONS_ENABLED,
-    NEXT_PUBLIC_TEAMS_ENABLED: process.env.NEXT_PUBLIC_TEAMS_ENABLED,
+
     NEXT_PUBLIC_SMART_FILING_ENABLED:
       process.env.NEXT_PUBLIC_SMART_FILING_ENABLED,
     NEXT_PUBLIC_CLEANER_ENABLED: process.env.NEXT_PUBLIC_CLEANER_ENABLED,
     NEXT_PUBLIC_DELETE_EMAIL_ACTION_ENABLED:
       process.env.NEXT_PUBLIC_DELETE_EMAIL_ACTION_ENABLED,
-    NEXT_PUBLIC_INTEGRATION_ACTION_ENABLED:
-      process.env.NEXT_PUBLIC_INTEGRATION_ACTION_ENABLED,
+
     NEXT_PUBLIC_BOOKING_LINKS_ENABLED:
       process.env.NEXT_PUBLIC_BOOKING_LINKS_ENABLED,
     NEXT_PUBLIC_EXTERNAL_API_ENABLED:
@@ -636,12 +581,6 @@ const parsedEnv = createEnv({
     NEXT_PUBLIC_TABS_EXTENSION_ID: process.env.NEXT_PUBLIC_TABS_EXTENSION_ID,
   },
 });
-
-if (process.env.TELEGRAM_BOT_TOKEN && !process.env.TELEGRAM_BOT_SECRET_TOKEN) {
-  throw new Error(
-    "TELEGRAM_BOT_SECRET_TOKEN is required when TELEGRAM_BOT_TOKEN is set.",
-  );
-}
 
 if (
   process.env.UNSUBSCRIBE_WORKER_URL &&

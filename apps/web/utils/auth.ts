@@ -1,12 +1,7 @@
-import { mcpOAuthPlugins } from "@/utils/mcp/oauth-provider";
 import { INITIAL_MAIL_SPLITS } from "@/utils/split-inbox/initial-splits";
-import { adminSso } from "@/utils/auth/sso";
-import { scim } from "@better-auth/scim";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import type { GenericOAuthConfig } from "better-auth/plugins/generic-oauth";
 import { oAuthProxy } from "better-auth/plugins";
-import { createContact as createLoopsContact } from "@inboxzero/loops";
-import { createContact as createResendContact } from "@inboxzero/transactional-email";
 import type { Account } from "better-auth";
 import { APIError, betterAuth } from "better-auth";
 import { createAuthMiddleware } from "better-auth/api";
@@ -14,14 +9,13 @@ import { setSessionCookie } from "better-auth/cookies";
 import { renameGoogleEmail } from "@/utils/auth/rename-email";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { after } from "next/server";
 import { env } from "@/env";
 import {
   assertAllowedAuthSignupEmail,
   isAllowedAuthSignupEmail,
 } from "@/utils/auth-signup-policy";
-import { trackDubSignUp } from "@/utils/dub";
 import {
   isGoogleProvider,
   isMicrosoftProvider,
@@ -41,25 +35,14 @@ import {
 } from "@/utils/outlook/oauth";
 import { createOutlookClient } from "@/utils/outlook/client";
 import { SCOPES as OUTLOOK_SCOPES } from "@/utils/outlook/scopes";
-import {
-  claimPendingPremiumInvite,
-  updateAccountSeats,
-} from "@/utils/premium/seats";
-import { applyPendingPremiumGrant } from "@/utils/premium/server";
 import { mobileAuthProviderCompletion } from "@/utils/mobile-auth/provider-completion";
 import { safeExpo } from "@/utils/mobile-auth/expo";
 import { clearAccountDisconnectedErrorIfResolved } from "@/utils/error-messages";
 import { getEnabledLoginProviders } from "@/utils/oauth/login-providers";
 import { getAppleClientSecret } from "@/utils/auth/apple-client-secret";
 import { reconcileMicrosoftAccountSubject } from "@/utils/auth/microsoft-account-subject";
-import { getScimOptions, assertScimUserActive } from "@/utils/auth/scim";
 import prisma from "@/utils/prisma";
-import {
-  getAuthProviderFromContext,
-  isNewUserAuthContext,
-  markAuthContextAsNewUser,
-  trackAuthenticationCompleted,
-} from "@/utils/analytics/auth-funnel.server";
+import { getAuthProviderFromContext } from "@/utils/auth/provider-context";
 
 import {
   emailOtpPlugin,
@@ -97,9 +80,7 @@ type MicrosoftProfile = {
 const mobileAuthOrigins = env.MOBILE_AUTH_ORIGIN
   ? [env.MOBILE_AUTH_ORIGIN]
   : [];
-const desktopAuthOrigins = env.DESKTOP_AUTH_ORIGIN
-  ? [env.DESKTOP_AUTH_ORIGIN]
-  : [];
+
 const googleSocialProvider =
   googleLoginEnabled && !useGoogleOauthEmulator
     ? {
@@ -251,7 +232,6 @@ export const betterAuthConfig = betterAuth({
     ...(env.OAUTH_PROXY_URL ? [env.OAUTH_PROXY_URL] : []),
     ...(env.ADDITIONAL_TRUSTED_ORIGINS ?? []),
     ...mobileAuthOrigins,
-    ...desktopAuthOrigins,
   ],
   secret: env.AUTH_SECRET || env.NEXTAUTH_SECRET,
   emailAndPassword: {
@@ -263,11 +243,8 @@ export const betterAuthConfig = betterAuth({
   }),
   plugins: [
     emailOtpPlugin,
-    adminSso({
-      disableImplicitSignUp: false,
-      organizationProvisioning: { disabled: true },
-    }),
-    ...(env.SCIM_CREDENTIAL_HASH_SECRET ? [scim(getScimOptions())] : []),
+    ...[],
+    ...[],
     ...(genericOauthPlugin ? [genericOauthPlugin] : []),
     ...(mobileAuthOrigins.length > 0 ? [safeExpo()] : []),
     // OAuth proxy for preview deployments (Google doesn't allow wildcard redirect URIs)
@@ -278,7 +255,7 @@ export const betterAuthConfig = betterAuth({
           }),
         ]
       : []),
-    ...mcpOAuthPlugins(),
+
     nextCookies(), // Must be last
   ],
   session: {
@@ -338,10 +315,8 @@ export const betterAuthConfig = betterAuth({
   databaseHooks: {
     session: {
       create: {
-        before: async (session, context) => {
-          await assertScimUserActive(session.userId);
-          return emailOtpSessionCreationHook(session, context);
-        },
+        before: async (session, context) =>
+          emailOtpSessionCreationHook(session, context),
       },
     },
     user: {
@@ -357,7 +332,6 @@ export const betterAuthConfig = betterAuth({
           return dropInlineImage(user);
         },
         after: async (user, context) => {
-          markAuthContextAsNewUser(context?.context);
           await postSignUp({
             id: user.id,
             email: user.email,
@@ -408,22 +382,6 @@ export const betterAuthConfig = betterAuth({
       }
       await emailOtpAfterHook(context);
       await mobileAuthProviderCompletion(context);
-      try {
-        const authenticatedSession = context.context.newSession;
-        if (!authenticatedSession) return;
-
-        const provider = getAuthProviderFromContext(context);
-        if (provider === "unknown") return;
-
-        const email = authenticatedSession.user.email;
-        const isNewUser = isNewUserAuthContext(context.context);
-
-        after(() =>
-          trackAuthenticationCompleted({ email, provider, isNewUser }),
-        );
-      } catch (error) {
-        logger.error("Failed to schedule authentication analytics", { error });
-      }
     }),
   },
   onAPIError: {
@@ -446,108 +404,7 @@ async function postSignUp({
   name?: string | null;
   image?: string | null;
 }) {
-  const loops = async () => {
-    const account = await prisma.account
-      .findFirst({
-        where: { userId },
-        select: { provider: true },
-      })
-      .catch((error) => {
-        logger.error("Error finding account", {
-          userId,
-          error,
-        });
-        captureException(error, { userEmail: email });
-      });
-
-    await createLoopsContact(
-      email,
-      name?.split(" ")?.[0],
-      account?.provider,
-    ).catch((error) => {
-      const alreadyExists =
-        error instanceof Error && error.message.includes("409");
-      if (!alreadyExists) {
-        logger.error("Error creating Loops contact", {
-          email,
-          error,
-        });
-        captureException(error, { userEmail: email });
-      }
-    });
-  };
-
-  const resend = createResendContact({ email }).catch((error) => {
-    logger.error("Error creating Resend contact", {
-      email,
-      error,
-    });
-    captureException(error, { userEmail: email });
-  });
-
-  const dub = trackDubSignUp({ id: userId, email, name, image }, logger).catch(
-    (error) => {
-      logger.error("Error tracking Dub sign up", {
-        email,
-        error,
-      });
-      captureException(error, { userEmail: email });
-    },
-  );
-
-  await Promise.all([
-    loops(),
-    resend,
-    dub,
-    // Sequential so the admin grant lands on whichever premium the invite assigns.
-    handlePendingPremiumInvite({ email }).then(() =>
-      applyPendingPremiumGrant({ userId, email }).catch((error) => {
-        logger.error("Error applying pending premium grant", { email, error });
-        captureException(error, { userEmail: email });
-      }),
-    ),
-    handleReferralOnSignUp({ userId, email }),
-  ]);
-}
-
-async function handlePendingPremiumInvite({ email }: { email: string }) {
-  try {
-    logger.info("Handling pending premium invite", { email });
-
-    // Check for pending invite
-    const premium = await prisma.premium.findFirst({
-      where: { pendingInvites: { has: email } },
-      select: {
-        id: true,
-        lemonSqueezySubscriptionItemId: true,
-        stripeSubscriptionId: true,
-      },
-    });
-
-    if (
-      premium?.lemonSqueezySubscriptionItemId ||
-      premium?.stripeSubscriptionId
-    ) {
-      const user = await prisma.user.findUnique({
-        where: { email },
-        select: { id: true },
-      });
-
-      if (user) {
-        await claimPendingPremiumInvite({
-          visitorId: user.id,
-          premiumId: premium.id,
-          email,
-        });
-        logger.info("Added user to premium from invite", { email });
-      }
-    }
-  } catch (error) {
-    logger.error("Error handling pending premium invite", { error, email });
-    captureException(error, {
-      extra: { email, location: "handlePendingPremiumInvite" },
-    });
-  }
+  return;
 }
 
 export async function handleReferralOnSignUp({
@@ -557,44 +414,7 @@ export async function handleReferralOnSignUp({
   userId: string;
   email: string;
 }) {
-  try {
-    const cookieStore = await cookies();
-    const referralCookie = cookieStore.get("referral_code");
-
-    if (!referralCookie?.value) {
-      logger.info("No referral code found in cookies", { email });
-      return;
-    }
-
-    let referralCode = referralCookie.value;
-    try {
-      referralCode = decodeURIComponent(referralCode);
-    } catch {
-      // Use original value if decoding fails
-    }
-    logger.info("Processing referral for new user", {
-      email,
-      referralCode,
-    });
-
-    // Import the createReferral function
-    const { createReferral } = await import("@/utils/referral/referral-code");
-    await createReferral(userId, referralCode);
-    logger.info("Successfully created referral", {
-      email,
-      referralCode,
-    });
-  } catch (error) {
-    logger.error("Error processing referral on sign up", {
-      error,
-      userId,
-      email,
-    });
-    // Don't throw error - referral failure shouldn't prevent sign up
-    captureException(error, {
-      extra: { userId, email, location: "handleReferralOnSignUp" },
-    });
-  }
+  return;
 }
 
 // TODO: move into email provider instead of checking the provider type
@@ -846,23 +666,7 @@ export async function handleLinkAccount(
       logger,
     });
 
-    if (env.AUTO_JOIN_ORGANIZATION_ENABLED) {
-      await autoJoinOrganization(upsertedEmailAccount.id).catch((error) => {
-        logger.error("[linkAccount] Error auto-joining organization", {
-          error,
-        });
-        captureException(error, { extra: { userId: account.userId } });
-      });
-    }
-
     // Handle premium account seats
-    await updateAccountSeats({ userId: account.userId }).catch((error) => {
-      logger.error("[linkAccount] Error updating premium account seats:", {
-        userId: account.userId,
-        error,
-      });
-      captureException(error, { extra: { userId: account.userId } });
-    });
 
     scheduleEmailWatchesAfterLink(account.userId);
 
@@ -896,44 +700,6 @@ export const auth = async (
     throw error;
   }
 };
-
-async function autoJoinOrganization(emailAccountId: string) {
-  const orgs = await prisma.organization.findMany({
-    select: { id: true },
-    take: 2,
-  });
-
-  if (orgs.length !== 1) {
-    if (orgs.length === 0) {
-      logger.warn("[autoJoinOrganization] No organization found to auto-join");
-    } else {
-      logger.warn(
-        "[autoJoinOrganization] Multiple organizations found, skipping auto-join",
-      );
-    }
-    return;
-  }
-
-  const organizationId = orgs[0].id;
-
-  const member = await prisma.member.upsert({
-    where: { emailAccountId },
-    update: {},
-    create: {
-      organizationId,
-      emailAccountId,
-      role: "member",
-      allowOrgAdminAnalytics: env.AUTO_ENABLE_ORG_ANALYTICS,
-    },
-    select: { id: true, createdAt: true },
-  });
-
-  logger.info("[autoJoinOrganization] Auto-joined user to organization", {
-    emailAccountId,
-    organizationId,
-    memberId: member.id,
-  });
-}
 
 function scheduleEmailWatchesAfterLink(userId: string) {
   after(() =>

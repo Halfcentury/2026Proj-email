@@ -46,10 +46,7 @@ export function getExtraAvailableActionsForRuleEditor({
     ...(env.NEXT_PUBLIC_WEBHOOK_ACTION_ENABLED !== false
       ? [ActionType.CALL_WEBHOOK]
       : []),
-    ...(integrationActionsEnabled ||
-    existingActionTypes.includes(ActionType.INTEGRATION)
-      ? [ActionType.INTEGRATION]
-      : []),
+    ...[],
   ] as ActionType[];
 }
 

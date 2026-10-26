@@ -121,9 +121,7 @@ export function useTranslateThread() {
           isForeignLanguage(message.sourceLanguage, targetLanguage),
         )
       ) {
-        toast.info(
-          `已使用${getLanguageName(targetLanguage) ?? "你的语言"}`,
-        );
+        toast.info(`已使用${getLanguageName(targetLanguage) ?? "你的语言"}`);
       }
     },
     [store, setTranslations],

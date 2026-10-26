@@ -43,6 +43,10 @@ describe("aiGetCalendarAvailability", () => {
     vi.clearAllMocks();
 
     mockGenerateText.mockImplementation(async ({ tools }) => {
+      await tools.checkCalendarAvailability.execute({
+        timeMin: "2026-05-04T00:00:00Z",
+        timeMax: "2026-05-05T00:00:00Z",
+      });
       await tools.returnSuggestedTimes.execute({
         suggestedTimes: [
           {
@@ -69,6 +73,29 @@ describe("aiGetCalendarAvailability", () => {
     vi.mocked(getUnifiedCalendarAvailability).mockResolvedValue([]);
   });
 
+  it("never turns a failed calendar check into free slots", async () => {
+    vi.mocked(getUnifiedCalendarAvailability).mockRejectedValue(
+      new Error("provider offline"),
+    );
+    const onError = vi.fn();
+    const result = await aiGetCalendarAvailability({
+      emailAccount: getEmailAccount(),
+      messages: [
+        {
+          id: "m",
+          from: "a@test.com",
+          to: "b@test.com",
+          subject: "meeting",
+          content: "Can we meet?",
+        },
+      ],
+      logger: createTestLogger(),
+      currentDate: new Date("2026-05-01T00:00:00Z"),
+      onError,
+    });
+    expect(result).toBeNull();
+    expect(onError).toHaveBeenCalled();
+  });
   it("returns the timezone used to generate suggested slots", async () => {
     const result = await aiGetCalendarAvailability({
       emailAccount: {
@@ -89,7 +116,7 @@ describe("aiGetCalendarAvailability", () => {
       currentDate: new Date("2026-04-30T08:48:00.000Z"),
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       timezone: "America/Los_Angeles",
       suggestedTimes: [
         {
@@ -180,7 +207,7 @@ describe("aiGetCalendarAvailability", () => {
       currentDate: new Date("2026-04-30T08:48:00.000Z"),
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       timezone: "America/Los_Angeles",
       suggestedTimes: [
         {
@@ -193,6 +220,10 @@ describe("aiGetCalendarAvailability", () => {
 
   it("filters suggested times inside the minimum-notice window", async () => {
     mockGenerateText.mockImplementation(async ({ tools }) => {
+      await tools.checkCalendarAvailability.execute({
+        timeMin: "2026-05-04T00:00:00Z",
+        timeMax: "2026-05-05T00:00:00Z",
+      });
       await tools.returnSuggestedTimes.execute({
         suggestedTimes: [
           {
@@ -227,7 +258,7 @@ describe("aiGetCalendarAvailability", () => {
       minimumNoticeMinutes: 120,
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       timezone: "UTC",
       suggestedTimes: [
         {
@@ -240,6 +271,10 @@ describe("aiGetCalendarAvailability", () => {
 
   it("does not report no availability when every suggestion is inside the notice window", async () => {
     mockGenerateText.mockImplementation(async ({ tools }) => {
+      await tools.checkCalendarAvailability.execute({
+        timeMin: "2026-05-04T00:00:00Z",
+        timeMax: "2026-05-05T00:00:00Z",
+      });
       await tools.returnSuggestedTimes.execute({
         suggestedTimes: [
           {
@@ -270,7 +305,7 @@ describe("aiGetCalendarAvailability", () => {
       minimumNoticeMinutes: 120,
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       timezone: "UTC",
       suggestedTimes: [],
     });

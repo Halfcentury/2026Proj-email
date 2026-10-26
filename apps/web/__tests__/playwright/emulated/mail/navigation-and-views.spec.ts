@@ -21,11 +21,11 @@ test("opens a complete conversation and updates its read state", async ({
   const readerConversation = conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Navigation Message",
+    "回复：阅读器导航测试邮件",
   );
   await expect(readerConversation).toBeVisible();
   await expect(
-    readerConversation.getByText("Dana Example, me", { exact: true }),
+    readerConversation.getByText("达娜, me", { exact: true }),
   ).toBeVisible();
   await expect(
     readerConversation.getByText("2", { exact: true }),
@@ -39,15 +39,12 @@ test("opens a complete conversation and updates its read state", async ({
   await readerConversation.click();
 
   await expect(
-    page.getByRole("heading", { name: "Re: Reader Navigation Message" }),
+    page.getByRole("heading", { name: "回复：阅读器导航测试邮件" }),
   ).toBeVisible();
+  await expectThreadReaderBody(page, "这是阅读器会话中的第一封邮件。");
   await expectThreadReaderBody(
     page,
-    "First message in the reader conversation.",
-  );
-  await expectThreadReaderBody(
-    page,
-    "A second message proves the complete conversation is rendered.",
+    "第二封邮件用于验证完整会话能够正常显示。",
   );
   await expect(page).toHaveURL(/thread-id=thr_playwright_reader/);
 
@@ -120,12 +117,12 @@ test("opens a conversation from the engine without a thread-detail HTTP fetch", 
   const readerConversation = conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Navigation Message",
+    "回复：阅读器导航测试邮件",
   );
   await readerConversation.click();
   await expect.poll(() => threadDetailRequestCount).toBe(0);
   await expect(
-    page.getByRole("heading", { name: "Re: Reader Navigation Message" }),
+    page.getByRole("heading", { name: "回复：阅读器导航测试邮件" }),
   ).toBeVisible();
   await expect(page.getByTestId("thread-reader")).toHaveAttribute(
     "data-detail-selection-settled",
@@ -135,11 +132,11 @@ test("opens a conversation from the engine without a thread-detail HTTP fetch", 
   releaseFirstRequest.resolve();
 
   await expect(
-    page.getByRole("heading", { name: "Re: Reader Navigation Message" }),
+    page.getByRole("heading", { name: "回复：阅读器导航测试邮件" }),
   ).toBeVisible();
   await expectThreadReaderBody(
     page,
-    "A second message proves the complete conversation is rendered.",
+    "第二封邮件用于验证完整会话能够正常显示。",
   );
   expect(threadDetailRequestCount).toBe(0);
 });
@@ -149,19 +146,14 @@ test("waits for a direct reader snapshot before marking it read", async ({
 }) => {
   const emailAccountId = await getEmailAccountId(page);
   await page.goto(`/${emailAccountId}/mail?thread-id=thr_playwright_label`);
-  await expectThreadReaderBody(
-    page,
-    "This conversation is visible in the seeded project label.",
-  );
+  await expectThreadReaderBody(page, "此会话可在预置的项目标签中查看。");
   await expect(page.getByTestId("thread-reader")).toHaveAttribute(
     "data-detail-selection-settled",
     "true",
   );
   // Deep-link auto mark-read is skipped when the snapshot is already read, so
   // assert the settled reader rather than an inspect command that may not exist.
-  await expect(
-    page.getByRole("button", { name: /标为未读/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /标为未读/ })).toBeVisible();
 });
 
 test("filters the mail list by state, category, and label", async ({
@@ -171,10 +163,10 @@ test("filters the mail list by state, category, and label", async ({
 
   await page.getByRole("button", { name: "未读", exact: true }).click();
   await expect(
-    conversationWithSubject(page, conversations, "Keyboard Navigation Message"),
+    conversationWithSubject(page, conversations, "键盘导航测试邮件"),
   ).toBeVisible();
   await expect(
-    conversationWithSubject(page, conversations, "Read Command Message"),
+    conversationWithSubject(page, conversations, "已读状态测试邮件"),
   ).toHaveCount(0);
 
   const promotions = page.getByRole("link", { name: /推广邮件/ });
@@ -183,7 +175,7 @@ test("filters the mail list by state, category, and label", async ({
   }
   await promotions.click();
   await expect(
-    conversationWithSubject(page, conversations, "Promotion Category Message"),
+    conversationWithSubject(page, conversations, "推广分类测试邮件"),
   ).toBeVisible();
   await expect(conversations.getByRole("option")).toHaveCount(1);
   await expect(page).toHaveURL(
@@ -192,9 +184,9 @@ test("filters the mail list by state, category, and label", async ({
       : /type=CATEGORY_PROMOTIONS/,
   );
 
-  await page.getByRole("link", { name: /^Project Alpha/ }).click();
+  await page.getByRole("link", { name: /^项目甲/ }).click();
   await expect(
-    conversationWithSubject(page, conversations, "Project Label Message"),
+    conversationWithSubject(page, conversations, "项目标签测试邮件"),
   ).toBeVisible();
   await expect(conversations.getByRole("option")).toHaveCount(1);
   await expect(page).toHaveURL(/labelId=Label_project/);
@@ -208,12 +200,12 @@ test("separates Outlook Focused and Other inbox conversations", async ({
   const focused = conversationWithSubject(
     page,
     conversations,
-    "Playwright Test Message",
+    "邮件功能测试邮件",
   );
   const other = conversationWithSubject(
     page,
     conversations,
-    "Read Command Message",
+    "已读状态测试邮件",
   );
 
   await page.getByRole("link", { name: "Focused", exact: true }).click();
@@ -236,15 +228,15 @@ test("navigates drafts and sent mail from the sidebar", async ({ page }) => {
   const draft = conversationWithSubject(
     page,
     conversations,
-    "Seeded Draft Message",
+    "预置草稿测试邮件",
   );
   await expect(draft).toBeVisible();
   await expect(draft.getByText("草稿", { exact: true })).toBeVisible();
-  await expect(draft.getByText("Jordan Example")).toBeVisible();
+  await expect(draft.getByText("乔丹")).toBeVisible();
 
   await openMailboxFromSidebar(page, "Sent");
   await expect(
-    conversationWithSubject(page, conversations, "Seeded Sent Message"),
+    conversationWithSubject(page, conversations, "预置已发送测试邮件"),
   ).toBeVisible();
   await expect(draft).toHaveCount(0);
 });

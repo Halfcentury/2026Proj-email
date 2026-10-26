@@ -26,7 +26,10 @@ import type { ParsedMessage } from "@/utils/types";
 import { forwardEmailHtml, forwardEmailSubject } from "@/utils/gmail/forward";
 import { extractDraftComposerContent } from "@/utils/parse/extract-reply.client";
 import type { ReplyingToEmail } from "@/app/(app)/[emailAccountId]/compose/ComposeEmailForm";
-import { createReplyContent } from "@/utils/gmail/reply";
+import {
+  prepareReplyingToEmail,
+  getFromHint,
+} from "@/utils/email/replying-to-email";
 import { cn } from "@/utils";
 import { decodeSnippet } from "@/utils/gmail/decode";
 import { GmailLabel } from "@/utils/gmail/label";
@@ -37,7 +40,6 @@ import { HtmlEmail, PlainEmail } from "@/components/email-list/EmailContents";
 import { EmailAttachments } from "@/components/email-list/EmailAttachments";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useComposeModal } from "@/providers/ComposeModalProvider";
-import { formatReplySubject } from "@/utils/email/subject";
 import { isTypingTarget } from "@/lib/shortcuts/registry";
 import { useContactPhoto } from "@/hooks/useContactPhoto";
 import { toastError } from "@/components/Toast";
@@ -48,10 +50,11 @@ import {
   getReplyDraftSessionId,
   type ReplyDraftMode,
 } from "@/utils/mail-engine/reply-drafts";
-import {
-  SentMessageOpenStatus,
-  type SentMessageOpenState,
-} from "@/components/email-list/SentMessageOpenStatus";
+type SentMessageOpenState = {
+  firstOpenedAt: Date | string | null;
+  lastOpenedAt: Date | string | null;
+  openCount: number;
+};
 import {
   getMessageTranslation,
   useThreadTranslation,
@@ -612,7 +615,8 @@ function MessageHeader({
         )}
         {isSent &&
           !message.labelIds?.includes(GmailLabel.DRAFT) &&
-          sentMessageOpen && <SentMessageOpenStatus open={sentMessageOpen} />}
+          sentMessageOpen &&
+          null}
         <time
           className="shrink-0 whitespace-nowrap text-muted-foreground text-xs"
           dateTime={message.headers.date}
@@ -842,35 +846,6 @@ function recipientSummary(
   return names ? `to ${names}` : "";
 }
 
-const prepareReplyingToEmail = (
-  message: ParsedMessage,
-  threadOn: ParsedMessage = message,
-): ReplyingToEmail => {
-  const sentFromUser = message.labelIds?.includes("SENT");
-
-  const { html } = createReplyContent({ message });
-
-  return {
-    // If following an email from yourself, use original recipients, otherwise reply to sender
-    to: sentFromUser ? message.headers.to : message.headers.from,
-    fromHint: getFromHint(message),
-    // If following an email from yourself, don't add "Re:" prefix
-    subject: sentFromUser
-      ? message.headers.subject
-      : formatReplySubject(message.headers.subject),
-    headerMessageId: threadOn.headers["message-id"] || undefined,
-    messageId: threadOn.id || undefined,
-    threadId: threadOn.threadId || undefined,
-    // Keep original CC
-    cc: message.headers.cc,
-    // Keep original BCC if available
-    bcc: sentFromUser ? message.headers.bcc : "",
-    references: threadOn.headers.references,
-    draftHtml: "",
-    quotedContentHtml: html,
-  };
-};
-
 const prepareForwardingEmail = (
   message: ParsedMessage,
   unsent = false,
@@ -916,13 +891,6 @@ function prepareDraftReplyEmail(draft: ParsedMessage): ReplyingToEmail {
       draft.attachments?.length || draft.inline?.length,
     ),
   };
-}
-
-// Follow-ups to the user's own mail keep its sender; replies to received mail
-// go out from whichever of the user's addresses it was sent to.
-function getFromHint(message: ParsedMessage) {
-  if (message.labelIds?.includes("SENT")) return message.headers.from;
-  return [message.headers.to, message.headers.cc].filter(Boolean).join(", ");
 }
 
 function TranslationNotice({

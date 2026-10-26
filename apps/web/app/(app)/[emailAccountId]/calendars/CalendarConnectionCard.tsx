@@ -87,11 +87,7 @@ export function CalendarConnectionCard({
   );
 
   const handleDisconnect = async () => {
-    if (
-      confirm(
-        "确定断开此日历账户吗？所有关联日历将被移除。",
-      )
-    ) {
+    if (confirm("确定断开此日历账户吗？所有关联日历将被移除。")) {
       executeDisconnect({ connectionId: connection.id });
       mutate();
     }
@@ -206,7 +202,8 @@ export function CalendarConnectionCard({
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full text-left"
               >
                 <span>
-                  {enabledCalendars.length} of {calendars.length} 个日历用于检查可预约时间
+                  {enabledCalendars.length} of {calendars.length}{" "}
+                  个日历用于检查可预约时间
                 </span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${

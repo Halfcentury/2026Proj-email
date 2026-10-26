@@ -1,15 +1,14 @@
-import { cn } from "@/utils";
-import { Header } from "@/components/new-landing/sections/Header";
-import { Footer } from "@/components/new-landing/sections/Footer";
-
-const LAYOUT_CLASSNAME = "max-w-6xl mx-auto px-6 lg:px-8 xl:px-0";
-
-export function BasicLayout(props: { children: React.ReactNode }) {
+import Link from "next/link";
+import { BRAND_NAME } from "@/utils/branding";
+export function BasicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <Header className={LAYOUT_CLASSNAME} />
-      <main className={cn("isolate", LAYOUT_CLASSNAME)}>{props.children}</main>
-      <Footer className={LAYOUT_CLASSNAME} />
+    <div className="min-h-screen bg-background">
+      <header className="mx-auto max-w-6xl px-6 py-6">
+        <Link href="/mail" className="font-semibold">
+          {BRAND_NAME}
+        </Link>
+      </header>
+      <main>{children}</main>
     </div>
   );
 }

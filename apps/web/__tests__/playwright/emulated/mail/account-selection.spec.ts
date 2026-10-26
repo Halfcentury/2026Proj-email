@@ -70,9 +70,7 @@ test("chooses which accounts appear in All Accounts", async ({
 
     const dialog = page.getByRole("dialog", { name: "选择账户" });
     await expect(dialog).toBeVisible();
-    await expect(
-      page.getByRole("menuitem", { name: "选择账户" }),
-    ).toBeHidden();
+    await expect(page.getByRole("menuitem", { name: "选择账户" })).toBeHidden();
     await expect(
       dialog.getByRole("checkbox", { name: new RegExp(secondAccount.name) }),
     ).toBeChecked();

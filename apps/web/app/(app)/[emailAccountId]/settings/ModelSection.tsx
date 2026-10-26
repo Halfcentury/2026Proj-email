@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { BarChartIcon } from "lucide-react";
 import { useCallback } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -25,7 +23,6 @@ import {
 } from "@/utils/llms/config";
 import { useUser } from "@/hooks/useUser";
 import { useAccount } from "@/providers/EmailAccountProvider";
-import { prefixPath } from "@/utils/path";
 import { updateAiSettingsAction } from "@/utils/actions/settings";
 
 export function ModelSection() {
@@ -97,8 +94,7 @@ function ModelSectionForm(props: {
         });
       } else {
         toastSuccess({
-          description:
-            "设置已更新！请在助手页面确认效果。",
+          description: "设置已更新！请在助手页面确认效果。",
         });
       }
 
@@ -151,11 +147,7 @@ function ModelSectionForm(props: {
             label="API 密钥"
             registerProps={register("aiApiKey")}
             error={errors.aiApiKey}
-            placeholder={
-              hasStoredAiApiKey
-                ? "留空可保留当前密钥"
-                : undefined
-            }
+            placeholder={hasStoredAiApiKey ? "留空可保留当前密钥" : undefined}
             explainText={
               hasStoredAiApiKey
                 ? "留空保留当前 API 密钥，或输入新密钥替换。"
@@ -187,12 +179,6 @@ function ModelSectionForm(props: {
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm" loading={isSubmitting}>
           保存
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link href={prefixPath(emailAccountId, "/usage")}>
-            <BarChartIcon className="mr-2 size-4" />
-            查看使用量
-          </Link>
         </Button>
       </div>
     </form>

@@ -14,7 +14,7 @@ import { getEmailForLLM } from "@/utils/get-email-from-message";
 import type { Logger } from "@/utils/logger";
 import { getCalendarEventStatus } from "@/utils/parse/calender-event";
 import { findUnsubscribeLink } from "@/utils/parse/parseHtml.server";
-import { isActivePremium } from "@/utils/premium";
+import { isActivePremium } from "@/utils/feature-access";
 import { saveThread, updateThread } from "@/utils/redis/clean";
 import type { ParsedMessage } from "@/utils/types";
 import { publishToQstash } from "@/utils/upstash";

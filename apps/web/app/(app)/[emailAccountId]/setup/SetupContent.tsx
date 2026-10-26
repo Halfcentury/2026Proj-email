@@ -33,7 +33,6 @@ import {
   STEP_KEYS,
   getOnboardingStepHref,
 } from "@/app/(app)/[emailAccountId]/onboarding/onboardingFlow";
-import { InviteMemberModal } from "@/components/InviteMemberModal";
 import { BRAND_NAME } from "@/utils/branding";
 import { dismissHintAction } from "@/utils/actions/hints";
 import { toastError } from "@/components/Toast";
@@ -89,9 +88,8 @@ function getFeatures() {
     {
       href: "/automation",
       icon: BotIcon,
-      title: "智能助手",
-      description:
-        "自动整理、归档和起草回复的个人邮件助手",
+      title: "自动化",
+      description: "自动整理、归档和起草回复的个人邮件助手",
     },
     {
       href: "/bulk-unsubscribe",
@@ -387,14 +385,7 @@ function Checklist({
         />
       )}
 
-      {teamInvite && (
-        <InviteMemberModal
-          organizationId={teamInvite.organizationId}
-          open={isInviteModalOpen}
-          onOpenChange={setIsInviteModalOpen}
-          trigger={null}
-        />
-      )}
+      {teamInvite && null}
 
       {isGoogleProvider(provider) && (
         <StepItem

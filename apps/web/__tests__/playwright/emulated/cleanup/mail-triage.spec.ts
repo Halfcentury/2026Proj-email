@@ -108,9 +108,7 @@ test("T3 shows a retry and clears old selections without changing inbox or stars
     const analysisError = page.getByRole("alert").filter({
       hasText: "分析失败，邮件未被修改，请重试",
     });
-    await expect(analysisError).toContainText(
-      "分析失败，邮件未被修改，请重试",
-    );
+    await expect(analysisError).toContainText("分析失败，邮件未被修改，请重试");
     await expect(
       page.getByRole("button", { name: "收件箱（12）" }),
     ).toBeVisible();

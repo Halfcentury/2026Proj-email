@@ -24,8 +24,7 @@ export type ApiErrorType = {
   code: number;
 };
 
-const RATE_LIMIT_MESSAGE_TEMPLATE =
-  "{provider} 暂时限制请求，请稍后重试。";
+const RATE_LIMIT_MESSAGE_TEMPLATE = "{provider} 暂时限制请求，请稍后重试。";
 export const EMAIL_PROVIDER_RATE_LIMIT_MESSAGE =
   "邮箱服务暂时限制请求，请稍后重试。";
 export const UNEXPECTED_ACTION_ERROR_MESSAGE = "发生未知错误，请重试。";

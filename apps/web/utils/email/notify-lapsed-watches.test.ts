@@ -1,19 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import prisma from "@/utils/__mocks__/prisma";
 import { createTestLogger } from "@/__tests__/helpers";
-import { hasAiAccess } from "@/utils/premium";
+import { hasAiAccess } from "@/utils/feature-access";
 import { addUserErrorMessageWithNotification } from "@/utils/error-messages";
 import { notifyLapsedWatches } from "./notify-lapsed-watches";
 
 vi.mock("@/utils/prisma");
 
-vi.mock("@/utils/premium", () => ({
-  getPremiumUserFilter: vi.fn(() => ({
-    user: { premium: { tier: { not: null } } },
-  })),
-  getUserTier: vi.fn(() => "STARTER_MONTHLY"),
-  hasAiAccess: vi.fn(() => true),
-  premiumEntitlementSelect: {},
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      getPremiumUserFilter: vi.fn(() => ({
+        user: { premium: { tier: { not: null } } },
+      })),
+      getUserTier: vi.fn(() => "STARTER_MONTHLY"),
+      hasAiAccess: vi.fn(() => true),
+      premiumEntitlementSelect: {},
+    },
+  },
 }));
 
 vi.mock("@/utils/error-messages", () => ({

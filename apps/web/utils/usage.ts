@@ -10,7 +10,7 @@ import {
   getOpenRouterProviderPrefix,
   stripOnlineModelSuffix,
 } from "@/utils/llms/model-id";
-import { publishAiCall } from "@inboxzero/tinybird-ai-analytics";
+
 import { createScopedLogger } from "@/utils/logger";
 
 const logger = createScopedLogger("usage");
@@ -131,41 +131,12 @@ export async function saveAiUsage({
     totalTokens,
   });
 
-  const [analyticsResult, redisResult] = await Promise.allSettled([
-    invokeUsageSink(() =>
-      publishAiCall({
-        userId: userId ?? email,
-        emailAccountId,
-        provider,
-        model,
-        totalTokens,
-        completionTokens: outputTokens,
-        promptTokens: inputTokens,
-        cachedInputTokens,
-        cacheWriteTokens,
-        reasoningTokens,
-        cost: platformCost,
-        estimatedCost,
-        providerReportedCost,
-        providerUpstreamInferenceCost,
-        providerCostSource,
-        isUserApiKey: toTinybirdBoolean(isUserApiKey),
-        timestamp: Date.now(),
-        label,
-        stepCount,
-        toolCallCount,
-      }),
-    ),
+  const [redisResult] = await Promise.allSettled([
     invokeUsageSink(() =>
       saveUsage({ userId, emailAccountId, cost: platformCost, usage }),
     ),
   ]);
 
-  if (analyticsResult.status === "rejected") {
-    logger.error("Failed to publish AI usage analytics", {
-      error: analyticsResult.reason,
-    });
-  }
   if (redisResult.status === "rejected") {
     logger.error("Failed to save AI usage to Redis", {
       error: redisResult.reason,
@@ -312,10 +283,6 @@ function notifyAiUsageListeners(event: AiUsageEvent): void {
       logger.error("AI usage listener failed", { error });
     }
   }
-}
-
-function toTinybirdBoolean(value: boolean): 0 | 1 {
-  return value ? 1 : 0;
 }
 
 function invokeUsageSink(operation: () => unknown) {

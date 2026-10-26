@@ -214,9 +214,7 @@ export function ComposeContactRecipientField({
               className="absolute z-10 mt-1 flex w-80 items-center gap-3 rounded-md border bg-popover p-3 text-sm text-popover-foreground shadow-lg"
               role="status"
             >
-              <span className="flex-1">
-                重新连接此账户后可启用联系人建议。
-              </span>
+              <span className="flex-1">重新连接此账户后可启用联系人建议。</span>
               <Button
                 className="h-auto p-0"
                 disabled={isReconnectingContacts}

@@ -14,7 +14,7 @@ import {
   CANCELLABLE_STATUSES,
 } from "@/utils/meeting-recorder/recording-lifecycle";
 import { withEmailAccount } from "@/utils/middleware";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 import prisma from "@/utils/prisma";
 
 export type GetMeetingRecorderUpcomingResponse = Awaited<

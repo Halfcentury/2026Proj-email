@@ -1,24 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import Link from "next/link";
 import { parseAsBoolean, useQueryState } from "nuqs";
-import { useAction } from "next-safe-action/hooks";
-import { HashIcon, MailIcon } from "lucide-react";
 import { PageWrapper } from "@/components/PageWrapper";
 import { PageHeader } from "@/components/PageHeader";
 import { LoadingContent } from "@/components/LoadingContent";
-import { SlackNotificationTargetSelect } from "@/components/SlackNotificationTargetSelect";
-import { Toggle } from "@/components/Toggle";
-import { MutedText } from "@/components/Typography";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { useDriveConnections } from "@/hooks/useDriveConnections";
-import { useMessagingChannels } from "@/hooks/useMessagingChannels";
 import { DriveConnections } from "./DriveConnections";
 import { FilingPreferences } from "./FilingPreferences";
 import { FilingActivity } from "./FilingActivity";
@@ -27,26 +14,10 @@ import { DriveSetup } from "./DriveSetup";
 import { Switch } from "@/components/ui/switch";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useEmailAccountFull } from "@/hooks/useEmailAccountFull";
-import {
-  updateFilingConfirmationEmailAction,
-  updateFilingEnabledAction,
-} from "@/utils/actions/drive";
-import { updateMessagingFeatureRouteAction } from "@/utils/actions/messaging-channels";
-import { getActionErrorMessage } from "@/utils/error";
-import {
-  canEnableMessagingFeatureRoute,
-  getMessagingFeatureRouteSummary,
-  type MessagingChannelDestinations,
-} from "@/utils/messaging/routes";
-import { prefixPath } from "@/utils/path";
+import { updateFilingEnabledAction } from "@/utils/actions/drive";
 import { toastError, toastSuccess } from "@/components/Toast";
 import { cn } from "@/utils";
 import { Badge } from "@/components/ui/badge";
-import { getMessagingProviderName } from "@/utils/messaging/platforms";
-import {
-  MessagingProvider,
-  MessagingRoutePurpose,
-} from "@/generated/prisma/enums";
 
 type DriveView = "onboarding" | "setup" | "settings";
 
@@ -111,13 +82,7 @@ export default function DrivePage() {
             <div className="flex items-center justify-between">
               <PageHeader title="自动整理附件" />
               <div className="flex items-center gap-3">
-                <DeliveryPopover
-                  emailAccountId={emailAccountId}
-                  filingConfirmationSendEmail={
-                    emailAccount?.filingConfirmationSendEmail ?? true
-                  }
-                  onEmailDeliveryUpdated={mutateEmail}
-                />
+                {null}
                 {!filingEnabled && <Badge variant="destructive">已暂停</Badge>}
                 <Switch
                   checked={filingEnabled}
@@ -153,198 +118,4 @@ function getDriveView(
   if (forceOnboarding === true || !hasConnections) return "onboarding";
   if (forceSetup === true || (hasConnections && !filingEnabled)) return "setup";
   return "settings";
-}
-
-function DeliveryPopover({
-  emailAccountId,
-  filingConfirmationSendEmail,
-  onEmailDeliveryUpdated,
-}: {
-  emailAccountId: string;
-  filingConfirmationSendEmail: boolean;
-  onEmailDeliveryUpdated: () => Promise<unknown>;
-}) {
-  const { data, isLoading, mutate } = useMessagingChannels();
-  const {
-    execute: executeEmailDelivery,
-    isExecuting: isUpdatingEmailDelivery,
-  } = useAction(
-    updateFilingConfirmationEmailAction.bind(null, emailAccountId),
-    {
-      onSuccess: () => {
-        toastSuccess({ description: "设置已保存" });
-        onEmailDeliveryUpdated();
-      },
-      onError: (error) => {
-        toastError({
-          description: getActionErrorMessage(error.error) ?? "Failed to update",
-        });
-      },
-    },
-  );
-
-  const allConnected =
-    data?.channels.filter((channel) => channel.isConnected) ?? [];
-  const configurableChannels = allConnected.filter(
-    (channel) =>
-      channel.provider === MessagingProvider.SLACK ||
-      channel.destinations.ruleNotifications.enabled ||
-      channel.destinations.documentFilings.enabled,
-  );
-  const availableProviders = data?.availableProviders ?? [];
-  const slackAvailable = availableProviders.includes("SLACK");
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
-          投递
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
-        <div className="space-y-3">
-          <div>
-            <h4 className="text-sm font-medium">投递</h4>
-            <MutedText className="text-xs">
-              选择文件整理通知的接收方式
-            </MutedText>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <MailIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">邮件确认</span>
-              </div>
-              <Toggle
-                name="filing-email-delivery"
-                enabled={filingConfirmationSendEmail}
-                disabled={isUpdatingEmailDelivery}
-                onChange={(sendEmail) => executeEmailDelivery({ sendEmail })}
-              />
-            </div>
-            <MutedText className="text-xs">
-              需要你处理的问题仍将通过邮件发送。
-            </MutedText>
-          </div>
-
-          {!isLoading &&
-            (configurableChannels.length > 0 || slackAvailable) && (
-              <div className="space-y-2 border-t pt-3">
-                <MutedText className="text-xs">已连接应用</MutedText>
-                {configurableChannels.length > 0 ? (
-                  <div className="space-y-2">
-                    {configurableChannels.map((channel) => (
-                      <DeliveryChannelRow
-                        key={channel.id}
-                        channel={channel}
-                        emailAccountId={emailAccountId}
-                        onUpdate={mutate}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <MutedText className="text-xs">
-                    选择接收位置：{" "}
-                    <Link
-                      href={prefixPath(emailAccountId, "/channels")}
-                      className="underline text-foreground"
-                    >
-                      消息渠道
-                    </Link>{" "}
-                    以启用应用通知。
-                  </MutedText>
-                )}
-              </div>
-            )}
-
-          {isLoading && (
-            <MutedText className="text-xs">正在加载已连接应用…</MutedText>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function DeliveryChannelRow({
-  channel,
-  emailAccountId,
-  onUpdate,
-}: {
-  channel: {
-    id: string;
-    provider: MessagingProvider;
-    destinations: MessagingChannelDestinations;
-    canSendAsDm: boolean;
-  };
-  emailAccountId: string;
-  onUpdate: () => void;
-}) {
-  const destination = getMessagingFeatureRouteSummary(
-    channel.destinations,
-    MessagingRoutePurpose.DOCUMENT_FILINGS,
-  );
-  const canEnableFeatureRoute = canEnableMessagingFeatureRoute(
-    channel.destinations,
-    MessagingRoutePurpose.DOCUMENT_FILINGS,
-  );
-  const { execute } = useAction(
-    updateMessagingFeatureRouteAction.bind(null, emailAccountId),
-    {
-      onSuccess: () => {
-        toastSuccess({ description: "设置已保存" });
-        onUpdate();
-      },
-      onError: (error) => {
-        toastError({
-          description: getActionErrorMessage(error.error) ?? "Failed to update",
-        });
-      },
-    },
-  );
-
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <HashIcon className="h-4 w-4 text-muted-foreground" />
-        <div className="space-y-1">
-          <span className="text-sm">
-            {getMessagingProviderName(channel.provider)}
-          </span>
-          {channel.provider === MessagingProvider.SLACK ? (
-            <SlackNotificationTargetSelect
-              emailAccountId={emailAccountId}
-              messagingChannelId={channel.id}
-              purpose={MessagingRoutePurpose.DOCUMENT_FILINGS}
-              targetId={destination.targetId}
-              targetLabel={destination.targetLabel}
-              isDm={destination.isDm}
-              canSendAsDm={channel.canSendAsDm}
-              onUpdate={onUpdate}
-              placeholder="选择接收位置"
-              className="h-8 w-44 text-xs"
-            />
-          ) : (
-            <MutedText className="text-xs">
-              整理通知将发送到此应用的私信接收位置。
-            </MutedText>
-          )}
-        </div>
-      </div>
-      <Toggle
-        name={`filing-${channel.id}`}
-        enabled={destination.enabled}
-        disabled={!canEnableFeatureRoute}
-        onChange={(enabled) => {
-          if (!canEnableFeatureRoute) return;
-          execute({
-            channelId: channel.id,
-            purpose: MessagingRoutePurpose.DOCUMENT_FILINGS,
-            enabled,
-          });
-        }}
-      />
-    </div>
-  );
 }

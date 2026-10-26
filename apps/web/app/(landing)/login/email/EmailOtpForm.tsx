@@ -60,9 +60,7 @@ export function EmailOtpForm({ callbackURL }: { callbackURL: string }) {
           {sentTo ? "请查看邮件" : "通过邮件登录"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {sentTo
-            ? "请输入 6 位验证码。"
-            : "请先在设置中启用邮件登录。"}
+          {sentTo ? "请输入 6 位验证码。" : "请先在设置中启用邮件登录。"}
         </p>
       </div>
       {sentTo ? (

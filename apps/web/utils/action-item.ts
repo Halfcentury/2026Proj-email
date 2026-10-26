@@ -5,7 +5,7 @@ import {
   getIntegrationToolSpec,
   getSelectArgOptionLabel,
   isAiFilledArgValue,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 
 const AI_GENERATED_FIELD_VALUE = "AI-generated";
 

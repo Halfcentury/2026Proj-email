@@ -18,13 +18,13 @@ test("uses the system dark theme when opening HTML emails", async ({
     { waitUntil: "domcontentloaded" },
   );
   await expect(
-    page.getByRole("heading", { name: "System Theme Message" }),
+    page.getByRole("heading", { name: "系统主题测试邮件" }),
   ).toBeVisible({ timeout: 60_000 });
   const emailFrame = page
     .frameLocator('iframe[title="Email content preview"]')
     .last();
   await expect(
-    emailFrame.getByText("A simple message in the system theme."),
+    emailFrame.getByText("这是一封跟随系统主题显示的简单邮件。"),
   ).toBeVisible();
   await expect(emailFrame.locator("html")).toHaveCSS("color-scheme", "dark");
   await expect(emailFrame.locator("body")).toHaveCSS("color-scheme", "dark");
@@ -42,12 +42,12 @@ test("keeps designed HTML emails in their authored light palette in dark mode", 
     { waitUntil: "domcontentloaded" },
   );
   await expect(
-    page.getByRole("heading", { name: "Designed Html Message" }),
+    page.getByRole("heading", { name: "独立配色测试邮件" }),
   ).toBeVisible({ timeout: 60_000 });
   const emailFrame = page
     .frameLocator('iframe[title="Email content preview"]')
     .last();
-  const card = emailFrame.getByText("Finish setup");
+  const card = emailFrame.getByText("完成设置");
   await expect(card).toBeVisible();
   await expect(emailFrame.locator("html")).toHaveCSS("color-scheme", "light");
   await expect(emailFrame.locator("body")).toHaveCSS("color-scheme", "light");
@@ -70,14 +70,12 @@ test("keeps the quote toggle between the reply and expanded history", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Visual Message",
+    "回复：阅读器视觉测试邮件",
   ).click();
   const frame = page
     .frameLocator('iframe[title="Email content preview"]')
     .first();
-  await expect(
-    frame.getByText("The current reply stays concise and easy to scan."),
-  ).toBeVisible();
+  await expect(frame.getByText("当前回复简洁明了，便于阅读。")).toBeVisible();
   const toggle = page.getByRole("button", { name: "显示引用内容" });
   const initialTop = (await toggle.boundingBox())!.y;
   await toggle.click();
@@ -85,13 +83,9 @@ test("keeps the quote toggle between the reply and expanded history", async ({
     .frameLocator('iframe[title="Email content preview"]')
     .last();
   await expect(
-    quoteFrame.getByText(
-      "This earlier quoted message is hidden until expanded.",
-    ),
+    quoteFrame.getByText("较早的引用内容在展开前保持隐藏。"),
   ).toBeVisible();
-  await expect(
-    frame.getByText("The current reply stays concise and easy to scan."),
-  ).toBeVisible();
+  await expect(frame.getByText("当前回复简洁明了，便于阅读。")).toBeVisible();
   const collapse = page.getByRole("button", { name: "隐藏引用内容" });
   const expandedBox = (await collapse.boundingBox())!;
   expect(Math.abs(expandedBox.y - initialTop)).toBeLessThan(2);
@@ -129,18 +123,18 @@ test("captures the rich message reader states", async ({ page }, testInfo) => {
   await conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Visual Message",
+    "回复：阅读器视觉测试邮件",
   ).click();
 
   await expect(
-    page.getByRole("heading", { name: "Re: Reader Visual Message" }),
+    page.getByRole("heading", { name: "回复：阅读器视觉测试邮件" }),
   ).toBeVisible();
 
   const emailFrame = page
     .frameLocator('iframe[title="Email content preview"]')
     .first();
   await expect(
-    emailFrame.getByText("The current reply stays concise and easy to scan."),
+    emailFrame.getByText("当前回复简洁明了，便于阅读。"),
   ).toBeVisible();
   await expect(emailFrame.locator("body")).toHaveCSS(
     "background-color",
@@ -150,13 +144,12 @@ test("captures the rich message reader states", async ({ page }, testInfo) => {
     "color",
     "rgb(244, 233, 218)",
   );
+  await expect(emailFrame.getByText("当前回复简洁明了，便于阅读。")).toHaveCSS(
+    "margin-bottom",
+    "16px",
+  );
   await expect(
-    emailFrame.getByText("The current reply stays concise and easy to scan."),
-  ).toHaveCSS("margin-bottom", "16px");
-  await expect(
-    emailFrame.getByText(
-      "This earlier quoted message is hidden until expanded.",
-    ),
+    emailFrame.getByText("较早的引用内容在展开前保持隐藏。"),
   ).toHaveCount(0);
 
   const archiveButton = page.getByRole("button", {
@@ -171,9 +164,7 @@ test("captures the rich message reader states", async ({ page }, testInfo) => {
   await capturePlaywrightCheckpoint(page, testInfo, "mail-reader-toolbar");
 
   const message = page.locator("[data-thread-message-id]").last();
-  await page
-    .getByRole("heading", { name: "Re: Reader Visual Message" })
-    .hover();
+  await page.getByRole("heading", { name: "回复：阅读器视觉测试邮件" }).hover();
   await message.hover();
   await message.getByRole("button", { name: "回复", exact: true }).hover();
   const replyTooltip = page.getByRole("tooltip", { name: /回复/ });
@@ -240,7 +231,7 @@ test("captures the rich message reader states", async ({ page }, testInfo) => {
   await page.keyboard.press("Escape");
 
   const attachmentPreview = page.getByRole("img", {
-    name: "reader-preview.png",
+    name: "邮件图片.png",
   });
   await expect(attachmentPreview).toBeVisible();
   await expect
@@ -275,7 +266,7 @@ test("captures the rich message reader states", async ({ page }, testInfo) => {
     page
       .frameLocator('iframe[title="Email content preview"]')
       .last()
-      .getByText("This earlier quoted message is hidden until expanded."),
+      .getByText("较早的引用内容在展开前保持隐藏。"),
   ).toBeVisible();
   await capturePlaywrightCheckpoint(
     page,
@@ -303,7 +294,7 @@ test("offers to disable auto archive for an enabled sender", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Visual Message",
+    "回复：阅读器视觉测试邮件",
   ).click();
 
   await page.getByRole("button", { name: /更多操作/ }).click();
@@ -346,17 +337,17 @@ test("opens the sender profile beside the reader", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Visual Message",
+    "回复：阅读器视觉测试邮件",
   ).click();
   const subject = page.getByRole("heading", {
-    name: "Re: Reader Visual Message",
+    name: "回复：阅读器视觉测试邮件",
   });
   await expect(subject).toBeVisible();
 
   await page
     .getByRole("button", {
       exact: true,
-      name: "View public profile for Morgan Example",
+      name: "View public profile for 摩根",
     })
     .click();
   const panel = page.getByTestId("sender-context-panel");
@@ -391,7 +382,7 @@ test("opens the sender profile beside the reader", async ({
   await page
     .getByRole("button", {
       exact: true,
-      name: "View public profile for Morgan Example",
+      name: "View public profile for 摩根",
     })
     .click();
   await expect(panel).toBeVisible();
@@ -402,7 +393,7 @@ test("opens the sender profile beside the reader", async ({
   await page
     .getByRole("button", {
       exact: true,
-      name: "View public profile for Morgan Example",
+      name: "View public profile for 摩根",
     })
     .click();
   await expect(panel).toBeVisible();
@@ -431,7 +422,7 @@ for (const parent of ["none", "missing"] as const) {
     ).toBeVisible();
     await expect(
       message.getByRole("textbox", { name: "邮件内容" }),
-    ).toContainText("This unsent draft should remain visible.");
+    ).toContainText("这份尚未发送的草稿应继续显示。");
     await capturePlaywrightCheckpoint(page, testInfo, "mail-reader-draft-only");
   });
 }

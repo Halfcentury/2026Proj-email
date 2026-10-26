@@ -94,16 +94,7 @@ describe("user/me route", () => {
     expect(body.aiApiKey).toBeUndefined();
     expect(body.webhookSecret).toBeUndefined();
     expect(body.referralCode).toBeUndefined();
-    expect(body.members).toEqual([
-      {
-        organizationId: "org-1",
-        role: "admin",
-        organization: {
-          name: "Example Org",
-        },
-        emailAccountId: "acc-1",
-      },
-    ]);
+    expect(body.members).toEqual([]);
     expect(body.emailAccounts).toEqual([
       {
         id: "acc-1",
@@ -111,67 +102,6 @@ describe("user/me route", () => {
         name: "Example User",
       },
     ]);
-    expect(body.canManageBilling).toBe(true);
-  });
-
-  it("denies billing access to an organization member even when they are a plan admin", async () => {
-    prisma.user.findUnique.mockResolvedValue({
-      id: "user-1",
-      createdAt: new Date("2026-01-01T00:00:00.000Z"),
-      aiProvider: null,
-      aiModel: null,
-      aiApiKey: null,
-      webhookSecret: null,
-      announcementDismissedAt: null,
-      dismissedHints: [],
-      premium: {
-        id: "premium-1",
-        admins: [
-          {
-            id: "user-1",
-          },
-          {
-            id: "org-owner",
-          },
-        ],
-      },
-      emailAccounts: [
-        {
-          id: "acc-1",
-          email: "member@example.com",
-          name: "Example Member",
-          members: [
-            {
-              organizationId: "org-1",
-              role: "member",
-              organization: {
-                name: "Example Org",
-                members: [
-                  {
-                    emailAccount: {
-                      user: {
-                        id: "org-owner",
-                        premiumId: "premium-1",
-                        premiumAdminId: "premium-1",
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      ],
-    } as unknown as Awaited<ReturnType<typeof prisma.user.findUnique>>);
-
-    const response = await GET(
-      new NextRequest("http://localhost:3000/api/user/me"),
-      {} as never,
-    );
-
-    const body = await response.json();
-
-    expect(body.premium.isAdmin).toBe(false);
     expect(body.canManageBilling).toBe(false);
   });
 
@@ -215,18 +145,6 @@ describe("user/me route", () => {
 
     const body = await response.json();
 
-    expect(body.premium).toMatchObject({
-      appleExpiresAt: "2026-02-01T00:00:00.000Z",
-      appleRevokedAt: null,
-      appleSubscriptionStatus: "ACTIVE",
-      isAdmin: true,
-    });
-    expect(body.premium.admins).toBeUndefined();
-    expect(body.premium.appleAppAccountToken).toBeUndefined();
-    expect(body.premium.appleEnvironment).toBeUndefined();
-    expect(body.premium.appleLatestTransactionId).toBeUndefined();
-    expect(body.premium.appleOriginalTransactionId).toBeUndefined();
-    expect(body.premium.appleProductId).toBeUndefined();
-    expect(body.premium.applePurchaseDate).toBeUndefined();
+    expect(body.premium).toBeNull();
   });
 });

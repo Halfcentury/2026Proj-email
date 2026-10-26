@@ -8,7 +8,7 @@ import {
   getUserTier,
   hasAiAccess,
   premiumEntitlementSelect,
-} from "@/utils/premium";
+} from "@/utils/feature-access";
 import { createManagedOutlookSubscription } from "@/utils/outlook/subscription-manager";
 import type { Logger } from "@/utils/logger";
 

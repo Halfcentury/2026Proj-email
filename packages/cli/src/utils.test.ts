@@ -375,7 +375,6 @@ AUTH_SECRET=
 # App Configuration
 # =============================================================================
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
-NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS=true
 
 # =============================================================================
 # Authentication & Security
@@ -433,7 +432,6 @@ QUEUE_BACKEND= # bullmq | qstash | internal
       QUEUE_BACKEND: "internal",
       // App
       NEXT_PUBLIC_BASE_URL: "https://mail.example.com",
-      NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: "true",
       // Auth
       AUTH_SECRET: "auth-secret-hex-value",
       EMAIL_ENCRYPT_SECRET: "email-encrypt-secret-hex",
@@ -477,7 +475,6 @@ REDIS_HTTP_URL="http://serverless-redis-http:80"
 # App Configuration
 # =============================================================================
 NEXT_PUBLIC_BASE_URL=https://mail.example.com
-NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS=true
 
 # =============================================================================
 # Authentication & Security

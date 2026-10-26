@@ -116,9 +116,7 @@ export const MailShellSidebar = memo(function MailShellSidebar({
       // Without this the label the user just typed doesn't appear until an
       // unrelated revalidation happens to run.
       await mutateLabels();
-      toast.success(
-        `已创建${terminology.label.singularCapitalized}“${name}”`,
-      );
+      toast.success(`已创建${terminology.label.singularCapitalized}“${name}”`);
     },
     [emailAccountId, mutateLabels, terminology.label.singularCapitalized],
   );

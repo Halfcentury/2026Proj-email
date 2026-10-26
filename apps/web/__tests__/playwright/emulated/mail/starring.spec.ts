@@ -14,7 +14,7 @@ test("toggles stars with shortcuts, the palette and the list toolbar while prese
   const row = conversationWithSubject(
     page,
     conversations,
-    "Second Unread Command Message",
+    "第二封未读操作测试邮件",
   );
   const starStatus = row.getByText("已加星标的会话", { exact: true });
   if (await starStatus.count()) {
@@ -30,9 +30,7 @@ test("toggles stars with shortcuts, the palette and the list toolbar while prese
   await expect(row).toBeVisible();
   await row.getByRole("checkbox").click();
   await page.keyboard.press("s");
-  await expect(
-    row.getByText("已加星标的会话", { exact: true }),
-  ).toHaveCount(1);
+  await expect(row.getByText("已加星标的会话", { exact: true })).toHaveCount(1);
   await expectCompletedStarMutation(page, emailAccountId, true);
   await page.keyboard.press("Escape");
   await page.mouse.move(0, 0);
@@ -46,15 +44,13 @@ test("toggles stars with shortcuts, the palette and the list toolbar while prese
   await page.keyboard.press("ControlOrMeta+k");
   await page.getByPlaceholder("Type a command or search...").fill("star");
   await page.getByRole("option", { name: /取消星标/ }).click();
-  await expect(
-    row.getByText("已加星标的会话", { exact: true }),
-  ).toHaveCount(0);
+  await expect(row.getByText("已加星标的会话", { exact: true })).toHaveCount(0);
   await expectCompletedStarMutation(page, emailAccountId, false);
 
   const otherRow = conversationWithSubject(
     page,
     conversations,
-    "Playwright Test Message",
+    "邮件功能测试邮件",
   );
   const otherStarStatus = otherRow.getByText("已加星标的会话", {
     exact: true,
@@ -73,7 +69,10 @@ test("toggles stars with shortcuts, the palette and the list toolbar while prese
   // Star, and starring it brings every row up to starred.
   await row.getByRole("checkbox").click();
   await otherRow.getByRole("checkbox").click();
-  const starAction = page.getByRole("button", { name: "添加星标", exact: true });
+  const starAction = page.getByRole("button", {
+    name: "添加星标",
+    exact: true,
+  });
   await expect(starAction).toBeVisible();
   await capturePlaywrightCheckpoint(page, testInfo, "list-toolbar-star-action");
   await starAction.click();

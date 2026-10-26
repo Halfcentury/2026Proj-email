@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useQueryState } from "nuqs";
+import { useCallback, useState, useEffect } from "react";
 import useSWR from "swr";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,20 +39,35 @@ import type { Knowledge } from "@/generated/prisma/client";
 
 export function KnowledgeBase() {
   const { emailAccountId } = useAccount();
+  const [knowledgeId, setKnowledgeId] = useQueryState("knowledge-id");
   const [isOpen, setIsOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Knowledge | null>(null);
   const { data, isLoading, error, mutate } =
     useSWR<GetKnowledgeResponse>("/api/knowledge");
 
+  useEffect(() => {
+    if (knowledgeId && data?.items) {
+      setEditingItem(
+        data.items.find((item) => item.id === knowledgeId) ?? null,
+      );
+    }
+  }, [knowledgeId, data?.items]);
   const handleClose = useCallback(() => {
+    if (knowledgeId) setKnowledgeId(null);
     setIsOpen(false);
     setEditingItem(null);
-  }, []);
+  }, [knowledgeId, setKnowledgeId]);
 
-  const onOpenChange = useCallback((open: boolean) => {
-    if (!open) setEditingItem(null);
-    setIsOpen(open);
-  }, []);
+  const onOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        setEditingItem(null);
+        if (knowledgeId) setKnowledgeId(null);
+      }
+      setIsOpen(open);
+    },
+    [knowledgeId, setKnowledgeId],
+  );
 
   return (
     <div>
@@ -64,11 +80,10 @@ export function KnowledgeBase() {
         </DialogTrigger>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingItem ? "编辑知识" : "添加知识"}
-            </DialogTitle>
+            <DialogTitle>{editingItem ? "编辑知识" : "添加知识"}</DialogTitle>
           </DialogHeader>
           <KnowledgeForm
+            key={editingItem?.id ?? "new"}
             closeDialog={handleClose}
             refetch={mutate}
             editingItem={editingItem}

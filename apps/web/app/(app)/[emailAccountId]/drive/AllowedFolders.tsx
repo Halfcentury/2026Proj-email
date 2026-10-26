@@ -318,9 +318,7 @@ export function NoFoldersFound({
             <FolderIcon />
           </EmptyMedia>
           <EmptyTitle>未找到文件夹</EmptyTitle>
-          <EmptyDescription>
-            请先在云存储中创建文件夹。
-          </EmptyDescription>
+          <EmptyDescription>请先在云存储中创建文件夹。</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <CreateFolderDialog

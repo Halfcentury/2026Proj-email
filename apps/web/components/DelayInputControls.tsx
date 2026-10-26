@@ -56,9 +56,7 @@ export function DelayInputControls({
           <SelectItem value="hours">
             {value === 60 ? "小时" : "小时"}
           </SelectItem>
-          <SelectItem value="days">
-            {value === 1440 ? "天" : "天"}
-          </SelectItem>
+          <SelectItem value="days">{value === 1440 ? "天" : "天"}</SelectItem>
         </SelectContent>
       </Select>
     </div>

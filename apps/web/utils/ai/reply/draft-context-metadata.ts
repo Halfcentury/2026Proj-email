@@ -1,11 +1,22 @@
 import { z } from "zod";
 import {
+  contextSourceSchema,
+  contextIssueSchema,
+} from "@/utils/ai/email-workspace/types";
+import {
   DraftReplyConfidence,
   ReplyMemoryKind,
   ReplyMemoryScopeType,
 } from "@/generated/prisma/enums";
 
 export const draftContextMetadataSchema = z.object({
+  aiRunId: z.string().optional(),
+  messageId: z.string().optional(),
+  threadId: z.string().optional(),
+  observedAt: z.string().optional(),
+  sources: z.array(contextSourceSchema).optional(),
+  issues: z.array(contextIssueSchema).optional(),
+  missingInformation: z.array(z.string()).optional(),
   replyMemories: z.object({
     count: z.number(),
     ids: z.array(z.string()),

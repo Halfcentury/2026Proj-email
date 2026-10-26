@@ -14,8 +14,8 @@ import type {
 } from "@/generated/prisma/client";
 import { getEmailTerminology } from "@/utils/terminology";
 import { sortActionsByPriority } from "@/utils/action-sort";
-import { getMessagingProviderName } from "@/utils/messaging/platforms";
-import { getIntegrationActionLabel } from "@/utils/mcp/tool-specs";
+import { getMessagingProviderName } from "@/utils/retired-notifications";
+import { getIntegrationActionLabel } from "@/utils/retired-action-metadata";
 
 type PlanAction = ExecutedAction & {
   messagingChannel?: { provider: MessagingProvider } | null;

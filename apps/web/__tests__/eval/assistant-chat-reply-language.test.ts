@@ -38,7 +38,7 @@ vi.mock("@/utils/llms/model-usage-guard", () => ({
   assertTrialAiUsageAllowed: vi.fn(),
   shouldForceNanoModel: vi.fn().mockResolvedValue({ shouldForce: false }),
 }));
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: vi.fn(),
   getPosthogLlmClient: () => null,
 }));

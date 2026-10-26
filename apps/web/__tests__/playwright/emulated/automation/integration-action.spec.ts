@@ -27,7 +27,7 @@ test("configures and persists a Todoist rule action", async ({ page }) => {
   await page.goto(`/${emailAccountId}/automation`);
   await expectVisibleAfterTransientFetch(
     page,
-    page.getByRole("heading", { name: "智能助手", exact: true }),
+    page.getByRole("heading", { name: "自动化", exact: true }),
   );
   const integrationsResponse = await page.request.get("/api/mcp/integrations", {
     headers: { "x-email-account-id": emailAccountId },
@@ -47,9 +47,7 @@ test("configures and persists a Todoist rule action", async ({ page }) => {
   const createDialog = page.getByRole("dialog", { name: "创建规则" });
   await expect(createDialog).toBeVisible();
   await createDialog
-    .getByPlaceholder(
-      "例如：来自已订阅的刊物、博客或服务的定期邮件",
-    )
+    .getByPlaceholder("例如：来自已订阅的刊物、博客或服务的定期邮件")
     .fill("Emails that contain a task I need to complete");
   await createDialog.getByRole("combobox").first().click();
   await page.getByRole("option", { name: "Add Todoist task" }).click();
@@ -71,9 +69,7 @@ test("configures and persists a Todoist rule action", async ({ page }) => {
   await dueDateSelect.click();
   await page.getByRole("option", { name: "明天", exact: true }).click();
 
-  await createDialog
-    .getByRole("textbox", { name: "规则名称" })
-    .fill(RULE_NAME);
+  await createDialog.getByRole("textbox", { name: "规则名称" }).fill(RULE_NAME);
   await createDialog.getByRole("button", { name: "创建" }).click();
   await expect
     .poll(() => getTodoistRuleState(emailAccountId), { timeout: 120_000 })
@@ -105,9 +101,7 @@ test("configures and persists a Todoist rule action", async ({ page }) => {
     editDialog.getByPlaceholder("AI writes a short action item from the email"),
   ).toHaveValue("Review the request");
   await expect(getLabeledSelect(editDialog, "Project")).toContainText("Work");
-  await expect(getLabeledSelect(editDialog, "Due date")).toContainText(
-    "明天",
-  );
+  await expect(getLabeledSelect(editDialog, "Due date")).toContainText("明天");
 });
 
 function getLabeledSelect(dialog: Locator, label: string) {

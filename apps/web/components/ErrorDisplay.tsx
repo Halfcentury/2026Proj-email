@@ -31,9 +31,7 @@ export function ErrorDisplay(props: {
             <WifiOffIcon />
           </EmptyMedia>
           <EmptyTitle>当前离线</EmptyTitle>
-          <EmptyDescription>
-            请检查网络连接后重试。
-          </EmptyDescription>
+          <EmptyDescription>请检查网络连接后重试。</EmptyDescription>
         </EmptyHeader>
       </Empty>
     );

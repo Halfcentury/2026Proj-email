@@ -1,5 +1,8 @@
 "use client";
 
+import type { SelectedAttachment } from "@/utils/attachments/source-schema";
+import { downloadWorkspaceReplyAttachmentAction } from "@/utils/actions/email-workspace";
+
 import {
   type EmailAttachmentMetadata,
   EMAIL_INLINE_IMAGE_MIME_TYPES,
@@ -108,7 +111,7 @@ import {
   isGoogleProvider,
   isMicrosoftProvider,
 } from "@/utils/email/provider-types";
-import { stripBrandingSignatures } from "@/utils/referral/signature";
+import { stripBrandingSignatures } from "@/utils/email/legacy-signature";
 import {
   getActionErrorMessage,
   UNEXPECTED_ACTION_ERROR_MESSAGE,
@@ -194,6 +197,8 @@ type ComposeEmailFormProps = {
   layout?: "default" | "window";
   providerDraftMessageId?: string;
   draftKeyMessageId?: string;
+  useLegacyDraft?: boolean;
+  suggestedAttachments?: SelectedAttachment[];
   draftMode?: ReplyDraftMode;
   draftSessionId?: string;
   replyingToEmail?: ReplyingToEmail;
@@ -270,7 +275,8 @@ function ComposeEmailFormWithEngine(props: ComposeEmailFormProps) {
 
   const localDraft = useLocalReplyDraft(
     localDraftIdentity,
-    !props.providerDraftMessageId &&
+    props.useLegacyDraft !== false &&
+      !props.providerDraftMessageId &&
       props.draftKeyMessageId &&
       props.replyingToEmail?.threadId
       ? {
@@ -354,6 +360,7 @@ function ComposeEmailFormContent({
   onPopOut,
   localDraftIdentity,
   initialAttachments,
+  suggestedAttachments,
   initialProviderDraftId,
   initialDraftMissing,
 }: ComposeEmailFormProps & {
@@ -643,15 +650,11 @@ function ComposeEmailFormContent({
         emailAccountId: selectedEmailAccountId,
         messageId: providerDraftMessageId,
       });
-      if (!draftId)
-        throw new Error(
-          "邮箱中未找到此草稿，请重新打开后重试。",
-        );
+      if (!draftId) throw new Error("邮箱中未找到此草稿，请重新打开后重试。");
       providerDraftId.current = draftId;
       return draftId;
     }
-    if (!localDraftIdentity)
-      throw new Error("保存附件需要启用本地草稿存储。");
+    if (!localDraftIdentity) throw new Error("保存附件需要启用本地草稿存储。");
     const deletedDraftId = storedDraft?.content?.providerDraftId;
     if (initialDraftMissing && deletedDraftId)
       await forgetReplyDraftProvider(localDraftIdentity, deletedDraftId);
@@ -935,6 +938,39 @@ function ComposeEmailFormContent({
     );
   };
 
+  const [attachingSuggestion, setAttachingSuggestion] = useState<string | null>(
+    null,
+  );
+  const attachSuggestion = async (suggestion: SelectedAttachment) => {
+    if (attachingSuggestion) return;
+    setAttachingSuggestion(suggestion.fileId);
+    try {
+      const response = await downloadWorkspaceReplyAttachmentAction(
+        selectedEmailAccountId,
+        suggestion,
+      );
+      if (!response?.data || typeof response.data.data !== "string")
+        throw new Error(
+          getActionErrorMessage(response ?? {}) ?? "附件无法读取",
+        );
+      const binary = atob(response.data.data);
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      await addFiles(
+        [
+          new File([bytes], response.data.filename, {
+            type: response.data.mimeType,
+          }),
+        ],
+        "attachment",
+      );
+    } catch (error) {
+      toastError({
+        description: error instanceof Error ? error.message : "添加附件失败",
+      });
+    } finally {
+      setAttachingSuggestion(null);
+    }
+  };
   const removeAttachment = (attachment: ComposeAttachment) => {
     // Detached first, so the editor change this causes finds nothing to remove.
     detachAttachment(attachment);
@@ -1045,8 +1081,7 @@ function ComposeEmailFormContent({
         // The mailbox draft is what carries the files to the recipient.
         if (attachmentsRef.current.length && !enrichedData.providerDraftId) {
           toastError({
-            description:
-              "邮箱中未找到可用于发送附件的草稿，请重新打开后重试。",
+            description: "邮箱中未找到可用于发送附件的草稿，请重新打开后重试。",
           });
           return;
         }
@@ -1100,8 +1135,7 @@ function ComposeEmailFormContent({
             await clearLocalDraft();
           } catch {
             toastError({
-              description:
-                "回复已定时发送，但未能清除本地草稿副本。",
+              description: "回复已定时发送，但未能清除本地草稿副本。",
             });
           }
           if (markDoneAfterSend) onMarkDone?.();
@@ -1135,8 +1169,7 @@ function ComposeEmailFormContent({
             "Mail is still starting. Try sending again in a moment.",
           );
           toastError({
-            description:
-              "邮箱正在启动，请稍后重试发送。",
+            description: "邮箱正在启动，请稍后重试发送。",
           });
           return;
         }
@@ -1227,8 +1260,7 @@ function ComposeEmailFormContent({
                 settled.ownsNotification
               ) {
                 toastError({
-                  description:
-                    "此回复可能已发送，请先检查已发送文件夹再重试。",
+                  description: "此回复可能已发送，请先检查已发送文件夹再重试。",
                 });
               }
             })
@@ -1253,8 +1285,7 @@ function ComposeEmailFormContent({
         } else if (outcome.status === "uncertain") {
           if (outcome.ownsNotification) {
             toastError({
-              description:
-                "此回复可能已发送，请先检查已发送文件夹再重试。",
+              description: "此回复可能已发送，请先检查已发送文件夹再重试。",
             });
           }
           onClose?.();
@@ -1765,6 +1796,37 @@ function ComposeEmailFormContent({
         >
           {submissionError}
         </p>
+      )}
+      {!!suggestedAttachments?.length && (
+        <div className="space-y-2 border-t px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            AI 建议附件 · 确认后添加
+          </p>
+          {suggestedAttachments.map((file) => (
+            <div
+              className="flex items-center justify-between gap-2 text-sm"
+              key={file.driveConnectionId + file.fileId}
+            >
+              <span className="truncate">{file.filename}</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={
+                  Boolean(attachingSuggestion) ||
+                  attachments.some((item) => item.filename === file.filename)
+                }
+                onClick={() => attachSuggestion(file)}
+              >
+                {attachments.some((item) => item.filename === file.filename)
+                  ? "已添加"
+                  : attachingSuggestion === file.fileId
+                    ? "添加中…"
+                    : "添加此附件"}
+              </Button>
+            </div>
+          ))}
+        </div>
       )}
       {!!(attachments.length || forwardedAttachments.length) && (
         <ul

@@ -1,16 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { usePostHog } from "posthog-js/react";
-import {
-  ArchiveIcon,
-  ArchiveRestoreIcon,
-  Loader2Icon,
-  MailXIcon,
-  MoreHorizontalIcon,
-  ThumbsUpIcon,
-  TrashIcon,
-  Undo2Icon,
-  XIcon,
-} from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { DateRange } from "react-day-picker";
 import {
@@ -20,13 +9,9 @@ import {
   useBulkArchive,
   useBulkDelete,
 } from "@/app/(app)/[emailAccountId]/bulk-unsubscribe/hooks";
-import {
-  UnsubscribeCelebrationDialog,
-  type UnsubscribeCelebration,
-} from "@/app/(app)/[emailAccountId]/bulk-unsubscribe/UnsubscribeCelebrationDialog";
-import { PremiumTooltip } from "@/components/PremiumAlert";
-import { usePremium } from "@/hooks/usePremium";
-import { usePremiumModal } from "@/app/(app)/premium/PremiumModal";
+type UnsubscribeCelebration = { senderCount: number; emailCount: number };
+import { usePremium } from "@/hooks/useFeatureAccess";
+import { usePremiumModal } from "@/hooks/useFeatureAccess";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { cn } from "@/utils";
 import { getHttpUnsubscribeLink } from "@/utils/parse/unsubscribe";
@@ -39,13 +24,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { SenderIcon } from "@/components/SenderIcon";
 import type { NewsletterStatsResponse } from "@/app/api/user/stats/newsletters/route";
 import { NewsletterStatus } from "@/generated/prisma/enums";
@@ -121,7 +99,6 @@ export function BulkActions({
     null,
   );
 
-  const posthog = usePostHog();
   const { hasUnsubscribeAccess, mutate: refetchPremium } = usePremium();
   const { PremiumModal, openModal } = usePremiumModal();
   const { emailAccountId } = useAccount();
@@ -135,7 +112,7 @@ export function BulkActions({
   const { onBulkUnsubscribe } = useBulkUnsubscribe<Newsletter>({
     hasUnsubscribeAccess,
     mutate,
-    posthog,
+
     refetchPremium,
     emailAccountId,
     onDeselectItem: deselectItem,
@@ -145,7 +122,7 @@ export function BulkActions({
 
   const { onBulkApprove } = useBulkApprove({
     mutate,
-    posthog,
+
     emailAccountId,
     onDeselectItem: deselectItem,
     filter,
@@ -161,14 +138,13 @@ export function BulkActions({
   });
 
   const { onBulkArchive, isBulkArchiving } = useBulkArchive({
-    posthog,
     emailAccountId,
     mutate,
   });
 
   const { onBulkDelete, isBulkDeleting } = useBulkDelete({
     mutate,
-    posthog,
+
     emailAccountId,
   });
 
@@ -230,84 +206,7 @@ export function BulkActions({
             transition={{ duration: 0.15, ease: "easeOut" }}
             className="sticky bottom-6 z-40 mx-auto mt-4 w-fit max-w-full"
           >
-            <PremiumTooltip
-              showTooltip={!hasUnsubscribeAccess}
-              openModal={openModal}
-            >
-              <div className="flex items-center gap-1 overflow-x-auto rounded-xl border bg-background py-2 pr-2 pl-3 shadow-lg">
-                <button
-                  type="button"
-                  onClick={onClearSelection}
-                  aria-label="清除选择"
-                  className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <XIcon className="size-4" />
-                </button>
-                <span className="whitespace-nowrap pr-1 text-sm font-medium">
-                  {selectedCount}
-                  <span className="hidden sm:inline"> selected</span>
-                </span>
-
-                <div className="mx-1 h-6 w-px shrink-0 bg-border sm:mx-2" />
-
-                {allSelectedCanUnsubscribe && (
-                  <ActionButton
-                    icon={MailXIcon}
-                    label={unsubscribeLabel}
-                    primary
-                    showLabelOnMobile
-                    onClick={() => onBulkUnsubscribe(selectedNewsletters)}
-                  />
-                )}
-                <ActionButton
-                  icon={allSelectedAreApproved ? Undo2Icon : ThumbsUpIcon}
-                  label={allSelectedAreApproved ? "移至待审核" : "保留"}
-                  onClick={() =>
-                    onBulkApprove(getSelectedValues(), allSelectedAreApproved)
-                  }
-                />
-                <ActionButton
-                  icon={ArchiveIcon}
-                  label="归档"
-                  loadingLabel="Archiving"
-                  onClick={() => setArchiveDialogOpen(true)}
-                  loading={isBulkArchiving}
-                />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="shrink-0"
-                      aria-label="更多操作"
-                      disabled={isBulkDeleting}
-                    >
-                      {isBulkDeleting ? (
-                        <Loader2Icon className="size-4 animate-spin" />
-                      ) : (
-                        <MoreHorizontalIcon className="size-4" />
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" side="top">
-                    <DropdownMenuItem
-                      onClick={() => setAutoArchiveDialogOpen(true)}
-                    >
-                      <ArchiveRestoreIcon className="mr-2 size-4" />
-                      自动归档后续邮件
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
-                      <TrashIcon className="mr-2 size-4" />
-                      删除全部邮件
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </PremiumTooltip>
+            {null}
           </motion.div>
         )}
       </AnimatePresence>
@@ -462,11 +361,7 @@ export function BulkActions({
         </DialogContent>
       </Dialog>
 
-      <UnsubscribeCelebrationDialog
-        celebration={celebration}
-        dateRange={dateRange}
-        onClose={() => setCelebration(null)}
-      />
+      {null}
 
       <PremiumModal />
     </>

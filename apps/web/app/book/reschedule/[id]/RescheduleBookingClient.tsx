@@ -243,9 +243,7 @@ function ConfirmRescheduleStep({
         <h2 className="text-xl font-medium tracking-tight text-foreground">
           确认新时间
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          会议将调整为：
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">会议将调整为：</p>
         <p className="mt-2 text-base font-medium text-foreground">
           {formatLongDateTime(slot.startTime, timezone)}
         </p>

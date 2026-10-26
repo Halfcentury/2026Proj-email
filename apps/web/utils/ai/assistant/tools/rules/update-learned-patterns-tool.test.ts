@@ -5,7 +5,7 @@ import { saveLearnedPatterns } from "@/utils/rule/learned-patterns";
 import { updateLearnedPatternsTool } from "./update-learned-patterns-tool";
 
 vi.mock("@/utils/prisma");
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/utils/rule/learned-patterns", () => ({

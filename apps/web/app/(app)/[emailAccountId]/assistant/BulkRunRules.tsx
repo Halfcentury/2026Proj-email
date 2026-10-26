@@ -7,8 +7,7 @@ import { SectionDescription } from "@/components/Typography";
 import { LoadingContent } from "@/components/LoadingContent";
 import { pauseAiQueue, resumeAiQueue } from "@/utils/queue/ai-queue";
 import { toastError } from "@/components/Toast";
-import { PremiumAlertWithData } from "@/components/PremiumAlert";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/hooks/useFeatureAccess";
 import { SetDateDropdown } from "@/app/(app)/[emailAccountId]/assistant/SetDateDropdown";
 import { useBeforeUnload } from "@/hooks/useBeforeUnload";
 import { useAiQueueState } from "@/store/ai-queue";
@@ -31,16 +30,15 @@ import {
   ItemSeparator,
   ItemTitle,
 } from "@/components/ui/item";
-import { hasTierAccess } from "@/utils/premium";
-import { RERUN_MINIMUM_TIER } from "@/utils/premium/rerun";
-import { usePremiumModal } from "@/app/(app)/premium/PremiumModal";
+import { hasTierAccess } from "@/utils/feature-access";
+import { RERUN_MINIMUM_TIER } from "@/utils/feature-access";
+import { usePremiumModal } from "@/hooks/useFeatureAccess";
 import { BulkProcessActivityLog } from "@/app/(app)/[emailAccountId]/assistant/BulkProcessActivityLog";
 import {
   bulkRunReducer,
   getProgressMessage,
   initialBulkRunState,
 } from "@/app/(app)/[emailAccountId]/assistant/bulk-run-rules-reducer";
-import { EndTrialButton } from "@/components/EndTrialButton";
 import { onRun } from "@/app/(app)/[emailAccountId]/assistant/bulk-run";
 import { useAiAutomationStatus } from "@/hooks/useAiAutomationStatus";
 
@@ -71,7 +69,7 @@ export function BulkRunRules() {
     tier: tier || null,
     minimumTier: RERUN_MINIMUM_TIER,
   });
-  const isTrial = premium?.stripeSubscriptionStatus === "trialing";
+  const isTrial = false;
   const trialAiLimitMessage =
     aiAutomationStatus?.status === "trial_ai_limit_reached"
       ? aiAutomationStatus.message
@@ -195,7 +193,7 @@ export function BulkRunRules() {
           )}
           <LoadingContent loading={isLoadingPremium}>
             <div className="flex min-w-0 flex-col space-y-4 overflow-hidden">
-              <PremiumAlertWithData className="mr-auto" />
+              {null}
 
               <div className="grid grid-cols-2 gap-2">
                 <SetDateDropdown
@@ -249,11 +247,7 @@ export function BulkRunRules() {
                     {trialAiLimitMessage ??
                       `Trials can process up to ${TRIAL_BULK_PROCESS_EMAIL_LIMIT} past emails at a time.`}
                   </span>
-                  <EndTrialButton
-                    size="sm"
-                    variant="outline"
-                    className="self-start border-blue-300 bg-white text-blue-900 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-100 dark:hover:bg-blue-900 sm:self-auto"
-                  />
+                  {null}
                 </div>
               )}
 
@@ -344,9 +338,7 @@ function ToggleRow({
     <Item size="sm">
       <ItemContent>
         <ItemTitle>{title}</ItemTitle>
-        {onUpgrade && (
-          <ItemDescription>专业版可用。</ItemDescription>
-        )}
+        {onUpgrade && <ItemDescription>专业版可用。</ItemDescription>}
       </ItemContent>
       <ItemActions>
         {onUpgrade ? (

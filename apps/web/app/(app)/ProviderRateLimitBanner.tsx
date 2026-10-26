@@ -23,8 +23,8 @@ export function ProviderRateLimitBanner() {
       description={
         <p>
           十组邮件小助手的操作暂时暂停，预计恢复时间：{" "}
-          <strong>{retryAtLabel}</strong>。此限制来自{" "}
-          {providerLabel}，连接到此邮箱的其他应用也会消耗相同的请求额度。
+          <strong>{retryAtLabel}</strong>。此限制来自 {providerLabel}
+          ，连接到此邮箱的其他应用也会消耗相同的请求额度。
         </p>
       }
     />

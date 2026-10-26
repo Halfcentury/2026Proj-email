@@ -55,7 +55,8 @@ function WebhookSectionContent() {
             <DialogHeader>
               <DialogTitle>Webhook 密钥</DialogTitle>
               <DialogDescription>
-                配置 Webhook 时将此密钥放入 X-Webhook-Secret 请求头。已有密钥不会再次显示，新生成后请在关闭弹窗前复制。
+                配置 Webhook 时将此密钥放入 X-Webhook-Secret
+                请求头。已有密钥不会再次显示，新生成后请在关闭弹窗前复制。
               </DialogDescription>
             </DialogHeader>
             <LoadingContent loading={isLoading} error={error}>

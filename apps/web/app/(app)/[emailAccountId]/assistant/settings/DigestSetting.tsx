@@ -13,15 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import { Toggle } from "@/components/Toggle";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UpgradeToPlusButton } from "@/components/UpgradeToPlusButton";
 import { DigestSettingsForm } from "@/app/(app)/[emailAccountId]/settings/DigestSettingsForm";
 import { useEmailAccountFull } from "@/hooks/useEmailAccountFull";
 import { useAction } from "next-safe-action/hooks";
 import { toggleDigestAction } from "@/utils/actions/settings";
 import { toastError } from "@/components/Toast";
 import { createCanonicalTimeOfDay } from "@/utils/schedule";
-import { usePremium } from "@/hooks/usePremium";
-import { hasTierAccess } from "@/utils/premium";
+import { usePremium } from "@/hooks/useFeatureAccess";
+import { hasTierAccess } from "@/utils/feature-access";
 
 export function DigestSetting() {
   const [open, setOpen] = useState(false);
@@ -69,9 +68,7 @@ export function DigestSetting() {
     }
 
     if (!hasDigestAccess) {
-      return (
-        <UpgradeToPlusButton tooltip="升级进阶版后可启用每日邮件摘要。" />
-      );
+      return null;
     }
 
     return (
@@ -115,9 +112,7 @@ export function DigestSettingsDialogContent({
     <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>摘要设置</DialogTitle>
-        <DialogDescription>
-          设置摘要发送时间和包含的规则。
-        </DialogDescription>
+        <DialogDescription>设置摘要发送时间和包含的规则。</DialogDescription>
       </DialogHeader>
 
       <DigestSettingsForm

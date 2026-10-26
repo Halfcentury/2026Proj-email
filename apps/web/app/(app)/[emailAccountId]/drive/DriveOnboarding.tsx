@@ -29,9 +29,7 @@ const steps = [
 export function DriveOnboarding() {
   return (
     <div className="mx-auto max-w-xl py-8">
-      <TypographyH3 className="text-center">
-        工作时自动整理附件
-      </TypographyH3>
+      <TypographyH3 className="text-center">工作时自动整理附件</TypographyH3>
 
       <div className="mt-10 space-y-6">
         {steps.map((step) => (
@@ -50,9 +48,7 @@ export function DriveOnboarding() {
       </div>
 
       <Card className="mt-10 p-6">
-        <TypographyH4 className="text-center">
-          附件应整理到哪里？
-        </TypographyH4>
+        <TypographyH4 className="text-center">附件应整理到哪里？</TypographyH4>
         <div className="mt-4 flex justify-center">
           <ConnectDrive />
         </div>

@@ -42,10 +42,7 @@ export default function DebugMemoriesPage() {
         <div className="mt-6 space-y-6">
           <div className="grid gap-3 sm:grid-cols-3">
             <MemoryCountCard label="记忆总数" count={data?.totalCount} />
-            <MemoryCountCard
-              label="对话记忆"
-              count={data?.chatMemoryCount}
-            />
+            <MemoryCountCard label="对话记忆" count={data?.chatMemoryCount} />
             <MemoryCountCard
               label="回复草稿记忆"
               count={data?.replyMemoryCount}
@@ -102,7 +99,8 @@ export default function DebugMemoriesPage() {
                 <p className="mt-2 text-sm">{memory.content}</p>
                 <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span>
-                    创建时间 {new Date(memory.createdAt).toLocaleString("zh-CN")}
+                    创建时间{" "}
+                    {new Date(memory.createdAt).toLocaleString("zh-CN")}
                   </span>
                   <span>
                     已更新 {new Date(memory.updatedAt).toLocaleString("zh-CN")}

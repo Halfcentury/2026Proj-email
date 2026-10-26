@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+const features = vi.hoisted(() => ({ organizations: true }));
+vi.mock("@/utils/product-scope", () => ({ PRODUCT_FEATURES: features }));
+beforeEach(() => {
+  features.organizations = true;
+});
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getEnabledLoginProviders } from "./login-providers";
 
 const allConfigured = {
@@ -25,21 +30,14 @@ describe("getEnabledLoginProviders", () => {
     expect(result.has("microsoft")).toBe(false);
     expect(result.has("apple")).toBe(false);
   });
+});
 
-  it("shows SSO only when enabled", () => {
-    const on = getEnabledLoginProviders({
-      hasGoogleConfig: false,
-      hasMicrosoftConfig: false,
-      hasAppleConfig: false,
-      ssoLoginEnabled: true,
-    });
-    const off = getEnabledLoginProviders({
-      hasGoogleConfig: false,
-      hasMicrosoftConfig: false,
-      hasAppleConfig: false,
-      ssoLoginEnabled: false,
-    });
-    expect(on.has("sso")).toBe(true);
-    expect(off.has("sso")).toBe(false);
+it("disables enterprise SSO in course mode even when configured", () => {
+  features.organizations = false;
+  const providers = getEnabledLoginProviders({
+    ...allConfigured,
+    ssoLoginEnabled: true,
   });
+  expect(providers.has("sso")).toBe(false);
+  expect(providers.has("google")).toBe(true);
 });

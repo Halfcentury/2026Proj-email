@@ -33,7 +33,7 @@ test("creates, edits, toggles, and deletes a manual automation rule", async ({
   await page.goto(`/${emailAccountId}/automation`);
   await expectVisibleAfterTransientFetch(
     page,
-    page.getByRole("heading", { name: "智能助手", exact: true }),
+    page.getByRole("heading", { name: "自动化", exact: true }),
   );
 
   const createDialog = page.getByRole("dialog", { name: "创建规则" });
@@ -49,15 +49,11 @@ test("creates, edits, toggles, and deletes a manual automation rule", async ({
   await expect(createDialog).toBeVisible();
 
   await createDialog
-    .getByPlaceholder(
-      "例如：来自已订阅的刊物、博客或服务的定期邮件",
-    )
-    .fill("Receipts and invoices from software vendors");
+    .getByPlaceholder("例如：来自已订阅的刊物、博客或服务的定期邮件")
+    .fill("来自软件服务商的收据和发票");
   await createDialog.getByRole("combobox").first().click();
   await page.getByRole("option", { name: "归档" }).click();
-  await createDialog
-    .getByRole("textbox", { name: "规则名称" })
-    .fill(RULE_NAME);
+  await createDialog.getByRole("textbox", { name: "规则名称" }).fill(RULE_NAME);
   const createButton = createDialog.getByRole("button", { name: "创建" });
   await expect(createButton).toBeEnabled();
   await createButton.click();
@@ -67,7 +63,7 @@ test("creates, edits, toggles, and deletes a manual automation rule", async ({
     })
     .toMatchObject({
       enabled: true,
-      instructions: "Receipts and invoices from software vendors",
+      instructions: "来自软件服务商的收据和发票",
       name: RULE_NAME,
       type: "ARCHIVE",
     });

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { withEmailAccount } from "@/utils/middleware";
 import { translateBody } from "@/app/api/ai/translate/validation";
 import { getEmailAccountWithAi } from "@/utils/user/get";
-import { assertHasAiAccess } from "@/utils/premium/limits";
+import { assertHasAiAccess } from "@/utils/feature-access.server";
 import { aiTranslateEmails } from "@/utils/ai/translate-email";
 
 export const maxDuration = 60;

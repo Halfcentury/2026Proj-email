@@ -35,7 +35,7 @@ vi.mock("@/utils/email/provider-types", () => ({
 vi.mock("@/utils/email/provider", () => ({
   createEmailProvider: vi.fn(),
 }));
-vi.mock("@/utils/integration-action.server", () => ({
+vi.mock("@/utils/optional-features", () => ({
   isIntegrationActionEnabledForEmailAccountId:
     mockIsIntegrationActionEnabledForEmailAccountId,
 }));
@@ -315,50 +315,6 @@ describe("outbound action guardrails", () => {
     expect(prisma.rule.update).not.toHaveBeenCalled();
   });
 
-  it("adds action ownership fields when updating messaging actions", async () => {
-    prisma.rule.findFirst.mockResolvedValue({
-      from: null,
-    } as any);
-    prisma.messagingChannel.findMany.mockResolvedValue([
-      { id: MESSAGING_CHANNEL_ID },
-    ] as any);
-    prisma.rule.update.mockResolvedValue({
-      id: RULE_ID,
-      actions: [],
-    } as any);
-
-    await updateRuleActions({
-      ruleId: RULE_ID,
-      actions: [notifyMessagingChannelAction()],
-      provider: "gmail",
-      emailAccountId: EMAIL_ACCOUNT_ID,
-      logger,
-    });
-
-    expect(prisma.rule.update).toHaveBeenCalledWith({
-      where: { id: RULE_ID, emailAccountId: EMAIL_ACCOUNT_ID },
-      data: {
-        actions: {
-          deleteMany: {},
-          createMany: {
-            data: [
-              expect.objectContaining({
-                type: ActionType.NOTIFY_MESSAGING_CHANNEL,
-                messagingChannelId: MESSAGING_CHANNEL_ID,
-                messagingChannelEmailAccountId: EMAIL_ACCOUNT_ID,
-              }),
-            ],
-          },
-        },
-      },
-      include: { actions: true, group: true },
-    });
-    expect(createRuleHistoryMock).toHaveBeenCalledWith({
-      rule: expect.objectContaining({ id: RULE_ID }),
-      triggerType: "actions_updated",
-    });
-  });
-
   it("keeps nested rule action writes free of emailAccountId", async () => {
     prisma.rule.create.mockResolvedValue({
       id: RULE_ID,
@@ -368,17 +324,16 @@ describe("outbound action guardrails", () => {
 
     await createRuleWithResolvedActions({
       emailAccountId: EMAIL_ACCOUNT_ID,
-      data: { name: "Messaging rule" },
-      actions: [resolvedNotifyMessagingChannelAction()],
+      data: { name: "Archive rule" },
+      actions: [archiveAction()],
     });
 
     const createArgs = prisma.rule.create.mock.calls[0]?.[0];
     const actionData = createArgs?.data.actions.createMany.data?.[0];
 
     expect(actionData).toMatchObject({
-      type: ActionType.NOTIFY_MESSAGING_CHANNEL,
-      messagingChannelId: MESSAGING_CHANNEL_ID,
-      messagingChannelEmailAccountId: EMAIL_ACCOUNT_ID,
+      type: ActionType.ARCHIVE,
+      messagingChannelEmailAccountId: null,
     });
     expect(actionData).not.toHaveProperty("emailAccountId");
   });
@@ -559,7 +514,15 @@ describe("replaceRuleWithResolvedActions", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           actions: expect.objectContaining({
-            deleteMany: {},
+            deleteMany: {
+              type: {
+                notIn: [
+                  ActionType.DRAFT_MESSAGING_CHANNEL,
+                  ActionType.NOTIFY_MESSAGING_CHANNEL,
+                  ActionType.INTEGRATION,
+                ],
+              },
+            },
           }),
         }),
       }),
@@ -804,38 +767,6 @@ describe("integration action access", () => {
       group: null,
     } as never);
   });
-
-  it("checks access once when updating integration actions", async () => {
-    await updateRuleActions({
-      ruleId: RULE_ID,
-      actions: [integrationAction()],
-      provider: "gmail",
-      emailAccountId: EMAIL_ACCOUNT_ID,
-      logger,
-    });
-
-    expect(
-      mockIsIntegrationActionEnabledForEmailAccountId,
-    ).toHaveBeenCalledOnce();
-    expect(prisma.rule.update).toHaveBeenCalled();
-  });
-
-  it("rejects integration action updates when access is disabled", async () => {
-    mockIsIntegrationActionEnabledForEmailAccountId.mockResolvedValue(false);
-
-    await expect(
-      updateRuleActions({
-        ruleId: RULE_ID,
-        actions: [integrationAction()],
-        provider: "gmail",
-        emailAccountId: EMAIL_ACCOUNT_ID,
-        logger,
-      }),
-    ).rejects.toThrow("Integration actions are not enabled for this user.");
-
-    expect(prisma.mcpConnection.findMany).not.toHaveBeenCalled();
-    expect(prisma.rule.update).not.toHaveBeenCalled();
-  });
 });
 
 describe("draft messaging actions", () => {
@@ -889,49 +820,6 @@ describe("draft messaging actions", () => {
     ).rejects.toThrow("Messaging channel not found");
 
     expect(prisma.rule.update).not.toHaveBeenCalled();
-  });
-
-  it("preserves messagingChannelId when updating a draft messaging rule", async () => {
-    prisma.rule.update.mockResolvedValue({
-      id: RULE_ID,
-      actions: [],
-      group: null,
-    } as any);
-    prisma.messagingChannel.findMany.mockResolvedValue([
-      {
-        id: MESSAGING_CHANNEL_ID,
-      },
-    ] as any);
-
-    await updateRule({
-      ruleId: RULE_ID,
-      result: createRuleResult({
-        name: "To Reply",
-        from: null,
-        actions: [draftMessagingChannelAction()],
-      }),
-      emailAccountId: EMAIL_ACCOUNT_ID,
-      provider: "gmail",
-      logger,
-    });
-
-    expect(prisma.rule.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          actions: {
-            deleteMany: {},
-            createMany: {
-              data: [
-                expect.objectContaining({
-                  type: ActionType.DRAFT_MESSAGING_CHANNEL,
-                  messagingChannelId: MESSAGING_CHANNEL_ID,
-                }),
-              ],
-            },
-          },
-        }),
-      }),
-    );
   });
 });
 

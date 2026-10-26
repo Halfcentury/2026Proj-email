@@ -65,7 +65,6 @@ import type { AttachmentPreviewItem } from "@/app/api/user/drive/preview/attachm
 import { LoadingContent } from "@/components/LoadingContent";
 import { getEmailUrlForMessage } from "@/utils/url";
 import { AlertBasic } from "@/components/Alert";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 type SetupPhase = "setup" | "loading-attachments" | "preview" | "starting";
 
@@ -79,7 +78,7 @@ type FilingState = {
 
 export function DriveSetup() {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics("attachments");
+
   const { data: connectionsData } = useDriveConnections();
   const {
     data: foldersData,
@@ -104,10 +103,6 @@ export function DriveSetup() {
   const { data: attachmentsData, isLoading: attachmentsLoading } =
     useFilingPreviewAttachments(shouldFetchAttachments, {
       onSuccess: (data) => {
-        analytics.captureAction("auto_file_preview_completed", {
-          attachment_count: data.attachments.length,
-          no_attachments_found: data.noAttachmentsFound,
-        });
         // Initialize states and trigger filing for each attachment
         const initial: Record<string, FilingState> = {};
         for (const att of data.attachments) {
@@ -121,15 +116,11 @@ export function DriveSetup() {
             .then((result) => {
               const resultData = result?.data;
               if (result?.serverError) {
-                analytics.captureAction("auto_file_preview_item_failed", {
-                  reason: "server_error",
-                });
                 setFilingStates((prev) => ({
                   ...prev,
                   [key]: { status: "error", error: result.serverError },
                 }));
               } else if (resultData?.skipped) {
-                analytics.captureAction("auto_file_preview_item_skipped");
                 setFilingStates((prev) => ({
                   ...prev,
                   [key]: {
@@ -139,15 +130,11 @@ export function DriveSetup() {
                   },
                 }));
               } else if (resultData) {
-                analytics.captureAction("auto_file_preview_item_filed");
                 setFilingStates((prev) => ({
                   ...prev,
                   [key]: { status: "filed", result: resultData },
                 }));
               } else {
-                analytics.captureAction("auto_file_preview_item_failed", {
-                  reason: "unknown",
-                });
                 setFilingStates((prev) => ({
                   ...prev,
                   [key]: { status: "error", error: "未知错误" },
@@ -155,9 +142,6 @@ export function DriveSetup() {
               }
             })
             .catch((err) => {
-              analytics.captureAction("auto_file_preview_item_failed", {
-                reason: "exception",
-              });
               setFilingStates((prev) => ({
                 ...prev,
                 [key]: {
@@ -170,7 +154,6 @@ export function DriveSetup() {
         setFilingStates(initial);
       },
       onError: (err) => {
-        analytics.captureAction("auto_file_preview_failed");
         toastError({
           title: "获取预览失败",
           description:
@@ -191,15 +174,10 @@ export function DriveSetup() {
   }, [userPhase, attachmentsLoading, attachmentsData]);
 
   const handlePreviewClick = useCallback(() => {
-    analytics.captureAction("auto_file_preview_started", {
-      folder_count: foldersData?.savedFolders.length ?? 0,
-      has_connection: Boolean(connection),
-    });
     setUserPhase("previewing");
-  }, [analytics, connection, foldersData?.savedFolders.length]);
+  }, [connection, foldersData?.savedFolders.length]);
 
   const handleStartFiling = useCallback(async () => {
-    analytics.captureAction("auto_file_enable_started");
     setUserPhase("starting");
     try {
       const result = await updateFilingEnabledAction(emailAccountId, {
@@ -207,9 +185,6 @@ export function DriveSetup() {
       });
 
       if (result?.serverError) {
-        analytics.captureAction("auto_file_enable_failed", {
-          reason: "server_error",
-        });
         toastError({
           title: "启动自动整理失败",
           description: result.serverError,
@@ -218,13 +193,9 @@ export function DriveSetup() {
         return;
       }
 
-      analytics.captureAction("auto_file_enabled");
       toastSuccess({ description: "自动整理已启动！" });
       await mutateEmail();
     } catch (error) {
-      analytics.captureAction("auto_file_enable_failed", {
-        reason: "exception",
-      });
       toastError({
         title: "启动自动整理失败",
         description:
@@ -234,15 +205,14 @@ export function DriveSetup() {
       });
       setUserPhase("previewing");
     }
-  }, [analytics, emailAccountId, mutateEmail]);
+  }, [emailAccountId, mutateEmail]);
 
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="text-center">
         <TypographyH3>配置自动整理</TypographyH3>
         <SectionDescription className="mx-auto mt-3 max-w-xl">
-          将把邮件附件整理到你的{" "}
-          {providerInfo?.name || "drive"}.<br />
+          将把邮件附件整理到你的 {providerInfo?.name || "drive"}.<br />
           请说明存放位置和整理方式。
         </SectionDescription>
       </div>
@@ -251,9 +221,7 @@ export function DriveSetup() {
         {connection ? (
           <DriveConnectionCard connection={connection} />
         ) : (
-          <TypographyP>
-            尚未连接云存储，请连接后继续配置。
-          </TypographyP>
+          <TypographyP>尚未连接云存储，请连接后继续配置。</TypographyP>
         )}
       </div>
 
@@ -338,9 +306,7 @@ function NoAttachmentsMessage({
 }) {
   return (
     <div className="text-center">
-      <MutedText className="mb-4">
-        未找到可预览的近期附件邮件。
-      </MutedText>
+      <MutedText className="mb-4">未找到可预览的近期附件邮件。</MutedText>
       <Button onClick={onSkip} loading={isStarting}>
         直接启动自动整理
       </Button>
@@ -460,7 +426,6 @@ function FilingRow({
   userEmail: string;
   provider: string;
 }) {
-  const analytics = useProductAnalytics("attachments");
   const [correctedPath, setCorrectedPath] = useState<string | null>(null);
   const [isMoving, setIsMoving] = useState(false);
   const [vote, setVote] = useState<boolean | null>(null);
@@ -482,7 +447,7 @@ function FilingRow({
           targetFolderId: folder.folderId,
           targetFolderPath: folder.folderPath,
         });
-        analytics.captureAction("auto_file_preview_item_moved");
+
         setCorrectedPath(folder.folderPath);
         toastSuccess({ description: `已移至 ${folder.folderName}` });
       } catch {
@@ -492,7 +457,7 @@ function FilingRow({
         setIsMoving(false);
       }
     },
-    [analytics, emailAccountId, filingState.result?.filingId],
+    [emailAccountId, filingState.result?.filingId],
   );
 
   const handleCorrectClick = useCallback(async () => {
@@ -509,13 +474,8 @@ function FilingRow({
       setVote(null);
       toastError({ description: "提交反馈失败" });
     } else {
-      analytics.captureAction("auto_file_preview_feedback_submitted", {
-        feedback_positive: true,
-        item_status: filingState.status,
-      });
     }
   }, [
-    analytics,
     emailAccountId,
     filingState.filingId,
     filingState.result?.filingId,
@@ -536,17 +496,8 @@ function FilingRow({
       setVote(null);
       toastError({ description: "提交反馈失败" });
     } else {
-      analytics.captureAction("auto_file_preview_feedback_submitted", {
-        feedback_positive: false,
-        item_status: filingState.status,
-      });
     }
-  }, [
-    analytics,
-    emailAccountId,
-    filingState.result?.filingId,
-    filingState.status,
-  ]);
+  }, [emailAccountId, filingState.result?.filingId, filingState.status]);
 
   const handleSkippedWrongClick = useCallback(async () => {
     const filingId = filingState.filingId;
@@ -562,12 +513,8 @@ function FilingRow({
       setVote(null);
       toastError({ description: "提交反馈失败" });
     } else {
-      analytics.captureAction("auto_file_preview_feedback_submitted", {
-        feedback_positive: false,
-        item_status: filingState.status,
-      });
     }
-  }, [analytics, emailAccountId, filingState.filingId, filingState.status]);
+  }, [emailAccountId, filingState.filingId, filingState.status]);
 
   const isFiled = filingState.status === "filed";
   const isSkipped = filingState.status === "skipped";
@@ -632,9 +579,7 @@ function FilingRow({
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  此文件应放入哪个文件夹？
-                </DropdownMenuLabel>
+                <DropdownMenuLabel>此文件应放入哪个文件夹？</DropdownMenuLabel>
                 {otherFolders.map((folder) => (
                   <DropdownMenuItem
                     key={folder.folderId}
@@ -701,26 +646,11 @@ function SetupFolderSelection({
   mutateFolders: () => void;
   isLoading: boolean;
 }) {
-  const analytics = useProductAnalytics("attachments");
   // TODO: This assumes a single drive connection; swap to a selected connection ID when multi-connection UX exists.
   const driveConnectionId = connections[0]?.id ?? null;
 
-  const onFoldersAdded = useCallback(
-    (savedFolderCount: number) => {
-      analytics.captureAction("auto_file_folder_selected", {
-        saved_folder_count: savedFolderCount,
-      });
-    },
-    [analytics],
-  );
-  const onFoldersRemoved = useCallback(
-    (savedFolderCount: number) => {
-      analytics.captureAction("auto_file_folder_removed", {
-        saved_folder_count: savedFolderCount,
-      });
-    },
-    [analytics],
-  );
+  const onFoldersAdded = useCallback((savedFolderCount: number) => {}, []);
+  const onFoldersRemoved = useCallback((savedFolderCount: number) => {}, []);
 
   const {
     optimisticFolderIds,
@@ -824,7 +754,6 @@ function SetupRulesForm({
   phase: SetupPhase;
   onPreviewClick: () => void;
 }) {
-  const analytics = useProductAnalytics("attachments");
   const {
     register,
     handleSubmit,
@@ -848,8 +777,7 @@ function SetupRulesForm({
       if (!canPreview) {
         toastError({
           title: "配置未完成",
-          description:
-            "请至少选择一个文件夹，并说明文件整理方式。",
+          description: "请至少选择一个文件夹，并说明文件整理方式。",
         });
         return;
       }
@@ -857,30 +785,17 @@ function SetupRulesForm({
       const result = await updateFilingPromptAction(emailAccountId, data);
 
       if (result?.serverError) {
-        analytics.captureAction("auto_file_prompt_save_failed", {
-          reason: "server_error",
-        });
         toastError({
           title: "保存规则失败",
           description: result.serverError,
         });
       } else {
-        analytics.captureAction("auto_file_prompt_saved", {
-          has_existing_prompt: Boolean(initialPrompt),
-        });
         mutateEmail();
         // Trigger preview after successful save
         onPreviewClick();
       }
     },
-    [
-      analytics,
-      canPreview,
-      emailAccountId,
-      initialPrompt,
-      mutateEmail,
-      onPreviewClick,
-    ],
+    [canPreview, emailAccountId, initialPrompt, mutateEmail, onPreviewClick],
   );
 
   return (
@@ -891,7 +806,9 @@ function SetupRulesForm({
         <Input
           type="textarea"
           name="filingPrompt"
-          placeholder={"合同按房产地址放入交易文件夹，收据按月份放入收据文件夹。"}
+          placeholder={
+            "合同按房产地址放入交易文件夹，收据按月份放入收据文件夹。"
+          }
           registerProps={register("filingPrompt")}
           error={errors.filingPrompt}
           autosizeTextarea
@@ -907,9 +824,7 @@ function SetupRulesForm({
               disabled={!canPreview || isLoading}
               loading={isLoading}
             >
-              {isLoading
-                ? "正在查找近期附件…"
-                : "使用近期邮件预览"}
+              {isLoading ? "正在查找近期附件…" : "使用近期邮件预览"}
             </Button>
           </div>
         )}

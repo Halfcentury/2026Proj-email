@@ -792,11 +792,7 @@ function LibraryTile({
       </button>
       <button
         type="button"
-        aria-label={
-          on
-            ? `关闭“${entry.name}”分栏`
-            : `启用“${entry.name}”分栏`
-        }
+        aria-label={on ? `关闭“${entry.name}”分栏` : `启用“${entry.name}”分栏`}
         onClick={onToggle}
         disabled={disabled}
         className={cn(
@@ -962,8 +958,10 @@ function conditionLabel(
     case MailSplitFilterKind.FROM:
       return condition.value ?? "From";
     case MailSplitFilterKind.OLDER_THAN:
-      return `早于 ${OLDER_THAN_OPTIONS.find((o) => o.value === condition.value)?.name ??
-        condition.value}`;
+      return `早于 ${
+        OLDER_THAN_OPTIONS.find((o) => o.value === condition.value)?.name ??
+        condition.value
+      }`;
     case MailSplitFilterKind.LABEL:
       return (
         labels.find((label) => label.value === condition.value)?.name ?? "Label"

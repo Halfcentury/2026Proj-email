@@ -13,14 +13,12 @@ const features = [
   {
     icon: <TagsIcon className="size-4 text-blue-500" />,
     title: "自动分类",
-    description:
-      "自动将发件人分为订阅邮件、收据、营销等类别",
+    description: "自动将发件人分为订阅邮件、收据、营销等类别",
   },
   {
     icon: <ArchiveIcon className="size-4 text-blue-500" />,
     title: "按分类归档",
-    description:
-      "一次整理整个分类的邮件",
+    description: "一次整理整个分类的邮件",
   },
   {
     icon: <RotateCcwIcon className="size-4 text-blue-500" />,

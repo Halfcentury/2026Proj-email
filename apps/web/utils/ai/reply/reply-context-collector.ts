@@ -1,3 +1,4 @@
+import type { ContextSource } from "@/utils/ai/email-workspace/types";
 import { tool } from "ai";
 import { subMonths } from "date-fns/subMonths";
 import uniq from "lodash/uniq";
@@ -27,6 +28,12 @@ const THREAD_CONTEXT_BEFORE_MATCH = 2;
 const THREAD_CONTEXT_AFTER_MATCH = 4;
 
 const resultSchema = z.object({
+  sourceMessageIds: z
+    .array(z.string())
+    .default([])
+    .describe(
+      "Exact IDs of the retrieved messages supporting relevantEmails. Only use IDs returned by searchEmails.",
+    ),
   notes: z
     .string()
     .describe("Any notes about the emails that may be helpful")
@@ -37,7 +44,9 @@ const resultSchema = z.object({
       "Past email conversations from search results that could help draft the response. Leave empty if no relevant past emails found.",
     ),
 });
-export type ReplyContextCollectorResult = z.infer<typeof resultSchema>;
+export type ReplyContextCollectorResult = z.infer<typeof resultSchema> & {
+  sources?: ContextSource[];
+};
 
 const agentSystem = `You are an intelligent email assistant that gathers historical context from the user's email history to inform a later drafting step.
 
@@ -54,7 +63,8 @@ You have access to these tools:
 CRITICAL GUIDELINES:
 - The current email thread is already provided to the drafting agent - DO NOT include it in relevantEmails
 - The relevantEmails array should ONLY contain past emails found through your searches that could help draft a response
-- If no relevant past emails are found through searching, leave the relevantEmails array empty
+- Include sourceMessageIds for every historical conversation you use. IDs must come from searchEmails results.
+- If no relevant past emails are found through searching, leave both relevantEmails and sourceMessageIds empty
 - Perform as many searches as needed to confidently gather context, but be efficient
 - Focus on emails that show how similar questions were answered before
 - Only include information that directly helps a downstream drafting agent
@@ -84,10 +94,12 @@ export async function aiCollectReplyContext({
   currentThread,
   emailAccount,
   emailProvider,
+  onError,
 }: {
   currentThread: ReplyContextThreadEmail[];
   emailAccount: EmailAccountWithAI;
   emailProvider: EmailProvider;
+  onError?: () => void;
 }): Promise<ReplyContextCollectorResult | null> {
   try {
     const sixMonthsAgo = subMonths(new Date(), 6);
@@ -116,6 +128,7 @@ ${getTodayForLLM()}`;
 
     let result: ReplyContextCollectorResult | null = null;
     const seenSearchResultIds = new Set<string>();
+    const retrievedMessages = new Map<string, ReplyContextThreadEmail>();
 
     await generateText({
       ...modelOptions,
@@ -150,6 +163,7 @@ ${getTodayForLLM()}`;
 
               for (const email of unseenEmails) {
                 seenSearchResultIds.add(email.id);
+                retrievedMessages.set(email.id, email);
               }
 
               logger.info("Found emails", {
@@ -161,6 +175,7 @@ ${getTodayForLLM()}`;
 
               return unseenEmails;
             } catch (error) {
+              onError?.();
               const errorMessage =
                 error instanceof Error ? error.message : "Unknown error";
 
@@ -197,7 +212,35 @@ ${getTodayForLLM()}`;
               relevantEmails: finalResult.relevantEmails,
             });
 
-            result = finalResult;
+            const sources: ContextSource[] = [];
+            for (const id of new Set(finalResult.sourceMessageIds ?? [])) {
+              const email = retrievedMessages.get(id);
+              if (!email) continue;
+              sources.push({
+                id: `email:${id}`,
+                type: "email",
+                recordId: id,
+                emailAccountId: emailAccount.id,
+                title: email.subject || "历史邮件",
+                excerpt: email.content,
+                observedAt:
+                  email.date?.toISOString() ?? new Date().toISOString(),
+                href: email.threadId
+                  ? `/${encodeURIComponent(emailAccount.id)}/mail?thread-id=${encodeURIComponent(email.threadId)}`
+                  : null,
+              });
+            }
+            if (finalResult.relevantEmails.length && !sources.length)
+              onError?.();
+            result = {
+              ...finalResult,
+              sourceMessageIds: sources.map((source) => source.recordId),
+              relevantEmails: sources.map(
+                (source) => `${source.title}\n${source.excerpt}`,
+              ),
+              notes: null,
+              sources,
+            };
 
             return { success: true };
           },
@@ -207,6 +250,7 @@ ${getTodayForLLM()}`;
 
     return result;
   } catch (error) {
+    onError?.();
     logger.error("Reply context collection failed", {
       email: emailAccount.email,
       error,

@@ -9,7 +9,6 @@ import { deleteUser } from "@/utils/user/delete";
 import { stopWatchingEmailAccount } from "@/utils/email/watch-manager";
 import { actionClient, actionClientUser } from "@/utils/actions/safe-action";
 import { captureException, SafeError } from "@/utils/error";
-import { updateAccountSeats } from "@/utils/premium/seats";
 import { betterAuthConfig } from "@/utils/auth";
 import { cookies, headers } from "next/headers";
 import {
@@ -24,7 +23,6 @@ import {
 } from "@/utils/actions/user.validation";
 import { clearLastEmailAccountCookie } from "@/utils/cookies.server";
 import { deleteTinybirdEmailData } from "@inboxzero/tinybird";
-import { aliasPosthogUser } from "@/utils/posthog";
 import {
   cleanupAIDraftsForAccount,
   getConfiguredDraftCleanupDays,
@@ -41,7 +39,7 @@ import {
   getUserDeletionOwnershipImpact,
   isMemberEmailAccountForeignKeyError,
   isOrganizationOwnerInvariantError,
-} from "@/utils/organizations/ownership";
+} from "@/utils/user/deletion-guards";
 
 export const saveAboutAction = actionClient
   .metadata({ name: "saveAbout" })
@@ -229,12 +227,7 @@ export const deleteEmailAccountAction = actionClientUser
         );
 
         // Alias the old PostHog identity to the new one
-        after(async () => {
-          await aliasPosthogUser({
-            oldEmail,
-            newEmail: newPrimaryAccount.email,
-          });
-        });
+        after(async () => {});
       } else {
         await stopWatchingEmailAccount({
           emailAccountId,
@@ -279,9 +272,7 @@ export const deleteEmailAccountAction = actionClientUser
         logger,
       });
 
-      after(async () => {
-        await updateAccountSeats({ userId });
-      });
+      after(async () => {});
     },
   );
 

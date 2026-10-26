@@ -36,9 +36,7 @@ export default async function DebugPage(props: {
           </Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href={prefixPath(emailAccountId, "/debug/memories")}>
-            记忆
-          </Link>
+          <Link href={prefixPath(emailAccountId, "/debug/memories")}>记忆</Link>
         </Button>
         {/* <Button variant="outline" asChild>
           <Link href={prefixPath(emailAccountId, "/debug/report")}>Report</Link>

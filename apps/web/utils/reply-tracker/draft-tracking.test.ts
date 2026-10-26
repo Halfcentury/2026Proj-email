@@ -42,10 +42,6 @@ import {
   saveDraftSendLogReplyMemory,
   syncReplyMemoriesFromDraftSendLogs,
 } from "@/utils/ai/reply/reply-memory";
-import {
-  replaceMessagingDraftNotificationsWithDraftSentState,
-  replaceMessagingDraftNotificationsWithHandledOnWebState,
-} from "@/utils/messaging/rule-notifications";
 
 const logger = createTestLogger();
 
@@ -110,15 +106,7 @@ describe("trackSentDraftStatus", () => {
         sentText: "Please include pricing for seat counts.",
       }),
     );
-    expect(
-      replaceMessagingDraftNotificationsWithDraftSentState,
-    ).toHaveBeenCalledWith({
-      executedRuleId: "executed-rule-1",
-      logger,
-    });
-    expect(
-      replaceMessagingDraftNotificationsWithHandledOnWebState,
-    ).not.toHaveBeenCalled();
+
     expect(prisma.executedAction.update).toHaveBeenCalledWith({
       where: { id: "action-1" },
       data: {
@@ -129,61 +117,6 @@ describe("trackSentDraftStatus", () => {
       emailAccountId: "account-1",
       provider,
       logger,
-    });
-  });
-
-  it("collapses stale messaging draft notifications when the user replies on the web", async () => {
-    vi.mocked(prisma.executedAction.findFirst).mockResolvedValue({
-      id: "action-1",
-      draftId: "draft-1",
-      content: "Thanks for reaching out.",
-      executedRuleId: "executed-rule-1",
-      executedRule: { messageId: "source-1" },
-    } as any);
-    vi.mocked(calculateSimilarity).mockReturnValue(0.14);
-
-    await trackSentDraftStatus({
-      emailAccountId: "account-1",
-      message: createSentMessage(),
-      provider: {
-        getDraft: vi.fn().mockResolvedValue({
-          id: "draft-1",
-        }),
-        getMessage: vi.fn().mockResolvedValue(createSourceMessage()),
-      } as any,
-      logger,
-    });
-
-    expect(
-      replaceMessagingDraftNotificationsWithHandledOnWebState,
-    ).toHaveBeenCalledWith({
-      executedRuleId: "executed-rule-1",
-      logger,
-    });
-    expect(prisma.draftSendLog.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        executedActionId: "action-1",
-        sentMessageId: "sent-1",
-        similarityScore: 0.14,
-        bodySimilarityScore: 0.14,
-        bodySimilarityStatus: "scored",
-        sentText: "Please include pricing for seat counts.",
-        similarityMetadata: expect.objectContaining({
-          draft: expect.objectContaining({
-            comparableBodyLength: "Thanks for reaching out.".length,
-          }),
-          sent: expect.objectContaining({
-            extractedReplyLength: 39,
-            selectedBodySource: "html",
-          }),
-        }),
-      }),
-    });
-    expect(prisma.executedAction.update).toHaveBeenCalledWith({
-      where: { id: "action-1" },
-      data: {
-        draftStatus: DraftEmailStatus.REPLIED_WITHOUT_DRAFT,
-      },
     });
   });
 
@@ -255,12 +188,6 @@ describe("trackSentDraftStatus", () => {
       data: {
         draftStatus: DraftEmailStatus.LIKELY_SENT,
       },
-    });
-    expect(
-      replaceMessagingDraftNotificationsWithDraftSentState,
-    ).toHaveBeenCalledWith({
-      executedRuleId: "executed-rule-1",
-      logger,
     });
   });
 
@@ -381,15 +308,7 @@ describe("trackSentDraftStatus", () => {
         sentText: "Please include pricing for seat counts.",
       }),
     });
-    expect(
-      replaceMessagingDraftNotificationsWithDraftSentState,
-    ).toHaveBeenCalledWith({
-      executedRuleId: "executed-rule-1",
-      logger,
-    });
-    expect(
-      replaceMessagingDraftNotificationsWithHandledOnWebState,
-    ).not.toHaveBeenCalled();
+
     expect(prisma.executedAction.update).toHaveBeenCalledWith({
       where: { id: "action-1" },
       data: {

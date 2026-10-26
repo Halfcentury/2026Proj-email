@@ -44,7 +44,7 @@ import {
   STANDARD_CATEGORY_SYSTEM_TYPES,
 } from "@/utils/rule/consts";
 import { actionClient, actionClientUser } from "@/utils/actions/safe-action";
-import { assertRuleIsNotOrgManaged } from "@/utils/organizations/rules";
+import { assertRuleIsNotOrgManaged } from "@/utils/rule/legacy-rule-guard";
 import { env } from "@/env";
 import { ONE_WEEK_MINUTES } from "@/utils/date";
 import { createEmailProvider } from "@/utils/email/provider";
@@ -55,7 +55,7 @@ import { isGoogleProvider } from "@/utils/email/provider-types";
 import { bulkProcessInboxEmails } from "@/utils/ai/choose-rule/bulk-process-emails";
 import { getEmailAccountForRuleExecution } from "@/utils/user/get";
 import type { AttachmentSourceInput } from "@/utils/attachments/source-schema";
-import { assertCanUseDigestsIfNeeded } from "@/utils/premium/server";
+import { assertCanUseDigestsIfNeeded } from "@/utils/feature-access";
 import { toCreateOrUpdateRuleCondition } from "@/utils/rule/create-rule-condition";
 import { setDefaultMailSplits } from "@/utils/split-inbox/default-splits.server";
 

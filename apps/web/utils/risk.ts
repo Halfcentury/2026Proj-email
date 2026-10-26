@@ -6,7 +6,7 @@ import { TEMPLATE_VARIABLE_PATTERN } from "@/utils/template";
 import {
   getIntegrationToolSpec,
   isAiFilledArgValue,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 
 const RISK_LEVELS = {
   VERY_HIGH: "very-high",

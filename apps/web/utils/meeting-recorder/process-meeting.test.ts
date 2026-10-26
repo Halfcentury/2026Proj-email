@@ -15,7 +15,7 @@ const {
 vi.mock("server-only", () => ({}));
 vi.mock("@/utils/prisma");
 vi.mock("@/utils/error", () => ({ captureException: vi.fn() }));
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: vi.fn().mockResolvedValue(true),
 }));
 vi.mock("@/utils/ai/meeting-recorder/summarize-meeting", () => ({
@@ -34,8 +34,14 @@ vi.mock("@/utils/user/get", () => ({
     getEmailAccountWithAiMock(...args),
   getWritingStyle: vi.fn(),
 }));
-vi.mock("@/utils/premium/server", () => ({
-  checkHasAccess: vi.fn().mockResolvedValue(true),
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      checkHasAccess: vi.fn().mockResolvedValue(true),
+    },
+  },
 }));
 vi.mock("@/utils/email/provider", () => ({
   createEmailProvider: vi.fn(),

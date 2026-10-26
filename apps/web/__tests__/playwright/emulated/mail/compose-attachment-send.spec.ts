@@ -23,9 +23,9 @@ test("sends a new message with an image attachment", async ({
 }, testInfo) => {
   test.setTimeout(ATTACHMENT_SEND_TIMEOUT_MS + 120_000);
   await sendAndVerifyAttachment(page, {
-    subject: `Image attachment send ${testInfo.retry}`,
+    subject: `图片附件发送验收 ${testInfo.retry}`,
     file: {
-      name: "image-example.png",
+      name: "图片示例.png",
       mimeType: "image/png",
       buffer: PNG_BYTES,
     },
@@ -37,9 +37,9 @@ test("sends a new message with an attachment too large for one request", async (
 }, testInfo) => {
   test.setTimeout(ATTACHMENT_SEND_TIMEOUT_MS + 120_000);
   await sendAndVerifyAttachment(page, {
-    subject: `Large attachment send ${testInfo.retry}`,
+    subject: `大文件附件发送验收 ${testInfo.retry}`,
     file: {
-      name: "large-example.bin",
+      name: "大文件示例.bin",
       mimeType: "application/octet-stream",
       buffer: Buffer.from(
         Uint8Array.from(
@@ -71,7 +71,7 @@ async function sendAndVerifyAttachment(
   await dialog.getByPlaceholder("主题").fill(subject);
   await dialog
     .getByRole("textbox", { name: "邮件内容" })
-    .fill("Here is the file.");
+    .fill("文件已附上，请查收。");
   await dialog.getByTestId("compose-attachments-input").setInputFiles(file);
   const attachments = dialog.getByRole("list", { name: "附件" });
   await expect(attachments).toContainText(file.name);
@@ -110,10 +110,7 @@ async function sendAndVerifyAttachment(
   await expect(attachment).toBeVisible({ timeout: 60_000 });
 
   const download = page.waitForEvent("download");
-  await attachment
-    .locator("..")
-    .getByRole("button", { name: "下载" })
-    .click();
+  await attachment.locator("..").getByRole("button", { name: "下载" }).click();
   const savedFile = await download;
   const savedPath = await savedFile.path();
   expect(savedPath).not.toBeNull();

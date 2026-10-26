@@ -1,5 +1,5 @@
 import { after } from "next/server";
-import { ActionType, MessagingMessageStatus } from "@/generated/prisma/enums";
+import { ActionType } from "@/generated/prisma/enums";
 import type { Logger } from "@/utils/logger";
 import { callWebhook } from "@/utils/outbound-webhook/call-webhook";
 import type {
@@ -22,22 +22,14 @@ import {
   isSameOrganization,
   splitRecipientList,
 } from "@/utils/email";
-import { captureException, getErrorMessage } from "@/utils/error";
+import { captureException } from "@/utils/error";
 import { env } from "@/env";
 import { ensureEmailSendingEnabled } from "@/utils/mail";
 import { isDeleteEmailActionEnabled } from "@/utils/delete-email-action";
-import { callMcpTool } from "@/utils/mcp/call-tool";
-import { findIntegration } from "@/utils/mcp/integrations";
-import { getIntegrationToolSpec } from "@/utils/mcp/tool-specs";
 import { resolveActionAttachments } from "@/utils/ai/action-attachments";
-import {
-  getMessagingRuleNotificationResult,
-  sendMessagingRuleNotification,
-} from "@/utils/messaging/rule-notifications";
 import { isMessagingDraftActionType } from "@/utils/actions/draft-reply";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 import { handlePreviousDraftDeletion } from "@/utils/ai/choose-rule/draft-management";
-import { isIntegrationActionEnabledForUserId } from "@/utils/integration-action.server";
 
 const MODULE = "ai-actions";
 
@@ -203,37 +195,6 @@ const draft: ActionFunction<{
   selectedAttachments?: ActionItem["selectedAttachments"];
 }> = async ({ client, email, args, emailAccount, executedRule, logger }) => {
   if (env.NEXT_PUBLIC_AUTO_DRAFT_DISABLED) return;
-
-  if (
-    isLegacyMessagingDraft({
-      executedRule,
-      messagingChannelId: args.messagingChannelId,
-    })
-  ) {
-    if (args.id) {
-      const notificationResult = await getMessagingRuleNotificationResult({
-        executedActionId: args.id,
-        email,
-        logger,
-      });
-
-      if (
-        notificationResult.delivered &&
-        notificationResult.kind === "interactive"
-      ) {
-        return;
-      }
-
-      if (!notificationResult.delivered) {
-        logger.warn(
-          "Falling back to mailbox draft after messaging delivery failure",
-          {
-            actionId: args.id,
-          },
-        );
-      }
-    }
-  }
 
   const previousDraftHandling = await handlePreviousDraftDeletion({
     client,
@@ -602,97 +563,10 @@ const integration: ActionFunction<{
   integrationName?: string | null;
   integrationToolName?: string | null;
   integrationArgs?: ActionItem["integrationArgs"];
-}> = async ({ args, emailAccount, logger }) => {
-  if (!(await isIntegrationActionEnabledForUserId(emailAccount.userId))) {
-    logger.info(
-      "Skipping integration action because integration actions are disabled",
-    );
-    return { skipped: true, reason: "INTEGRATION_ACTION_DISABLED" };
-  }
-
-  const { integrationName, integrationToolName } = args;
-  if (!integrationName || !integrationToolName) {
-    return {
-      success: false,
-      errorCode: "MISSING_INTEGRATION_CONFIG",
-      errorMessage: "Integration action is missing its integration or tool",
-    };
-  }
-
-  const integrationConfig = findIntegration(integrationName);
-  const ruleActionWriteTools = integrationConfig?.ruleActionWriteTools ?? [];
-  if (
-    !integrationConfig ||
-    !ruleActionWriteTools.includes(integrationToolName)
-  ) {
-    return {
-      success: false,
-      errorCode: "UNSUPPORTED_INTEGRATION_TOOL",
-      errorMessage: `Unsupported integration tool: ${integrationName}/${integrationToolName}`,
-    };
-  }
-
-  const connection = await prisma.mcpConnection.findFirst({
-    where: {
-      emailAccountId: emailAccount.id,
-      isActive: true,
-      integration: { name: integrationName },
-    },
-    select: { id: true },
-  });
-  if (!connection) {
-    return {
-      success: false,
-      errorCode: "INTEGRATION_NOT_CONNECTED",
-      errorMessage: `${integrationConfig.displayName} is not connected. Connect it on the Integrations page.`,
-    };
-  }
-
-  const spec = getIntegrationToolSpec(integrationName, integrationToolName);
-  if (!spec) {
-    return {
-      success: false,
-      errorCode: "UNSUPPORTED_INTEGRATION_TOOL",
-      errorMessage: `Unsupported integration tool: ${integrationName}/${integrationToolName}`,
-    };
-  }
-
-  const resolvedArgs = readIntegrationArgs(args.integrationArgs);
-  const missingArg = spec.args.find(
-    (arg) => arg.required && !resolvedArgs[arg.key]?.trim(),
-  );
-  if (missingArg) {
-    return {
-      success: false,
-      errorCode: "MISSING_INTEGRATION_ARGS",
-      errorMessage: `The integration action has no ${missingArg.label.toLowerCase()}`,
-    };
-  }
-
-  const toolArgs = spec.buildPayload(resolvedArgs);
-
-  try {
-    await callMcpTool({
-      emailAccountId: emailAccount.id,
-      integration: integrationName,
-      toolName: integrationToolName,
-      args: toolArgs,
-    });
-    return { success: true };
-  } catch (error) {
-    logger.error("Integration action failed", {
-      error,
-      integration: integrationName,
-      toolName: integrationToolName,
-    });
-    return {
-      success: false,
-      errorCode: "INTEGRATION_CALL_FAILED",
-      errorMessage:
-        getErrorMessage(error) ?? "The integration tool call failed",
-    };
-  }
-};
+}> = async ({ args, emailAccount, logger }) => ({
+  skipped: true,
+  reason: "INTEGRATION_ACTION_DISABLED",
+});
 
 const notify_sender: ActionFunction<Record<string, unknown>> = async ({
   email,
@@ -817,31 +691,6 @@ async function lazyUpdateActionFolderId({
   }
 }
 
-async function markMessagingActionFailed({
-  actionId,
-  logger,
-  reason,
-}: {
-  actionId: string;
-  logger: Logger;
-  reason: string;
-}) {
-  try {
-    await prisma.executedAction.update({
-      where: { id: actionId },
-      data: {
-        messagingMessageStatus: MessagingMessageStatus.FAILED,
-      },
-    });
-  } catch (error) {
-    logger.warn("Failed to mark messaging action as failed", {
-      actionId,
-      error,
-    });
-  }
-  logger.warn(reason, { actionId });
-}
-
 async function runMessagingNotificationAction({
   actionId,
   actionType,
@@ -855,33 +704,7 @@ async function runMessagingNotificationAction({
   email: EmailForAction;
   logger: Logger;
 }) {
-  if (!actionId) {
-    throw new Error(`Missing action id for ${actionType}`);
-  }
-
-  if (!messagingChannelId) {
-    await markMessagingActionFailed({
-      actionId,
-      logger,
-      reason: `Missing messaging channel for ${actionType}`,
-    });
-    return { success: false, errorCode: "MISSING_MESSAGING_CHANNEL" };
-  }
-
-  const delivered = await sendMessagingRuleNotification({
-    executedActionId: actionId,
-    email,
-    logger,
-  });
-
-  if (delivered) return { success: true };
-
-  await markMessagingActionFailed({
-    actionId,
-    logger,
-    reason: `Failed to deliver ${actionType} notification`,
-  });
-  return { success: false, errorCode: "MESSAGING_DELIVERY_FAILED" };
+  return { skipped: true, reason: "MESSAGING_DISABLED" };
 }
 
 function isLegacyMessagingDraft({
@@ -895,24 +718,6 @@ function isLegacyMessagingDraft({
 
   return !executedRule.actionItems?.some((action) =>
     isMessagingDraftActionType(action.type),
-  );
-}
-
-function readIntegrationArgs(
-  integrationArgs: ActionItem["integrationArgs"],
-): Record<string, string> {
-  if (
-    !integrationArgs ||
-    typeof integrationArgs !== "object" ||
-    Array.isArray(integrationArgs)
-  ) {
-    return {};
-  }
-
-  return Object.fromEntries(
-    Object.entries(integrationArgs).filter(
-      (entry): entry is [string, string] => typeof entry[1] === "string",
-    ),
   );
 }
 

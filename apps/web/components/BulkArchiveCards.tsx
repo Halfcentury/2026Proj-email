@@ -274,7 +274,7 @@ export function BulkArchiveCards({
       }
     } catch {
       toastError({
-        description: `部分发件人处理失败，请重试。`,
+        description: "部分发件人处理失败，请重试。",
       });
     } finally {
       setLoadingCategories((prev) => ({ ...prev, [categoryName]: false }));
@@ -694,9 +694,7 @@ function ArchiveSenderStatus({
     case "completed":
       return (
         <span className="text-sm text-green-600">
-          {status.threadsTotal
-            ? `${status.threadsTotal} 已归档！`
-            : "已归档"}
+          {status.threadsTotal ? `${status.threadsTotal} 已归档！` : "已归档"}
         </span>
       );
     case "failed":
@@ -762,12 +760,6 @@ function DeleteSenderStatus({
     default:
       return null;
   }
-}
-
-function getBulkActionVerb(action: BulkActionType) {
-  if (action === "markRead") return "标为已读";
-  if (action === "delete") return "delete";
-  return "archive";
 }
 
 function ExpandedEmails({

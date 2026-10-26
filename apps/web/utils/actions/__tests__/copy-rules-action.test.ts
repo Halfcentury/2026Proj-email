@@ -258,7 +258,15 @@ describe("copyRulesFromAccountAction", () => {
           instructions: "Updated instructions",
           groupId: null,
           actions: {
-            deleteMany: {},
+            deleteMany: {
+              type: {
+                notIn: [
+                  ActionType.DRAFT_MESSAGING_CHANNEL,
+                  ActionType.NOTIFY_MESSAGING_CHANNEL,
+                  ActionType.INTEGRATION,
+                ],
+              },
+            },
             createMany: { data: [] },
           },
         }),

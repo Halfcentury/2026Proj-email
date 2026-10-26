@@ -20,9 +20,7 @@ test("Command K changes the mail theme and remembers it after reload", async ({
   await capturePlaywrightCheckpoint(page, testInfo, "Mail in dark mode");
 
   await page.reload();
-  await expect(
-    page.getByRole("listbox", { name: "会话" }),
-  ).toBeVisible();
+  await expect(page.getByRole("listbox", { name: "会话" })).toBeVisible();
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.keyboard.press(`${commandModifier}+KeyK`);
   await palette.getByPlaceholder("Type a command or search...").fill("theme");

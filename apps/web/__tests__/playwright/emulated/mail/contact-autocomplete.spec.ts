@@ -111,7 +111,7 @@ for (const theme of ["light", "dark"] as const) {
     const to = dialog.getByRole("combobox", { name: "收件人", exact: true });
     await to.fill("ali");
     const alice = page.getByRole("option", {
-      name: /Alice Example.*alice@example.com/,
+      name: /艾丽斯.*alice@example.com/,
     });
     await expect(alice).toBeVisible();
     await capturePlaywrightCheckpoint(
@@ -144,9 +144,7 @@ for (const theme of ["light", "dark"] as const) {
     for (const name of ["Cc", "Bcc"]) {
       const field = dialog.getByRole("combobox", { name, exact: true });
       await field.fill("bob");
-      await page
-        .getByRole("option", { name: /Bob Example.*bob@example.com/ })
-        .click();
+      await page.getByRole("option", { name: /鲍勃.*bob@example.com/ }).click();
       await expect(
         dialog.getByRole("button", { name: "Remove bob@example.com" }),
       ).toHaveCount(name === "Cc" ? 1 : 2);

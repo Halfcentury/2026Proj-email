@@ -25,8 +25,7 @@ export default function EmailReportPage() {
   const params = useParams();
   const emailAccountId = params.emailAccountId;
 
-  if (typeof emailAccountId !== "string")
-    throw new Error("缺少邮箱账户 ID");
+  if (typeof emailAccountId !== "string") throw new Error("缺少邮箱账户 ID");
 
   const [report, setReport] = useState<EmailReportData | null>(null);
 
@@ -70,9 +69,7 @@ export default function EmailReportPage() {
               result?.serverError ? { error: result.serverError } : undefined
             }
           >
-            <p className="text-gray-600">
-              分析邮件规律并提供个性化建议。
-            </p>
+            <p className="text-gray-600">分析邮件规律并提供个性化建议。</p>
 
             {/* Report Display */}
             {report && (

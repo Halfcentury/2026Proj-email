@@ -65,7 +65,10 @@ describe("buildSnoozeCommandPalette", () => {
     expect(onSnooze).toHaveBeenCalledWith(new Date(2026, 7, 16, 15));
   });
 
-  it.each(["明天下午3点", "明天下午 3 点"])("parses Chinese time input %s", (input) => {
+  it.each([
+    "明天下午3点",
+    "明天下午 3 点",
+  ])("parses Chinese time input %s", (input) => {
     expect(parseSnoozeDate(input, new Date(2026, 7, 15, 10))).toEqual(
       new Date(2026, 7, 16, 15),
     );

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ExternalLinkIcon, FolderIcon, InfoIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { LoadingContent } from "@/components/LoadingContent";
 import { toastError, toastSuccess } from "@/components/Toast";
 import { MutedText, SectionHeader } from "@/components/Typography";
@@ -31,6 +32,7 @@ import type { GetDriveConnectionsResponse } from "@/app/api/user/drive/connectio
 import { YesNoIndicator } from "@/components/drive/YesNoIndicator";
 import type { DriveProviderType } from "@/utils/drive/types";
 import {
+  confirmPendingFilingAction,
   submitPreviewFeedbackAction,
   moveFilingAction,
 } from "@/utils/actions/drive";
@@ -126,6 +128,24 @@ function FilingRow({
     setVote(filing.feedbackPositive ?? null);
   }, [filing.feedbackPositive]);
 
+  async function confirmPending() {
+    setIsSubmitting(true);
+    try {
+      const response = await confirmPendingFilingAction(emailAccountId, {
+        filingId: filing.id,
+      });
+      if (!response?.data)
+        throw new Error(response?.serverError ?? "归档失败，请重试。");
+      onFeedbackSaved();
+      toastSuccess({ description: "附件已归档到确认的目录。" });
+    } catch (error) {
+      toastError({
+        description: error instanceof Error ? error.message : "归档失败",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
   const handleCorrectClick = useCallback(async () => {
     if (!canGiveFeedback || isSubmitting) return;
 
@@ -250,6 +270,17 @@ function FilingRow({
       </TableCell>
       <TableCell className="break-words max-w-[200px]">
         <FolderCell filing={filing} />
+        {filing.status === "PENDING" && (
+          <Button
+            className="mt-2"
+            size="sm"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={confirmPending}
+          >
+            确认归档
+          </Button>
+        )}
       </TableCell>
       <TableCell>
         <span className="text-muted-foreground text-xs">
@@ -279,9 +310,7 @@ function FilingRow({
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  此文件应放入哪个文件夹？
-                </DropdownMenuLabel>
+                <DropdownMenuLabel>此文件应放入哪个文件夹？</DropdownMenuLabel>
                 {otherFolders.map((folder) => (
                   <DropdownMenuItem
                     key={folder.folderId}

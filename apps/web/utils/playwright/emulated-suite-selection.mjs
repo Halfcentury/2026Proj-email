@@ -6,15 +6,11 @@ import { expandPlaywrightTargets } from "./emulated-suite-targets.mjs";
 export const fullSuites = [
   "attachments",
   "automation",
-  "billing",
   "calendars",
-  "channels",
   "chat",
-  "cleanup/analytics.spec.ts",
   "cleanup/bulk-archive.spec.ts",
   "cleanup/bulk-unsubscribe.spec.ts",
   "cleanup/mail-triage.spec.ts",
-  "integrations",
   "mail",
   "meetings",
   "onboarding",
@@ -32,7 +28,10 @@ const suiteEntryFiles = new Map([
   ["channels", ["app/(app)/[emailAccountId]/channels/page.tsx"]],
   ["chat", ["app/(app)/[emailAccountId]/assistant/page.tsx"]],
   ["cleanup/analytics.spec.ts", ["app/(app)/[emailAccountId]/stats/page.tsx"]],
-  ["cleanup/mail-triage.spec.ts", ["app/(app)/[emailAccountId]/mail-triage/page.tsx"]],
+  [
+    "cleanup/mail-triage.spec.ts",
+    ["app/(app)/[emailAccountId]/mail-triage/page.tsx"],
+  ],
   [
     "cleanup/bulk-archive.spec.ts",
     ["app/(app)/[emailAccountId]/bulk-archive/page.tsx"],
@@ -169,12 +168,6 @@ export function selectChangedPlaywrightTargets(changedFilesInput, appRoot) {
   const productFiles = [];
 
   for (const file of changedFiles) {
-    if (isTeamCommentsSource(file)) {
-      targetFiles.add(getPlaywrightTargetPath("mail/team-comments.spec.ts"));
-      targetFiles.add(
-        getPlaywrightTargetPath("mail/team-comments-access.spec.ts"),
-      );
-    }
     if (
       /^(?:packages\/(?:mail-(?:core|sqlite|react|ui)|email-editor)\/|apps\/desktop\/)/.test(
         file.repoPath,
@@ -291,21 +284,6 @@ export function selectChangedPlaywrightTargets(changedFilesInput, appRoot) {
       : "The changed files do not affect emulated browser coverage.",
     targetFiles: [...targetFiles],
   };
-}
-
-function isTeamCommentsSource({ appPath }) {
-  return (
-    appPath.startsWith("utils/team-comments/") ||
-    appPath.startsWith("components/team-comments/") ||
-    appPath.startsWith("app/api/team-comments/") ||
-    appPath.startsWith("app/(app)/shared/") ||
-    appPath.startsWith("utils/actions/team-comments.") ||
-    /^prisma\/migrations\/\d+_team_comments\//.test(appPath) ||
-    appPath === "prisma/schema.prisma" ||
-    appPath === "utils/actions/organization.ts" ||
-    appPath === "utils/actions/user.ts" ||
-    appPath === "utils/user/delete.ts"
-  );
 }
 
 function getDirectlyAffectedSuites(appPath) {

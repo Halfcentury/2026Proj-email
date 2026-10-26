@@ -1,25 +1,14 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
-
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AxiomWebVitals } from "next-axiom";
-import { GoogleTagManager } from "@next/third-parties/google";
-import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { Geist } from "next/font/google";
 import localFont from "next/font/local";
 import type { WebApplication, WithContext } from "schema-dts";
 import "../styles/globals.css";
-import { PostHogPageview, PostHogProvider } from "@/providers/PostHogProvider";
 import { env } from "@/env";
 import { GlobalProviders } from "@/providers/GlobalProviders";
-import { UTM } from "@/app/utm";
 import { startupImage } from "@/app/startup-image";
 import { Toaster } from "@/components/Toast";
-import {
-  CookieConsentBanner,
-  WithCookieConsent,
-} from "@/components/CookieConsent";
+import { CookieConsentBanner } from "@/components/CookieConsent";
 import {
   BRAND_ICON_URL,
   BRAND_NAME,
@@ -42,7 +31,7 @@ const geist = Geist({
 
 const title = `${BRAND_NAME} | 智能整理邮件，轻松管理收件箱`;
 const description =
-  "十组邮件小助手，提供智能邮件分类、回复草稿、批量退订、归档、日历和邮件统计。";
+  "十组邮件小助手，提供智能邮件分类、回复草稿、批量退订、归档、日历、会议和附件处理。";
 
 const indexingAllowed = isIndexingAllowed(env.NEXT_PUBLIC_BASE_URL);
 
@@ -55,24 +44,13 @@ const jsonLd: WithContext<WebApplication> = {
   description,
   applicationCategory: "ProductivityApplication",
   operatingSystem: "Web Browser",
-  offers: {
-    "@type": "Offer",
-    price: "20.00",
-    priceCurrency: "USD",
-    priceSpecification: {
-      "@type": "UnitPriceSpecification",
-      price: 20,
-      priceCurrency: "USD",
-      billingDuration: "P1M",
-    },
-    availability: "https://schema.org/InStock",
-  },
+  ...{},
   featureList: [
     "智能邮件助手",
     "邮件自动化",
     "批量退订",
     "陌生邮件拦截",
-    "邮件统计",
+    "会议记录",
     "订阅邮件管理",
   ],
   publisher: {
@@ -151,46 +129,19 @@ export default async function RootLayout({
         className={`h-full ${env.NEXT_PUBLIC_USE_AEONIK_FONT ? aeonikFont.variable : ""} ${geist.variable} font-sans antialiased`}
       >
         <script
-          // Marks the Mac Electron shell before paint so traffic-light
-          // insets apply without a logo flash. Harmless in the browser.
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: static UA check, no user input
-          dangerouslySetInnerHTML={{
-            __html:
-              'if(window.inboxZeroDesktop&&/Mac/i.test(navigator.userAgent))document.documentElement.dataset.macDesktop=""',
-          }}
-        />
-        <script
           type="application/ld+json"
           // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON.stringify on controlled object is safe
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(jsonLd),
           }}
         />
-        <PostHogProvider>
-          <Suspense>
-            <PostHogPageview />
-          </Suspense>
-          <GlobalProviders>
-            {children}
-            <Toaster />
-          </GlobalProviders>
-        </PostHogProvider>
-        <Analytics />
+        <GlobalProviders>
+          {children}
+          <Toaster />
+        </GlobalProviders>
+
         <AxiomWebVitals />
-        <UTM />
-        <SpeedInsights />
-        <WithCookieConsent>
-          {env.NEXT_PUBLIC_DUB_REFER_DOMAIN && (
-            <DubAnalytics
-              apiHost="/_proxy/dub"
-              scriptProps={{ src: "/_proxy/dub/script.js" }}
-              domainsConfig={{ refer: env.NEXT_PUBLIC_DUB_REFER_DOMAIN }}
-            />
-          )}
-          {env.NEXT_PUBLIC_GTM_ID ? (
-            <GoogleTagManager gtmId={env.NEXT_PUBLIC_GTM_ID} />
-          ) : null}
-        </WithCookieConsent>
+
         <CookieConsentBanner />
       </body>
     </html>

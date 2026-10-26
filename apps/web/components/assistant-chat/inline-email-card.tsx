@@ -248,9 +248,7 @@ export function InlineEmailList({ children }: { children?: ReactNode }) {
         <div className="my-2 overflow-hidden rounded-lg border bg-card shadow-sm">
           {threadIds.length > 0 && (
             <div className="flex items-center justify-end gap-1 border-b px-3 py-1.5">
-              <Tooltip
-                content={archiveAllDone ? "全部已归档" : "全部归档"}
-              >
+              <Tooltip content={archiveAllDone ? "全部已归档" : "全部归档"}>
                 <Button
                   variant="ghost"
                   size="iconXs"

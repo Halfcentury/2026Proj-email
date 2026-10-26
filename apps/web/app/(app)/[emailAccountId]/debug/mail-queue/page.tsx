@@ -82,9 +82,7 @@ function MailQueue({ emailAccountId }: { emailAccountId: string }) {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link href={prefixPath(emailAccountId, "/debug")}>
-              返回调试
-            </Link>
+            <Link href={prefixPath(emailAccountId, "/debug")}>返回调试</Link>
           </Button>
           <Button
             variant="outline"
@@ -141,8 +139,7 @@ function MailQueue({ emailAccountId }: { emailAccountId: string }) {
                 <CardContent className="space-y-2 text-sm">
                   <p>{coverageLabel(data.coverage)}</p>
                   <p className="text-muted-foreground">
-                    最后完成同步：{" "}
-                    {formatTime(data.lastCompletedSyncAtMs)}
+                    最后完成同步： {formatTime(data.lastCompletedSyncAtMs)}
                   </p>
                 </CardContent>
               </Card>
@@ -312,8 +309,7 @@ function connectionLabel(
   online: boolean,
 ) {
   if (connection === "blocked_auth") return "重新连接账户";
-  if (connection === "offline" || !online)
-    return "当前离线，操作等待网络恢复";
+  if (connection === "offline" || !online) return "当前离线，操作等待网络恢复";
   return "在线";
 }
 

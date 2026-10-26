@@ -51,8 +51,7 @@ export const usersRolesInfo: Record<
       },
       {
         label: "重要联系人",
-        description:
-          "重要合作伙伴、客户及贵宾往来邮件",
+        description: "重要合作伙伴、客户及贵宾往来邮件",
       },
     ],
   },

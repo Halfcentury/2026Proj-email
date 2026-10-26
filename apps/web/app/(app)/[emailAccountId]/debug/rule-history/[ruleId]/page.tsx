@@ -65,9 +65,7 @@ export default async function RuleHistoryPage(props: {
     <div className="container mx-auto p-4">
       <PageHeading>规则历史： {rule.name}</PageHeading>
       {ruleHistory.length === 0 ? (
-        <p className="mt-4 text-muted-foreground">
-          此规则暂无历史记录。
-        </p>
+        <p className="mt-4 text-muted-foreground">此规则暂无历史记录。</p>
       ) : (
         <div className="mt-6 space-y-4">
           {ruleHistory.map((history) => (

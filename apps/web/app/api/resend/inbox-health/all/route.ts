@@ -10,7 +10,7 @@ import {
 import { Frequency } from "@/generated/prisma/enums";
 import { captureException } from "@/utils/error";
 import type { Logger } from "@/utils/logger";
-import { getPremiumUserFilter } from "@/utils/premium";
+import { getPremiumUserFilter } from "@/utils/feature-access";
 import type { SendInboxHealthEmailBody } from "../validation";
 import {
   INBOX_HEALTH_INTERVAL_DAYS,

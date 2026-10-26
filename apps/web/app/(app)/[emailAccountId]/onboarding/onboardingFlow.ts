@@ -1,8 +1,7 @@
 import { prefixPath } from "@/utils/path";
 import { ActionType, SystemType } from "@/generated/prisma/enums";
-import { CHECKOUT_RETURN_TO_PARAM } from "@/utils/actions/premium.validation";
 
-export const PAYWALL_FIRST_UPGRADE_PATH = `/welcome-upgrade?${CHECKOUT_RETURN_TO_PARAM}=onboarding`;
+export const PAYWALL_FIRST_UPGRADE_PATH = "/mail";
 
 export const STEP_KEYS = {
   CHAT: "chat",

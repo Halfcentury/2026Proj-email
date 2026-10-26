@@ -34,7 +34,9 @@ export function LearnedPatternsSetting() {
             <DialogHeader>
               <DialogTitle>已学习的规律</DialogTitle>
               <DialogDescription>
-                AI 会在处理邮件时学习哪些发件人或邮件类型经常匹配同一规则。例如，newsletter@example.com 的邮件始终匹配“订阅邮件”规则。这些规律有助于更快、更准确地处理邮件，你可以查看、编辑或删除它们。
+                AI
+                会在处理邮件时学习哪些发件人或邮件类型经常匹配同一规则。例如，newsletter@example.com
+                的邮件始终匹配“订阅邮件”规则。这些规律有助于更快、更准确地处理邮件，你可以查看、编辑或删除它们。
               </DialogDescription>
             </DialogHeader>
             <div className="min-w-0 overflow-y-auto">

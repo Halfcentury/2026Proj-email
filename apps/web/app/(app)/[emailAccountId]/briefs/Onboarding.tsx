@@ -45,9 +45,7 @@ export function BriefsOnboarding({
     >
       {hasCalendarConnected ? (
         <>
-          <MessageText>
-            配置完成！启用会前简报即可开始：
-          </MessageText>
+          <MessageText>配置完成！启用会前简报即可开始：</MessageText>
           <Button onClick={onEnable} loading={isEnabling}>
             启用会前简报
           </Button>

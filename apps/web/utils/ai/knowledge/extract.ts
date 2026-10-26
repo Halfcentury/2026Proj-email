@@ -1,3 +1,7 @@
+import {
+  resolveKnowledgeSources,
+  formatKnowledgeSources,
+} from "@/utils/ai/email-workspace/context-sources";
 import { z } from "zod";
 import type { Logger } from "@/utils/logger";
 import type { Knowledge } from "@/generated/prisma/client";
@@ -22,7 +26,9 @@ Your task:
 6. If no relevant information is found in the knowledge base, return an empty string for 'relevantContent'.
 
 Keep the extracted content concise (max 2000 characters) but include all crucial information.
-Format your response as a JSON object with two fields:
+Include sources as an array of {knowledgeId, quote}. Copy each quote exactly from the specified knowledge entry. Use only IDs in the supplied knowledge base. Do not cite email text as a knowledge source.
+
+Format your response as a JSON object:
 - relevantContent: A string containing the extracted, relevant information from the knowledge base.
 - explanation: A brief string explaining why this information is relevant.
 
@@ -46,7 +52,7 @@ const getUserPrompt = ({
   emailAccount: EmailAccountWithAI;
 }) => {
   const knowledgeBaseText = knowledgeBase
-    .map((k) => `Title: ${k.title}\nContent: ${k.content}`)
+    .map((k) => `ID: ${k.id}\nTitle: ${k.title}\nContent: ${k.content}`)
     .join("\n\n");
 
   return `<email>
@@ -63,6 +69,9 @@ Extract the most relevant information FROM THE KNOWLEDGE BASE for drafting a res
 };
 
 const extractionSchema = z.object({
+  sources: z
+    .array(z.object({ knowledgeId: z.string(), quote: z.string() }))
+    .default([]),
   relevantContent: z
     .string()
     .describe("Extracted relevant information from the knowledge base."),
@@ -77,11 +86,13 @@ export async function aiExtractRelevantKnowledge({
   emailContent,
   emailAccount,
   logger,
+  onError,
 }: {
   knowledgeBase: Knowledge[];
   emailContent: string;
   emailAccount: EmailAccountWithAI;
   logger: Logger;
+  onError?: () => void;
 }): Promise<ExtractedKnowledge | null> {
   try {
     if (!knowledgeBase.length) return null;
@@ -107,8 +118,25 @@ export async function aiExtractRelevantKnowledge({
       schema: extractionSchema,
     });
 
-    return result.object;
+    const sources = resolveKnowledgeSources({
+      emailAccountId: emailAccount.id,
+      knowledge: knowledgeBase,
+      citations: result.object.sources ?? [],
+    });
+    if (result.object.relevantContent?.trim() && !sources.length) {
+      onError?.();
+      logger.warn("Knowledge extraction returned no verifiable citations");
+    }
+    return {
+      ...result.object,
+      relevantContent: formatKnowledgeSources(sources),
+      sources: sources.map((source) => ({
+        knowledgeId: source.recordId,
+        quote: source.excerpt,
+      })),
+    };
   } catch (error) {
+    onError?.();
     logger.error("Failed to extract knowledge", { error });
     return null;
   }

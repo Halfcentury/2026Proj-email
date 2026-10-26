@@ -41,12 +41,12 @@ import {
 } from "@/utils/ai/choose-rule/selection-metadata-summary";
 import { useRules } from "@/hooks/useRules";
 import { useInfiniteMessages } from "@/hooks/useMessages";
-import { usePremium } from "@/hooks/usePremium";
-import { hasTierAccess } from "@/utils/premium";
+import { usePremium } from "@/hooks/useFeatureAccess";
+import { hasTierAccess } from "@/utils/feature-access";
 import {
   RERUN_MINIMUM_TIER,
   RERUN_UPGRADE_MESSAGE,
-} from "@/utils/premium/rerun";
+} from "@/utils/feature-access";
 import { Tooltip } from "@/components/Tooltip";
 
 type Message = MessagesResponse["messages"][number];

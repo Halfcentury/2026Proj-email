@@ -9,8 +9,26 @@ import {
   markdownResponse,
 } from "@/utils/agent-markdown/content";
 import { BRAND_NAME, SUPPORT_EMAIL } from "@/utils/branding";
+import { COURSE_MODE, isProductPathEnabled } from "@/utils/product-scope";
 
 export function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  if (!isProductPathEnabled(pathname)) {
+    if (
+      pathname.startsWith("/api/") ||
+      pathname.startsWith("/ingest") ||
+      pathname.startsWith("/_proxy/")
+    ) {
+      return NextResponse.json(
+        { error: "此功能不在当前项目范围内" },
+        { status: 404 },
+      );
+    }
+    return NextResponse.redirect(new URL("/mail", request.url));
+  }
+  if (COURSE_MODE && pathname === "/") {
+    return NextResponse.redirect(new URL("/mail", request.url));
+  }
   if (isNextInternalRequest(request)) {
     return withVaryAccept(NextResponse.next());
   }
@@ -36,7 +54,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/pricing"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)",
+  ],
 };
 
 function isNextInternalRequest(request: NextRequest): boolean {

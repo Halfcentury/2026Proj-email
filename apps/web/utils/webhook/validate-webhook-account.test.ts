@@ -11,7 +11,7 @@ import { createTestLogger } from "@/__tests__/helpers";
 
 const logger = createTestLogger();
 
-vi.mock("@/utils/premium");
+vi.mock("@/utils/feature-access");
 vi.mock("@/app/api/watch/controller");
 vi.mock("@/utils/email/provider");
 vi.mock("@/utils/email/watch-manager");
@@ -24,7 +24,7 @@ vi.mock("@/utils/log-error-with-dedupe", () => ({
   logErrorWithDedupe: vi.fn(),
 }));
 
-import { hasAiAccess, isPremiumRecord } from "@/utils/premium";
+import { hasAiAccess, isPremiumRecord } from "@/utils/feature-access";
 import { unwatchEmails } from "@/utils/email/watch-manager";
 import { createEmailProvider } from "@/utils/email/provider";
 import { logErrorWithDedupe } from "@/utils/log-error-with-dedupe";

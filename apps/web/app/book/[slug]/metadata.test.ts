@@ -87,7 +87,9 @@ describe("booking link metadata", () => {
       hostName: null,
     };
 
-    expect(buildBookingLinkTitle(bookingLink)).toBe("Intro call | 十组邮件小助手");
+    expect(buildBookingLinkTitle(bookingLink)).toBe(
+      "Intro call | 十组邮件小助手",
+    );
     expect(buildBookingLinkDescription(bookingLink)).toBe("30 min meeting");
   });
 });

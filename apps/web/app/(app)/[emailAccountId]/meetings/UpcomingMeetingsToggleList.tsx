@@ -9,7 +9,6 @@ import { toastError } from "@/components/Toast";
 import { Toggle } from "@/components/Toggle";
 import { TypographyH3 } from "@/components/Typography";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { UpgradeToPlusButton } from "@/components/UpgradeToPlusButton";
 import {
   Empty,
   EmptyHeader,
@@ -21,7 +20,6 @@ import type { GetMeetingRecorderUpcomingResponse } from "@/app/api/user/meeting-
 import { MeetingListItem } from "@/app/(app)/[emailAccountId]/meetings/MeetingListItem";
 import { MEETING_DETAIL_STATUSES } from "@/utils/meeting-recorder/recording-lifecycle";
 import { useMeetingRecorderUpcoming } from "@/hooks/useMeetingRecorder";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { setMeetingJoinOverrideAction } from "@/utils/actions/meeting-recorder";
 import { getActionErrorMessage } from "@/utils/error";
 
@@ -34,7 +32,6 @@ export function UpcomingMeetingsToggleList({
   emailAccountId: string;
   onOpenMeeting: (meetingId: string) => void;
 }) {
-  const analytics = useProductAnalytics();
   const { data, isLoading, error, mutate } =
     useMeetingRecorderUpcoming(emailAccountId);
   const [pendingEventId, setPendingEventId] = useState<string | null>(null);
@@ -57,9 +54,6 @@ export function UpcomingMeetingsToggleList({
   );
 
   const toggleEvent = (event: UpcomingEvent, join: boolean) => {
-    analytics.captureAction("meeting_recorder_join_override_toggled", {
-      join,
-    });
     setPendingEventId(event.id);
     execute({ join, calendarEventId: event.id });
   };
@@ -81,7 +75,7 @@ export function UpcomingMeetingsToggleList({
             <AlertTitle>会议记录需要进阶版</AlertTitle>
             <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
               升级后可自动录制会议并生成摘要。
-              <UpgradeToPlusButton tooltip="升级进阶版后可录制会议并生成摘要。" />
+              {null}
             </AlertDescription>
           </Alert>
         )}

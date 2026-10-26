@@ -65,11 +65,13 @@ export async function aiExtractFromEmailHistory({
   historicalMessages,
   emailAccount,
   logger,
+  onError,
 }: {
   currentThreadMessages: EmailForLLM[];
   historicalMessages: EmailForLLM[];
   emailAccount: EmailAccountWithAI;
   logger: Logger;
+  onError?: () => void;
 }): Promise<string | null> {
   try {
     logger.info("Extracting information from email history", {
@@ -106,6 +108,7 @@ export async function aiExtractFromEmailHistory({
 
     return result.object.summary;
   } catch (error) {
+    onError?.();
     logger.error("Failed to extract information from email history", { error });
     return null;
   }

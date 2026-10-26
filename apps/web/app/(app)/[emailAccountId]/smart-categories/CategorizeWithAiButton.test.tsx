@@ -45,11 +45,11 @@ vi.mock("@/components/PremiumAlert", () => ({
   PremiumTooltip: ({ children }: { children: ReactNode }) => children,
 }));
 
-vi.mock("@/hooks/usePremium", () => ({
+vi.mock("@/hooks/useFeatureAccess", () => ({
   usePremium: () => ({ hasAiAccess: true }),
 }));
 
-vi.mock("@/app/(app)/premium/PremiumModal", () => ({
+vi.mock("@/hooks/useFeatureAccess", () => ({
   usePremiumModal: () => ({
     PremiumModal: () => null,
     openModal: vi.fn(),

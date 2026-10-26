@@ -5,14 +5,14 @@ import { EmailSendOperationStatus } from "@/generated/prisma/enums";
 import { createScopedLogger } from "@/utils/logger";
 import { SafeError } from "@/utils/error";
 import { executeDurableEmailSend } from "./durable-email-send";
-import type { sendHtmlEmailWithOpenTracking } from "./sent-message-open/sent-message-open.server";
+import type { sendHtmlEmail } from "./send-html";
 
 vi.mock("@/utils/prisma");
-vi.mock("@/utils/email/sent-message-open/sent-message-open.server", () => ({
-  sendHtmlEmailWithOpenTracking: ({
+vi.mock("@/utils/email/send-html", () => ({
+  sendHtmlEmail: ({
     email,
     emailProvider,
-  }: Parameters<typeof sendHtmlEmailWithOpenTracking>[0]) =>
+  }: Parameters<typeof sendHtmlEmail>[0]) =>
     emailProvider.sendEmailWithHtml(email),
 }));
 

@@ -79,9 +79,9 @@ test("saves a closed new message with attachments in Drafts and discards it from
   await page.getByRole("button", { name: "返回收件箱" }).click();
   await page.reload();
   await page.getByRole("button", { name: /写邮件/ }).click();
-  await expect(
-    dialog.getByRole("textbox", { name: "邮件内容" }),
-  ).toContainText("A saved example message.");
+  await expect(dialog.getByRole("textbox", { name: "邮件内容" })).toContainText(
+    "A saved example message.",
+  );
   await expect(dialog.getByRole("list", { name: "附件" })).toContainText(
     "example.txt",
   );

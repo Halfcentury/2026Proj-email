@@ -24,5 +24,6 @@ export const selectedAttachmentSchema = z.object({
   filename: z.string(),
   mimeType: z.string(),
   reason: z.string().nullish(),
+  sourceExcerpt: z.string().optional(),
 });
 export type SelectedAttachment = z.infer<typeof selectedAttachmentSchema>;

@@ -1,5 +1,6 @@
 "use client";
 
+import { isProductPathEnabled } from "@/utils/product-scope";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -65,9 +66,7 @@ import { useAccount } from "@/providers/EmailAccountProvider";
 import { prefixPath } from "@/utils/path";
 import { isGoogleProvider } from "@/utils/email/provider-types";
 import { NavUser } from "@/components/NavUser";
-import { PremiumCard } from "@/components/PremiumCard";
 import { FeedbackSidebarButton } from "@/components/FeedbackDialog";
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
 
 type NavItem = {
   name: string;
@@ -86,131 +85,125 @@ export const useNavigation = () => {
   const showMeetingBriefs = useMeetingBriefsEnabled();
   const showMeetingRecorder = useMeetingRecorderEnabled();
   const showIntegrations = useIntegrationsEnabled();
-  const [isDesktopApp, setIsDesktopApp] = useState(false);
-
-  useEffect(() => {
-    setIsDesktopApp(Boolean(getInboxZeroDesktopApp()));
-  }, []);
 
   const { emailAccount, emailAccountId, provider } = useAccount();
   const currentEmailAccountId = emailAccount?.id || emailAccountId;
 
   const manageItems: NavItem[] = useMemo(
-    () => [
-      ...(isDesktopApp
-        ? [
-            {
-              name: "收件箱",
-              href: prefixPath(currentEmailAccountId, "/mail"),
-              icon: InboxIcon,
-            },
-          ]
-        : []),
-      {
-        name: "对话",
-        href: prefixPath(currentEmailAccountId, "/assistant"),
-        icon: MessageSquareIcon,
-      },
-      {
-        name: "智能助手",
-        href: prefixPath(currentEmailAccountId, "/automation"),
-        icon: SparklesIcon,
-      },
-      {
-        name: "消息渠道",
-        href: prefixPath(currentEmailAccountId, "/channels"),
-        icon: MessagesSquareIcon,
-      },
-      ...(showMeetingRecorder
-        ? [
-            {
-              name: "会议",
-              href: prefixPath(currentEmailAccountId, "/meetings"),
-              icon: MicIcon,
-            },
-          ]
-        : []),
-    ],
-    [currentEmailAccountId, isDesktopApp, showMeetingRecorder],
+    () =>
+      [
+        {
+          name: "收件箱",
+          href: prefixPath(currentEmailAccountId, "/mail"),
+          icon: InboxIcon,
+        },
+        {
+          name: "对话",
+          href: prefixPath(currentEmailAccountId, "/assistant"),
+          icon: MessageSquareIcon,
+        },
+        {
+          name: "自动化",
+          href: prefixPath(currentEmailAccountId, "/automation"),
+          icon: SparklesIcon,
+        },
+        {
+          name: "消息渠道",
+          href: prefixPath(currentEmailAccountId, "/channels"),
+          icon: MessagesSquareIcon,
+        },
+        ...(showMeetingRecorder
+          ? [
+              {
+                name: "会议",
+                href: prefixPath(currentEmailAccountId, "/meetings"),
+                icon: MicIcon,
+              },
+            ]
+          : []),
+      ].filter((item) => isProductPathEnabled(item.href)),
+    [currentEmailAccountId, showMeetingRecorder],
   );
 
   const cleanupItems: NavItem[] = useMemo(
-    () => [
-      {
-        name: "邮件整理",
-        href: prefixPath(currentEmailAccountId, "/mail-triage"),
-        icon: InboxIcon,
-      },
-      {
-        name: "批量退订",
-        href: prefixPath(currentEmailAccountId, "/bulk-unsubscribe"),
-        icon: MailsIcon,
-      },
-      {
-        name: "批量归档",
-        href: prefixPath(currentEmailAccountId, "/bulk-archive"),
-        icon: ArchiveIcon,
-      },
-      {
-        name: "统计分析",
-        href: prefixPath(currentEmailAccountId, "/stats"),
-        icon: BarChartBigIcon,
-      },
-      ...(isGoogleProvider(provider) && showCleaner
-        ? [
-            {
-              name: "深度整理",
-              href: prefixPath(currentEmailAccountId, "/clean"),
-              icon: BrushIcon,
-              beta: true,
-            },
-          ]
-        : []),
-    ],
+    () =>
+      [
+        {
+          name: "邮件整理",
+          href: prefixPath(currentEmailAccountId, "/mail-triage"),
+          icon: InboxIcon,
+        },
+        {
+          name: "批量退订",
+          href: prefixPath(currentEmailAccountId, "/bulk-unsubscribe"),
+          icon: MailsIcon,
+        },
+        {
+          name: "批量归档",
+          href: prefixPath(currentEmailAccountId, "/bulk-archive"),
+          icon: ArchiveIcon,
+        },
+        {
+          name: "统计分析",
+          href: prefixPath(currentEmailAccountId, "/stats"),
+          icon: BarChartBigIcon,
+        },
+        ...(isGoogleProvider(provider) && showCleaner
+          ? [
+              {
+                name: "深度整理",
+                href: prefixPath(currentEmailAccountId, "/clean"),
+                icon: BrushIcon,
+                beta: true,
+              },
+            ]
+          : []),
+      ].filter((item) => isProductPathEnabled(item.href)),
     [currentEmailAccountId, provider, showCleaner],
   );
 
   const moreItems: NavItem[] = useMemo(
-    () => [
-      {
-        name: "日历",
-        href: prefixPath(currentEmailAccountId, "/calendars"),
-        icon: CalendarIcon,
-      },
-      ...(showMeetingBriefs
-        ? [
-            {
-              name: "会前简报",
-              href: prefixPath(currentEmailAccountId, "/briefs"),
-              icon: FileTextIcon,
-            },
-          ]
-        : []),
-      ...(env.NEXT_PUBLIC_SMART_FILING_ENABLED === false
-        ? []
-        : [
-            {
-              name: "附件",
-              href: prefixPath(currentEmailAccountId, "/drive"),
-              icon: HardDriveIcon,
-              new: false,
-            },
-          ]),
-      ...(showIntegrations
-        ? [
-            {
-              name: "集成",
-              href: prefixPath(currentEmailAccountId, "/integrations"),
-              icon: ZapIcon,
-            },
-          ]
-        : []),
-    ],
+    () =>
+      [
+        {
+          name: "日历",
+          href: prefixPath(currentEmailAccountId, "/calendars"),
+          icon: CalendarIcon,
+        },
+        ...(showMeetingBriefs
+          ? [
+              {
+                name: "会前简报",
+                href: prefixPath(currentEmailAccountId, "/briefs"),
+                icon: FileTextIcon,
+              },
+            ]
+          : []),
+        ...(env.NEXT_PUBLIC_SMART_FILING_ENABLED === false
+          ? []
+          : [
+              {
+                name: "附件",
+                href: prefixPath(currentEmailAccountId, "/drive"),
+                icon: HardDriveIcon,
+                new: false,
+              },
+            ]),
+        ...(showIntegrations
+          ? [
+              {
+                name: "集成",
+                href: prefixPath(currentEmailAccountId, "/integrations"),
+                icon: ZapIcon,
+              },
+            ]
+          : []),
+      ].filter((item) => isProductPathEnabled(item.href)),
     [currentEmailAccountId, showMeetingBriefs, showIntegrations],
   );
 
   return {
-    homeHref: prefixPath(currentEmailAccountId, "/automation"),
+    homeHref: prefixPath(currentEmailAccountId, "/mail"),
     manageItems,
     cleanupItems,
     moreItems,
@@ -361,8 +354,6 @@ export function SideNav({
           )}
         </SidebarGroupContent>
       </SidebarContent>
-
-      <PremiumCard isCollapsed={!state.includes("left-sidebar")} />
 
       <SidebarFooter className="pb-4">
         <SideNavMenu items={visibleBottomLinks} activeHref={path} />

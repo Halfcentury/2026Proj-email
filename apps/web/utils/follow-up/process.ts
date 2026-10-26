@@ -1,5 +1,5 @@
 import prisma from "@/utils/prisma";
-import { getPremiumUserFilter } from "@/utils/premium";
+import { getPremiumUserFilter } from "@/utils/feature-access";
 import { createEmailProvider } from "@/utils/email/provider";
 import {
   applyFollowUpLabel,

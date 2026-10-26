@@ -30,9 +30,7 @@ export default async function ReviewSignInPage(props: {
     <div className="flex min-h-screen flex-col justify-center bg-background text-foreground">
       <main className="mx-auto flex w-full max-w-sm flex-col gap-6 px-6 py-12">
         <div className="flex flex-col text-center">
-          <h1 className="font-title text-2xl text-foreground">
-            审核登录
-          </h1>
+          <h1 className="font-title text-2xl text-foreground">审核登录</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             请输入审核凭据，提供方： {BRAND_NAME}.
           </p>

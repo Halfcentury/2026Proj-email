@@ -31,8 +31,7 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)(
         maxResults: 5,
       });
       const securityMessage = result.messages.find(
-        (message) =>
-          message.subject === "Root MFA disabled on production account",
+        (message) => message.subject === "生产账户的根用户多重身份验证已停用",
       );
 
       expect(securityMessage).toBeDefined();
@@ -44,12 +43,8 @@ describe.skipIf(!RUN_INTEGRATION_TESTS)(
         securityMessage!.id,
       );
 
-      expect(fullMessage.subject).toBe(
-        "Root MFA disabled on production account",
-      );
-      expect(fullMessage.textPlain).toContain(
-        "root multi-factor authentication was disabled",
-      );
+      expect(fullMessage.subject).toBe("生产账户的根用户多重身份验证已停用");
+      expect(fullMessage.textPlain).toContain("已停用根用户多重身份验证");
     });
   },
 );

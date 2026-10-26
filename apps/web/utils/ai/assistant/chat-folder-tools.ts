@@ -8,7 +8,6 @@ import {
   type OutlookFolder,
 } from "@/utils/outlook/folders";
 import { findFolderMatch } from "@/utils/outlook/search-scope";
-import { posthogCaptureEvent } from "@/utils/posthog";
 
 type FolderToolOptions = {
   email: string;
@@ -261,5 +260,5 @@ async function trackToolCall({
   logger: Logger;
 }) {
   logger.trace("Tracking tool call", { tool, email });
-  return posthogCaptureEvent(email, "AI Assistant Chat Tool Call", { tool });
+  return;
 }

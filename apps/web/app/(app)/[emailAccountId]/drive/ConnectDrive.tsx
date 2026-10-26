@@ -152,9 +152,7 @@ export function ConnectDrive() {
             <div className="flex items-center justify-between gap-4 rounded-md border p-3">
               <div>
                 <p className="text-sm font-medium">完整访问</p>
-                <p className="text-xs text-muted-foreground">
-                  使用已有文件夹
-                </p>
+                <p className="text-xs text-muted-foreground">使用已有文件夹</p>
               </div>
               <Button
                 size="sm"

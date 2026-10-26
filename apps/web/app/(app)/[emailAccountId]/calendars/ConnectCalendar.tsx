@@ -9,7 +9,6 @@ import { captureException } from "@/utils/error";
 import type { GetCalendarAuthUrlResponse } from "@/app/api/google/calendar/auth-url/route";
 import { fetchWithAccount } from "@/utils/fetch";
 import { CALENDAR_ONBOARDING_RETURN_COOKIE } from "@/utils/calendar/constants";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import type { AppPage } from "@/utils/analytics/product";
 import { redirectToSafeUrl } from "@/utils/redirect";
 
@@ -21,7 +20,7 @@ export function ConnectCalendar({
   onboardingReturnPath?: string;
 }) {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics(analyticsPage);
+
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [isConnectingMicrosoft, setIsConnectingMicrosoft] = useState(false);
 
@@ -32,10 +31,6 @@ export function ConnectCalendar({
   };
 
   const handleConnectGoogle = async () => {
-    analytics.captureAction("calendar_connect_started", {
-      provider: "google",
-      has_onboarding_return_path: Boolean(onboardingReturnPath),
-    });
     setIsConnectingGoogle(true);
     try {
       const response = await fetchWithAccount({
@@ -52,9 +47,6 @@ export function ConnectCalendar({
       setOnboardingReturnCookie();
       redirectToSafeUrl(data.url, { allowExternal: true });
     } catch (error) {
-      analytics.captureAction("calendar_connect_start_failed", {
-        provider: "google",
-      });
       captureException(error, {
         extra: { context: "Google Calendar OAuth initiation" },
       });
@@ -67,10 +59,6 @@ export function ConnectCalendar({
   };
 
   const handleConnectMicrosoft = async () => {
-    analytics.captureAction("calendar_connect_started", {
-      provider: "microsoft",
-      has_onboarding_return_path: Boolean(onboardingReturnPath),
-    });
     setIsConnectingMicrosoft(true);
     try {
       const response = await fetchWithAccount({
@@ -87,9 +75,6 @@ export function ConnectCalendar({
       setOnboardingReturnCookie();
       redirectToSafeUrl(data.url, { allowExternal: true });
     } catch (error) {
-      analytics.captureAction("calendar_connect_start_failed", {
-        provider: "microsoft",
-      });
       captureException(error, {
         extra: { context: "Microsoft Calendar OAuth initiation" },
       });

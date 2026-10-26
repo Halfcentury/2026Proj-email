@@ -12,6 +12,24 @@ import {
 
 const RULE_ACTION_FEATURE_GATES = [
   {
+    type: ActionType.DRAFT_MESSAGING_CHANNEL,
+    isEnabled: () => false,
+    disabledMessage: "当前项目不启用消息渠道",
+    allowExistingOnUpdate: false,
+  },
+  {
+    type: ActionType.NOTIFY_MESSAGING_CHANNEL,
+    isEnabled: () => false,
+    disabledMessage: "当前项目不启用消息渠道",
+    allowExistingOnUpdate: false,
+  },
+  {
+    type: ActionType.INTEGRATION,
+    isEnabled: () => false,
+    disabledMessage: "当前项目不启用外部集成",
+    allowExistingOnUpdate: false,
+  },
+  {
     type: ActionType.CALL_WEBHOOK,
     isEnabled: isWebhookActionEnabled,
     disabledMessage: WEBHOOK_ACTION_DISABLED_MESSAGE,

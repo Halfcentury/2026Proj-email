@@ -163,7 +163,7 @@ export async function ensureTestPremium(userId: string): Promise<void> {
   logStep("Ensuring premium status", { userId });
 
   // Import dynamically to avoid circular dependency issues
-  const { upgradeToPremiumLemon } = await import("@/utils/premium/server");
+  const { upgradeToPremiumLemon } = await import("@/utils/feature-access");
   const { PremiumTier } = await import("@/generated/prisma/enums");
 
   // Clear any existing aiApiKey to use env defaults

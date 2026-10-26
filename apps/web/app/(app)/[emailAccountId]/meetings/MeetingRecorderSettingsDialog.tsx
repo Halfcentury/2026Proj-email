@@ -18,7 +18,6 @@ import {
   useMeetingRecorderSettings,
   useMeetingRecorderUpcoming,
 } from "@/hooks/useMeetingRecorder";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { getActionErrorMessage } from "@/utils/error";
 import { updateMeetingRecorderSettingsAction } from "@/utils/actions/meeting-recorder";
 import type { UpdateMeetingRecorderSettingsBody } from "@/utils/actions/meeting-recorder.validation";
@@ -33,7 +32,6 @@ export function MeetingRecorderSettingsDialog({
   open: boolean;
   onClose: () => void;
 }) {
-  const analytics = useProductAnalytics();
   // Only mounted inside the page's `settings.enabled` branch, so the settings
   // are already loaded and SWR serves them from cache.
   const { data, mutate } = useMeetingRecorderSettings(emailAccountId);
@@ -81,10 +79,6 @@ export function MeetingRecorderSettingsDialog({
                 ariaLabel="参加的会议范围"
                 value={data.joinRule}
                 onChange={(joinRule) => {
-                  analytics.captureAction("meeting_recorder_setting_changed", {
-                    setting: "join_rule",
-                    value: joinRule,
-                  });
                   save({ joinRule });
                 }}
                 options={JOIN_RULE_OPTIONS}
@@ -101,10 +95,6 @@ export function MeetingRecorderSettingsDialog({
                   ariaLabel="通过邮件发送笔记"
                   enabled={data.recapEmailEnabled}
                   onChange={(recapEmailEnabled) => {
-                    analytics.captureAction(
-                      "meeting_recorder_setting_changed",
-                      { setting: "recap_email", value: recapEmailEnabled },
-                    );
                     save({ recapEmailEnabled });
                   }}
                 />
@@ -119,13 +109,6 @@ export function MeetingRecorderSettingsDialog({
                   ariaLabel="起草跟进邮件"
                   enabled={data.followUpDraftEnabled}
                   onChange={(followUpDraftEnabled) => {
-                    analytics.captureAction(
-                      "meeting_recorder_setting_changed",
-                      {
-                        setting: "follow_up_draft",
-                        value: followUpDraftEnabled,
-                      },
-                    );
                     save({ followUpDraftEnabled });
                   }}
                 />
@@ -137,7 +120,6 @@ export function MeetingRecorderSettingsDialog({
               <Button
                 variant="outline"
                 onClick={() => {
-                  analytics.captureAction("meeting_recorder_disabled");
                   save({ enabled: false });
                   onClose();
                 }}

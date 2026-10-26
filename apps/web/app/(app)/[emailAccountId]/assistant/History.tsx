@@ -145,9 +145,7 @@ function HistoryThread({
             <Button
               variant="ghost"
               size="iconSm"
-              aria-label={
-                expanded ? "收起会话" : "展开会话"
-              }
+              aria-label={expanded ? "收起会话" : "展开会话"}
               aria-expanded={expanded}
               onClick={() => setExpanded((value) => !value)}
             >
@@ -342,9 +340,7 @@ function EmailCell({
     );
   }
 
-  return (
-    <span className="text-sm text-muted-foreground">邮件不可用</span>
-  );
+  return <span className="text-sm text-muted-foreground">邮件不可用</span>;
 }
 
 function RuleCell({

@@ -1,7 +1,7 @@
 import { sanitizeMailHtml } from "@inboxzero/mail-ui/sanitize-html";
 import { env } from "@/env";
 import { getImageProxyBaseUrl } from "@/utils/email/image-proxy-config";
-import { stripSentMessageOpenPixels } from "@/utils/email/sent-message-open/sent-message-open";
+import { stripSentMessageOpenPixels } from "@/utils/email/legacy-open-pixels";
 
 export const IMAGE_PROXY_BASE_URL = getImageProxyBaseUrl({
   baseUrl: env.NEXT_PUBLIC_BASE_URL,

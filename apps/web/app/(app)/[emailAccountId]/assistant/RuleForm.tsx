@@ -10,7 +10,6 @@ import {
 import { useRouter } from "next/navigation";
 import { type SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { usePostHog } from "posthog-js/react";
 import { env } from "@/env";
 import { isDeleteEmailActionEnabled } from "@/utils/delete-email-action";
 import { PencilIcon, TrashIcon, InboxIcon, ZapIcon } from "lucide-react";
@@ -48,22 +47,7 @@ import { useFolders } from "@/hooks/useFolders";
 import { isConversationStatusType } from "@/utils/reply-tracker/conversation-status-config";
 import { RuleSectionCard } from "@/app/(app)/[emailAccountId]/assistant/RuleSectionCard";
 import { ConditionSteps } from "@/app/(app)/[emailAccountId]/assistant/ConditionSteps";
-import {
-  ActionSteps,
-  formatMessagingDestinationLabel,
-} from "@/app/(app)/[emailAccountId]/assistant/ActionSteps";
-import Link from "next/link";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getMessagingProviderName } from "@/utils/messaging/platforms";
+import { ActionSteps } from "@/app/(app)/[emailAccountId]/assistant/ActionSteps";
 import { RuleLoader } from "@/app/(app)/[emailAccountId]/assistant/RuleLoader";
 import {
   getAvailableActionsForRuleEditor,
@@ -71,13 +55,10 @@ import {
 } from "@/utils/ai/rule/action-availability";
 import { handleRuleAttachmentSourceSave } from "@/utils/attachments/rule";
 import type { AttachmentSourceInput } from "@/utils/attachments/source-schema";
-import type { GetMessagingChannelsResponse } from "@/app/api/user/messaging-channels/route";
-import { usePremium } from "@/hooks/usePremium";
-import { hasTierAccess } from "@/utils/premium";
-import { shouldIncludeDigestAction } from "@/utils/premium/digest";
-import { UpgradeToPlusButton } from "@/components/UpgradeToPlusButton";
+import { usePremium } from "@/hooks/useFeatureAccess";
+import { hasTierAccess } from "@/utils/feature-access";
+import { shouldIncludeDigestAction } from "@/utils/feature-access";
 import { useIntegrationActionsEnabled } from "@/hooks/useFeatureFlags";
-import { getConnectedRuleNotificationChannels } from "@/utils/messaging/routes";
 import { isDraftReplyActionType } from "@/utils/actions/draft-reply";
 import {
   buildPersistedRuleActions,
@@ -182,7 +163,6 @@ export function RuleForm({
   const { folders, isLoading: foldersLoading } = useFolders(provider);
   const router = useRouter();
 
-  const posthog = usePostHog();
   const [attachmentSources, setAttachmentSources] = useState<
     AttachmentSourceInput[]
   >(
@@ -250,18 +230,12 @@ export function RuleForm({
             attachmentSources,
             shouldSave: hasDraftAction,
             successMessage: "已保存！",
-            partialErrorMessage:
-              "规则已保存，但未能更新草稿附件来源。",
+            partialErrorMessage: "规则已保存，但未能更新草稿附件来源。",
           });
 
           // Revalidate to get the real data from server
           if (mutate) mutate();
-          posthog.capture("User updated AI rule", {
-            conditions: data.conditions.map((condition) => condition.type),
-            actions: actionsToSubmit.map((action) => action.type),
-            runOnThreads: data.runOnThreads,
-            digest: data.digest,
-          });
+
           if (isDialog && onSuccess) {
             onSuccess();
           } else {
@@ -288,16 +262,9 @@ export function RuleForm({
             attachmentSources,
             shouldSave: hasDraftAction,
             successMessage: "已创建！",
-            partialErrorMessage:
-              "规则已创建，但未能保存草稿附件来源。",
+            partialErrorMessage: "规则已创建，但未能保存草稿附件来源。",
           });
 
-          posthog.capture("User created AI rule", {
-            conditions: data.conditions.map((condition) => condition.type),
-            actions: actionsToSubmit.map((action) => action.type),
-            runOnThreads: data.runOnThreads,
-            digest: data.digest,
-          });
           if (isDialog && onSuccess) {
             onSuccess();
           } else {
@@ -312,7 +279,7 @@ export function RuleForm({
     [
       attachmentSources,
       router,
-      posthog,
+
       emailAccountId,
       isDialog,
       onSuccess,
@@ -547,27 +514,9 @@ export function RuleForm({
                           setValue("digest", enabled);
                         }}
                       />
-                    ) : (
-                      <UpgradeToPlusButton tooltip="升级进阶版后可将邮件纳入摘要。" />
-                    )}
+                    ) : null}
                   </AdvancedRow>
                 )}
-
-                <NotifyChannelRow
-                  channels={messagingChannelsData?.channels ?? []}
-                  availableProviders={
-                    messagingChannelsData?.availableProviders ?? []
-                  }
-                  emailAccountId={emailAccountId}
-                  value={watch("notifyMessagingChannelId") ?? null}
-                  onChange={(channelId) => {
-                    setValue("notifyMessagingChannelId", channelId);
-                  }}
-                  hasDraftToChat={watch("actions")?.some(
-                    (action) =>
-                      action.type === ActionType.DRAFT_MESSAGING_CHANNEL,
-                  )}
-                />
 
                 {!!rule.id && (
                   <AdvancedRow
@@ -591,10 +540,7 @@ export function RuleForm({
                 )}
 
                 {rule.id && !rule.systemType && (
-                  <AdvancedRow
-                    title="删除规则"
-                    description="永久删除此规则。"
-                  >
+                  <AdvancedRow title="删除规则" description="永久删除此规则。">
                     <Button
                       size="sm"
                       variant="outline"
@@ -602,9 +548,7 @@ export function RuleForm({
                       loading={isDeleting}
                       disabled={isSubmitting}
                       onClick={async () => {
-                        const yes = confirm(
-                          "确定删除此规则吗？",
-                        );
+                        const yes = confirm("确定删除此规则吗？");
                         if (yes) {
                           try {
                             setIsDeleting(true);
@@ -681,116 +625,6 @@ export function RuleForm({
 }
 
 const CONNECT_SENTINEL = "__connect__";
-
-function NotifyChannelRow({
-  channels,
-  availableProviders,
-  emailAccountId,
-  value,
-  onChange,
-  hasDraftToChat,
-}: {
-  channels: GetMessagingChannelsResponse["channels"];
-  availableProviders: GetMessagingChannelsResponse["availableProviders"];
-  emailAccountId: string;
-  value: string | null;
-  onChange: (channelId: string | null) => void;
-  hasDraftToChat?: boolean;
-}) {
-  const router = useRouter();
-  const connectedChannels = getConnectedRuleNotificationChannels(channels);
-  const hasChannels = connectedChannels.length > 0;
-  const canConnect = availableProviders.length > 0;
-
-  if (!hasChannels && !canConnect) return null;
-  const selectedChannelIsConnected =
-    !value || connectedChannels.some((channel) => channel.id === value);
-  const selectValue = selectedChannelIsConnected ? (value ?? "off") : "off";
-
-  const channelsPath = prefixPath(emailAccountId, "/channels");
-  const draftsNote = hasDraftToChat
-    ? "Drafts also go to chat — configured in actions above."
-    : undefined;
-
-  if (!hasChannels) {
-    return (
-      <AdvancedRow
-        title="发送聊天通知"
-        description="规则匹配时发送消息。"
-        note={draftsNote}
-      >
-        <Button asChild variant="outline" size="sm">
-          <Link href={channelsPath}>连接</Link>
-        </Button>
-      </AdvancedRow>
-    );
-  }
-
-  const channelsByProvider = new Map<
-    GetMessagingChannelsResponse["channels"][number]["provider"],
-    GetMessagingChannelsResponse["channels"]
-  >();
-  for (const channel of connectedChannels) {
-    const list = channelsByProvider.get(channel.provider) ?? [];
-    list.push(channel);
-    channelsByProvider.set(channel.provider, list);
-  }
-  const showGroups = channelsByProvider.size > 1;
-
-  return (
-    <AdvancedRow
-      title="发送聊天通知"
-      description="规则匹配时发送消息。"
-      note={draftsNote}
-    >
-      <Select
-        value={selectValue}
-        onValueChange={(next) => {
-          if (next === CONNECT_SENTINEL) {
-            router.push(channelsPath);
-            return;
-          }
-          onChange(next === "off" ? null : next);
-        }}
-      >
-        <SelectTrigger className="w-[220px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="off">关闭</SelectItem>
-          {showGroups
-            ? Array.from(channelsByProvider.entries()).map(
-                ([provider, providerChannels]) => (
-                  <SelectGroup key={provider}>
-                    <SelectLabel>
-                      {getMessagingProviderName(provider)}
-                    </SelectLabel>
-                    {providerChannels.map((channel) => (
-                      <SelectItem key={channel.id} value={channel.id}>
-                        {formatMessagingDestinationLabel(channel)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ),
-              )
-            : connectedChannels.map((channel) => (
-                <SelectItem key={channel.id} value={channel.id}>
-                  {formatMessagingDestinationLabel(channel)}
-                </SelectItem>
-              ))}
-          {canConnect ? (
-            <>
-              <SelectSeparator />
-              <SelectItem value={CONNECT_SENTINEL}>
-                + 连接新渠道
-              </SelectItem>
-            </>
-          ) : null}
-        </SelectContent>
-      </Select>
-    </AdvancedRow>
-  );
-}
 
 function AdvancedRow({
   title,

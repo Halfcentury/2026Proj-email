@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConnectCalendar } from "@/app/(app)/[emailAccountId]/calendars/ConnectCalendar";
 import { TypographyP } from "@/components/Typography";
 import { toastError } from "@/components/Toast";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 export function CalendarConnections() {
   useCalendarNotifications();
@@ -30,16 +29,12 @@ export function CalendarConnections() {
 
                 <TypographyP className="text-sm flex items-center gap-2">
                   <CalendarCheckIcon className="size-4 text-blue-600" />
-                  <span className="min-w-0">
-                    AI 根据实际空闲时间起草回复
-                  </span>
+                  <span className="min-w-0">AI 根据实际空闲时间起草回复</span>
                 </TypographyP>
 
                 <TypographyP className="text-sm flex items-center gap-2">
                   <FileTextIcon className="size-4 text-blue-600" />
-                  <span className="min-w-0">
-                    通话前获取会前简报
-                  </span>
+                  <span className="min-w-0">通话前获取会前简报</span>
                 </TypographyP>
               </div>
 
@@ -69,7 +64,6 @@ function useCalendarNotifications() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const analytics = useProductAnalytics("calendars");
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -92,33 +86,27 @@ function useCalendarNotifications() {
       },
       access_denied: {
         title: "日历访问被拒绝",
-        description:
-          "Microsoft 拒绝了请求。请重试或联系管理员批准访问。",
+        description: "Microsoft 拒绝了请求。请重试或联系管理员批准访问。",
       },
       invalid_state: {
         title: "日历请求无效",
-        description:
-          "日历授权请求无效，请重试。",
+        description: "日历授权请求无效，请重试。",
       },
       invalid_state_format: {
         title: "日历请求无效",
-        description:
-          "无法验证日历授权，请重试。",
+        description: "无法验证日历授权，请重试。",
       },
       missing_code: {
         title: "日历授权已取消",
-        description:
-          "未收到 Microsoft 授权码，请重新连接。",
+        description: "未收到 Microsoft 授权码，请重新连接。",
       },
       connection_failed: {
         title: "连接日历失败",
-        description:
-          "无法完成日历连接，请重试。",
+        description: "无法完成日历连接，请重试。",
       },
       oauth_error: {
         title: "连接日历失败",
-        description:
-          "Microsoft 返回 OAuth 错误，请重试或联系支持。",
+        description: "Microsoft 返回 OAuth 错误，请重试或联系支持。",
       },
     };
 
@@ -133,10 +121,7 @@ function useCalendarNotifications() {
       title: errorMessage.title,
       description: errorMessage.description,
     });
-    analytics.captureAction("calendar_connect_failed", {
-      error_code: errorParam,
-    });
 
     router.replace(pathname);
-  }, [analytics, pathname, router, searchParams]);
+  }, [pathname, router, searchParams]);
 }

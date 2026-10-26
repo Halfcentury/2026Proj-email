@@ -12,8 +12,7 @@ export default function ColdEmailBlockerPage() {
         title="陌生邮件拦截"
         video={{
           title: "陌生邮件拦截入门",
-          description:
-            "了解如何检查被拦截邮件、恢复发件人和设置处理方式。",
+          description: "了解如何检查被拦截邮件、恢复发件人和设置处理方式。",
           muxPlaybackId: "E29tx0001FmSQqASvIM7r87P9Pro3cq0202AiZ8rOKzsyJM",
         }}
       />

@@ -60,10 +60,6 @@ describe("updateEmailAccountRoleAction", () => {
         surveyRole: "Founder",
       },
     });
-    expect(updateContactRoleMock).toHaveBeenCalledWith({
-      email: "user@example.com",
-      role: "Founder",
-    });
   });
 
   it("can skip writing onboarding answers when another flow owns the transcript", async () => {
@@ -89,6 +85,5 @@ describe("updateEmailAccountRoleAction", () => {
     });
 
     expect(result?.serverError).toBeDefined();
-    expect(updateContactRoleMock).not.toHaveBeenCalled();
   });
 });

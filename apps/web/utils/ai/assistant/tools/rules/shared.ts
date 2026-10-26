@@ -5,8 +5,7 @@ import type {
   CreateOrUpdateRuleSchema,
   RuleActionFields,
 } from "@/utils/ai/rule/create-rule-schema";
-import { posthogCaptureEvent } from "@/utils/posthog";
-import { RULE_MANAGED_BY_ORGANIZATION_ERROR } from "@/utils/organizations/rules";
+import { RULE_MANAGED_BY_ORGANIZATION_ERROR } from "@/utils/rule/legacy-rule-guard";
 import { hideToolErrorFromUser } from "../../tool-error-visibility";
 import {
   type AssistantRuleSnapshot,
@@ -83,7 +82,7 @@ export async function trackRuleToolCall({
   logger: Logger;
 }) {
   logger.info("Tracking tool call", { tool, email });
-  return posthogCaptureEvent(email, "AI Assistant Chat Tool Call", { tool });
+  return;
 }
 
 export async function loadRuleSnapshotAfterWrite({

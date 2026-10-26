@@ -16,11 +16,7 @@ test("sends an autosaved reply using its stable mailbox draft reference", async 
   page,
 }, testInfo) => {
   const { conversations, emailAccountId } = await openMail(page);
-  await conversationWithSubject(
-    page,
-    conversations,
-    "Draft deletion example",
-  ).click();
+  await conversationWithSubject(page, conversations, "草稿删除示例").click();
   const editor = page.getByRole("textbox", { name: "邮件内容" }).first();
   await expect(editor).toBeVisible({ timeout: 60_000 });
   const saved = page.waitForResponse(async (response) => {
@@ -76,11 +72,7 @@ test("sends an autosaved reply using its stable mailbox draft reference", async 
   await expect(
     page.locator(`[data-thread-message-id="${sent[0].id}"]`),
   ).toBeVisible();
-  await expect(
-    page.getByRole("textbox", { name: "邮件内容" }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("回复发送失败", { exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "邮件内容" })).toBeVisible();
+  await expect(page.getByText("回复发送失败", { exact: true })).toHaveCount(0);
   await capturePlaywrightCheckpoint(page, testInfo, "autosaved-reply-sent");
 });

@@ -284,9 +284,7 @@ function ContextError() {
       <div className="font-medium text-foreground text-sm">
         无法加载公开背景信息
       </div>
-      <p className="mt-1 text-muted-foreground text-xs">
-        请关闭面板后重试。
-      </p>
+      <p className="mt-1 text-muted-foreground text-xs">请关闭面板后重试。</p>
     </div>
   );
 }

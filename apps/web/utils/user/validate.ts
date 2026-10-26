@@ -4,7 +4,7 @@ import {
   hasAiAccess,
   isPremiumRecord,
   premiumEntitlementSelect,
-} from "@/utils/premium";
+} from "@/utils/feature-access";
 import prisma from "@/utils/prisma";
 
 export async function validateUserAndAiAccess({

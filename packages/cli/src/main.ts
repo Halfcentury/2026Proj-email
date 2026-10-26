@@ -639,7 +639,6 @@ async function runSetupQuick(options: { name?: string }) {
     ...llmEnv,
     // App
     NEXT_PUBLIC_BASE_URL: `http://localhost:${webPort}`,
-    NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: "true",
   };
 
   env.DIRECT_URL = env.DATABASE_URL;
@@ -1171,7 +1170,6 @@ Full guide: https://docs.getinboxzero.com/self-hosting/microsoft-oauth`,
 
   // App config
   env.NEXT_PUBLIC_BASE_URL = `http://localhost:${webPort}`;
-  env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS = "true";
 
   spinner.stop("Configuration generated");
 
@@ -1488,7 +1486,9 @@ async function runStatus() {
   requireDocker();
 
   if (!existsSync(STANDALONE_COMPOSE_FILE)) {
-    p.log.error("十组邮件小助手 is not configured.\nRun 'inbox-zero setup' first.");
+    p.log.error(
+      "十组邮件小助手 is not configured.\nRun 'inbox-zero setup' first.",
+    );
     process.exit(1);
   }
 
@@ -1627,11 +1627,7 @@ const CONFIG_CATEGORIES: Record<
   },
   "App Settings": {
     description: "Application URL and feature flags",
-    keys: [
-      "NEXT_PUBLIC_BASE_URL",
-      "NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS",
-      "NEXT_PUBLIC_AI_MODEL_SETTINGS_DISABLED",
-    ],
+    keys: ["NEXT_PUBLIC_BASE_URL", "NEXT_PUBLIC_AI_MODEL_SETTINGS_DISABLED"],
   },
 };
 

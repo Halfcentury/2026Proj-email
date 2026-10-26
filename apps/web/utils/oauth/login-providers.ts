@@ -1,4 +1,3 @@
-import { env } from "@/env";
 import {
   hasAppleOauthConfig,
   hasGoogleOauthConfig,
@@ -19,7 +18,7 @@ export function getEnabledLoginProviders(
     hasGoogleConfig = hasGoogleOauthConfig(),
     hasMicrosoftConfig = hasMicrosoftOauthConfig(),
     hasAppleConfig = hasAppleOauthConfig(),
-    ssoLoginEnabled = env.SSO_LOGIN_ENABLED,
+    ssoLoginEnabled = false,
   } = inputs;
 
   const enabled = new Set<LoginProvider>();
@@ -32,9 +31,6 @@ export function getEnabledLoginProviders(
   }
   if (hasAppleConfig) {
     enabled.add("apple");
-  }
-  if (ssoLoginEnabled) {
-    enabled.add("sso");
   }
 
   return enabled;

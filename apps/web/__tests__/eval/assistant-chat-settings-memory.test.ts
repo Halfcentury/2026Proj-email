@@ -25,7 +25,7 @@ import {
 } from "@/__tests__/eval/assistant-chat-settings-memory.scenarios";
 import prisma from "@/utils/__mocks__/prisma";
 import { createScopedLogger } from "@/utils/logger";
-import { isActivePremium } from "@/utils/premium";
+import { isActivePremium } from "@/utils/feature-access";
 import { getUserPremium } from "@/utils/user/get";
 import type { getEmailAccount } from "@/__tests__/helpers";
 
@@ -57,7 +57,7 @@ const { mockPosthogCaptureEvent, mockRedis } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: mockPosthogCaptureEvent,
   getPosthogLlmClient: () => null,
 }));
@@ -67,8 +67,14 @@ vi.mock("@/utils/redis", () => ({
 }));
 
 vi.mock("@/utils/prisma");
-vi.mock("@/utils/premium", () => ({
-  isActivePremium: vi.fn(),
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      isActivePremium: vi.fn(),
+    },
+  },
 }));
 vi.mock("@/utils/user/get", () => ({
   getUserPremium: vi.fn(),

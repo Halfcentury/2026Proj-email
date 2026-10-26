@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Button as UIButton } from "@/components/ui/button";
@@ -11,17 +10,13 @@ import { signIn, signInWithSocialRedirect } from "@/utils/auth-client";
 import {
   getInboxZeroDesktopApp,
   type DesktopAuthProvider,
-} from "@/utils/desktop-app";
+} from "@/utils/browser-platform";
 import { WELCOME_PATH } from "@/utils/config";
 import { toastError } from "@/components/Toast";
 import { normalizeInternalPath } from "@/utils/path";
 import { buildRedirectUrl, redirectToSafeUrl } from "@/utils/redirect";
 import { createClientLogger } from "@/utils/logger-client";
 import type { LoginProvider } from "@/utils/oauth/login-providers";
-import {
-  trackAuthFailure,
-  trackAuthStarted,
-} from "@/utils/analytics/auth-funnel";
 
 const logger = createClientLogger("login/LoginForm");
 const CONNECT_MAILBOX_PATH = "/connect-mailbox";
@@ -35,7 +30,6 @@ export function LoginForm({
   useGoogleOauthEmulator: boolean;
   otherOptions?: boolean;
 }) {
-  const posthog = usePostHog();
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const { callbackURL, errorCallbackURL } = getAuthCallbackUrls(next);
@@ -57,7 +51,7 @@ export function LoginForm({
 
   const handleGoogleSignIn = async () => {
     setLoadingGoogle(true);
-    trackAuthStarted(posthog, "google");
+
     try {
       if (await startDesktopAuthIfAvailable("google", callbackURL)) {
         return;
@@ -80,11 +74,6 @@ export function LoginForm({
         });
       }
     } catch (error) {
-      trackAuthFailure(posthog, {
-        provider: "google",
-        stage: "start",
-        errorCode: getSignInErrorCode(error),
-      });
       const description = getSocialSignInErrorMessage(error);
       logger.error("Error signing in with Google", { error });
       toastError({
@@ -103,7 +92,6 @@ export function LoginForm({
       callbackURL,
       errorCallbackURL,
       setLoading: setLoadingMicrosoft,
-      posthog,
     });
   };
 
@@ -155,7 +143,6 @@ export function LoginForm({
               callbackURL: appleCallbackURL,
               errorCallbackURL,
               setLoading: setLoadingApple,
-              posthog,
             })
           }
         >
@@ -227,17 +214,15 @@ async function handleSocialSignIn({
   callbackURL,
   errorCallbackURL,
   setLoading,
-  posthog,
 }: {
   provider: "apple" | "google" | "microsoft";
   providerName: "Apple" | "Google" | "Microsoft";
   callbackURL: string;
   errorCallbackURL: string;
   setLoading: (loading: boolean) => void;
-  posthog: ReturnType<typeof usePostHog>;
 }) {
   setLoading(true);
-  trackAuthStarted(posthog, provider);
+
   try {
     if (await startDesktopAuthIfAvailable(provider, callbackURL)) {
       return;
@@ -248,11 +233,6 @@ async function handleSocialSignIn({
       callbackURL,
     });
   } catch (error) {
-    trackAuthFailure(posthog, {
-      provider,
-      stage: "start",
-      errorCode: getSignInErrorCode(error),
-    });
     const description = getSocialSignInErrorMessage(error);
     logger.error(`Error signing in with ${providerName}`, { error });
     toastError({
@@ -274,12 +254,6 @@ function getSocialSignInErrorMessage(error: unknown) {
   }
 
   return "请重试或联系支持。";
-}
-
-function getSignInErrorCode(error: unknown) {
-  return error instanceof Error && isNetworkSignInError(error.message)
-    ? "network_error"
-    : "client_error";
 }
 
 function isNetworkSignInError(message: string) {

@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  updateMcpServerAccessAction,
   createApiKeyAction,
   deactivateApiKeyAction,
-  revokeMcpConnectionAction,
 } from "@/utils/actions/api-key";
 import prisma from "@/utils/__mocks__/prisma";
 
@@ -75,70 +73,4 @@ describe("API key actions", () => {
     );
     expect(prisma.apiKey.update).not.toHaveBeenCalled();
   });
-});
-
-it("revokes grants and advances the token version when MCP is disabled", async () => {
-  currentSession.emailOtp = false;
-  prisma.$transaction.mockResolvedValue([]);
-  const result = await updateMcpServerAccessAction({ enabled: false });
-  expect(result?.data).toEqual({ enabled: false });
-  expect(prisma.user.update).toHaveBeenCalledWith({
-    where: { id: "user-1" },
-    data: { mcpServerEnabled: false, mcpTokenVersion: { increment: 1 } },
-  });
-  expect(prisma.oauthConsent.deleteMany).toHaveBeenCalledWith({
-    where: { userId: "user-1" },
-  });
-  expect(prisma.oauthRefreshToken.deleteMany).toHaveBeenCalledWith({
-    where: { userId: "user-1" },
-  });
-  expect(prisma.oauthAccessToken.deleteMany).toHaveBeenCalledWith({
-    where: { userId: "user-1" },
-  });
-});
-
-it("blocks MCP enablement from an email code session", async () => {
-  vi.clearAllMocks();
-  currentSession.emailOtp = true;
-  const result = await updateMcpServerAccessAction({ enabled: true });
-  expect(result?.serverError).toContain("connected provider");
-  expect(prisma.user.update).not.toHaveBeenCalled();
-});
-
-it("allows revocation while the MCP server is unavailable", async () => {
-  vi.clearAllMocks();
-  currentSession.emailOtp = false;
-  mcpFlags.enabled = false;
-  try {
-    const result = await updateMcpServerAccessAction({ enabled: false });
-    expect(result?.data).toEqual({ enabled: false });
-    expect(prisma.oauthConsent.deleteMany).toHaveBeenCalled();
-    const enableResult = await updateMcpServerAccessAction({ enabled: true });
-    expect(enableResult?.serverError).toBe("MCP server is not enabled");
-  } finally {
-    mcpFlags.enabled = true;
-  }
-});
-
-it("revokes one MCP client without disabling MCP for the user", async () => {
-  vi.clearAllMocks();
-  currentSession.emailOtp = false;
-  prisma.oauthConsent.findFirst.mockResolvedValue({
-    clientId: "client-1",
-  } as never);
-  prisma.$transaction.mockResolvedValue([]);
-  const result = await revokeMcpConnectionAction({ clientId: "client-1" });
-  expect(result?.data).toEqual({ clientId: "client-1" });
-  expect(prisma.oauthAccessToken.deleteMany).toHaveBeenCalledWith({
-    where: { userId: "user-1", clientId: "client-1" },
-  });
-  expect(prisma.user.update).not.toHaveBeenCalled();
-});
-
-it("blocks MCP client disconnect from an email code session", async () => {
-  vi.clearAllMocks();
-  currentSession.emailOtp = true;
-  const result = await revokeMcpConnectionAction({ clientId: "client-1" });
-  expect(result?.serverError).toContain("connected provider");
-  expect(prisma.$transaction).not.toHaveBeenCalled();
 });

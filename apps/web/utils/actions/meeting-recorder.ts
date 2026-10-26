@@ -18,7 +18,7 @@ import {
   MEETING_RECORDER_MIN_TIER,
   RECONCILE_WINDOW_MINUTES,
 } from "@/utils/meeting-recorder/config";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 import {
   reconcileSingleEvent,
   releaseAccountBookings,

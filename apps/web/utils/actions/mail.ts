@@ -7,7 +7,7 @@ import { sendEmailBody } from "@/utils/types/mail";
 import { actionClient } from "@/utils/actions/safe-action";
 import { DraftNotFoundError, SafeError } from "@/utils/error";
 import { createEmailProvider } from "@/utils/email/provider";
-import { sendHtmlEmailWithOpenTracking } from "@/utils/email/sent-message-open/sent-message-open.server";
+import { sendHtmlEmail } from "@/utils/email/send-html";
 import {
   deleteMailboxItemBody,
   unarchiveThreadBody,
@@ -407,7 +407,7 @@ export const sendEmailAction = actionClient
         logger,
       });
 
-      const result = await sendHtmlEmailWithOpenTracking({
+      const result = await sendHtmlEmail({
         emailAccountId,
         email: parsedInput,
         emailProvider,

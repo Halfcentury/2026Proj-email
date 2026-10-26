@@ -85,8 +85,7 @@ const TestRulesForm = () => {
     formState: { errors, isSubmitting },
   } = useForm<TestRulesInputs>({
     defaultValues: {
-      message:
-        "你好，我经营一家开发公司，请问你们是否需要额外的开发支持？",
+      message: "你好，我经营一家开发公司，请问你们是否需要额外的开发支持？",
     },
   });
 

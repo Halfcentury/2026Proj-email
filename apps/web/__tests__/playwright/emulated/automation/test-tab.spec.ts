@@ -17,7 +17,7 @@ for (const custom of [false, true]) {
     }
     const scope = custom
       ? page.locator("form").filter({ has: page.locator("textarea") })
-      : page.getByRole("row").filter({ hasText: "Playwright Test Message" });
+      : page.getByRole("row").filter({ hasText: "邮件功能测试邮件" });
     const button = scope.getByRole("button", { name: "测试", exact: true });
     await expect(button).toBeVisible();
 
@@ -43,9 +43,7 @@ for (const custom of [false, true]) {
     await actionResponse;
     await expect(scope).toBeVisible();
     if (custom) {
-      await expect(
-        page.getByText("测试结果", { exact: true }),
-      ).toBeVisible();
+      await expect(page.getByText("测试结果", { exact: true })).toBeVisible();
     } else {
       await expect(
         scope.getByRole("button", { name: "重新测试", exact: true }),
@@ -70,12 +68,12 @@ test("preserves search, custom email, and Apply workspace state", async ({
     page.getByRole("button", { name: "测试", exact: true }),
   ).toHaveAttribute("data-selected", "true");
   const search = page.getByPlaceholder("搜索邮件…");
-  await search.fill("Playwright Test Message");
+  await search.fill("邮件功能测试邮件");
   await search.press("Enter");
   await expect(page).toHaveURL(
-    (url) => url.searchParams.get("search") === "Playwright Test Message",
+    (url) => url.searchParams.get("search") === "邮件功能测试邮件",
   );
-  await expect(search).toHaveValue("Playwright Test Message");
+  await expect(search).toHaveValue("邮件功能测试邮件");
 
   await page.getByRole("button", { name: "自定义" }).click();
   const customContent = page.getByPlaceholder(
@@ -104,7 +102,7 @@ test("preserves search, custom email, and Apply workspace state", async ({
 
   await page.reload();
   await expect(modeSwitch).toBeChecked();
-  await expect(search).toHaveValue("Playwright Test Message");
+  await expect(search).toHaveValue("邮件功能测试邮件");
   await expect(page.getByRole("button", { name: "对全部执行" })).toBeVisible({
     timeout: 60_000,
   });

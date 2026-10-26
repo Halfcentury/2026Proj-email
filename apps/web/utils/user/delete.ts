@@ -1,14 +1,8 @@
-import { deleteContact as deleteLoopsContact } from "@inboxzero/loops";
 import { deleteContact as deleteResendContact } from "@inboxzero/transactional-email";
 import { withThreadPageBufferDeletion } from "@/utils/redis/thread-page-buffer";
 import prisma from "@/utils/prisma";
 import { deleteTinybirdEmailData } from "@inboxzero/tinybird";
 import { after } from "next/server";
-import {
-  deletePosthogUser,
-  trackUserDeleted,
-  trackUserDeletionRequested,
-} from "@/utils/posthog";
 import { captureException, SafeError } from "@/utils/error";
 import { stopWatchingEmailAccount } from "@/utils/email/watch-manager";
 import type { Logger } from "@/utils/logger";
@@ -22,7 +16,7 @@ import {
   getDeleteSoloOrganizationsOperation,
   isMemberEmailAccountForeignKeyError,
   isOrganizationOwnerInvariantError,
-} from "@/utils/organizations/ownership";
+} from "@/utils/user/deletion-guards";
 
 export async function deleteUser({
   userId,
@@ -61,11 +55,6 @@ export async function deleteUser({
   logger.info("Deleting user resources");
 
   try {
-    await trackUserDeletionRequested(userId).catch((error) => {
-      logger.error("Error tracking user deletion request", { error });
-      captureException(error);
-    });
-
     clearCachedResearchForUser(userId).catch((error) => {
       logger.error("Error clearing cached research", { error });
       captureException(error);
@@ -110,8 +99,8 @@ export async function deleteUser({
 
       await Promise.allSettled(
         emailAccounts.flatMap(({ email }) => [
-          deleteLoopsContact(email),
-          deletePosthogUser({ email }),
+          undefined,
+          undefined,
           deleteResendContact({ email }),
         ]),
       );
@@ -180,9 +169,6 @@ async function deleteUserRows({
       prisma.user.deleteMany({ where: { id: userId } }),
     ]);
     await notifyConversations();
-
-    // PostHog tracks the completed delete after the database delete succeeds.
-    if (deletedUser.count > 0) await trackUserDeleted(userId);
   } catch (error) {
     if (
       isOrganizationOwnerInvariantError(error) ||

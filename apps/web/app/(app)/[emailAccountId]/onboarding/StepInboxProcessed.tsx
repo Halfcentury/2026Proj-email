@@ -8,7 +8,7 @@ import { ContinueButton } from "@/app/(app)/[emailAccountId]/onboarding/Continue
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailsSortedIllustration } from "@/app/(app)/[emailAccountId]/onboarding/illustrations/EmailsSortedIllustration";
 import { ONBOARDING_PROCESS_EMAILS_COUNT } from "@/utils/config";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/hooks/useFeatureAccess";
 import { Badge, type Color } from "@/components/Badge";
 import { getActionColor } from "@/components/PlanBadge";
 import { ActionType, SystemType } from "@/generated/prisma/enums";

@@ -3,12 +3,11 @@
 import { useCallback, useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { usePremiumModal } from "@/app/(app)/premium/PremiumModal";
+import { usePremiumModal } from "@/hooks/useFeatureAccess";
 import type { NewsletterStatsResponse } from "@/app/api/user/stats/newsletters/route";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/hooks/useFeatureAccess";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useArchiveSenderQueueActions } from "@/store/archive-sender-queue";
-import { decrementUnsubscribeCreditAction } from "@/utils/actions/premium";
 import {
   setSenderStatusAction,
   unsubscribeSenderAction,
@@ -127,10 +126,7 @@ export function useUnsubscribeSender(
       });
     } catch (error) {
       captureException(error);
-      toast.error(
-        `无法修改 ${senderName} 的自动归档设置`,
-        { id: toastId },
-      );
+      toast.error(`无法修改 ${senderName} 的自动归档设置`, { id: toastId });
       return;
     } finally {
       setIsUpdatingAutoArchive(false);
@@ -150,9 +146,6 @@ export function useUnsubscribeSender(
     // These follow-up tasks do not change the provider filter that was just
     // committed, so their failures must not report the enable as unsuccessful.
     queueArchiveSenders({ senders: [senderEmail] }).catch(captureException);
-    decrementUnsubscribeCreditAction()
-      .then(() => refetchPremium())
-      .catch(captureException);
   }, [
     canonicalSenderEmail,
     refetchSenderStats,
@@ -227,9 +220,6 @@ export function useUnsubscribeSender(
 
     // Metering happens after the fact, and neither half changes what the user
     // just saw: a failure here must not read as a failed unsubscribe.
-    decrementUnsubscribeCreditAction()
-      .then(() => refetchPremium())
-      .catch(() => {});
   }, [
     canUnsubscribe,
     isSenderStatsLoading,

@@ -36,7 +36,7 @@ export function SmartCategoriesOnboarding() {
           </CardBasic>
           <CardBasic className="flex items-center">
             <ZapIcon className="mr-3 h-5 w-5" />
-            使用分类优化智能助手
+            使用分类优化自动化
           </CardBasic>
         </div>
         <div>

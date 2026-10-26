@@ -33,8 +33,14 @@ vi.mock("@sentry/nextjs", () => import("@/__tests__/mocks/sentry-nextjs.mock"));
 vi.mock("@/utils/prisma");
 vi.mock("@/utils/auth", () => ({ auth: mockAuth }));
 vi.mock("@/env", () => ({ env: { NODE_ENV: "test" } }));
-vi.mock("@/utils/premium/server", () => ({
-  checkHasAccess: mockCheckHasAccess,
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      checkHasAccess: mockCheckHasAccess,
+    },
+  },
 }));
 vi.mock("@/utils/calendar/fetch-events-in-window", () => ({
   fetchCalendarEventsInWindow: mockFetchEvents,

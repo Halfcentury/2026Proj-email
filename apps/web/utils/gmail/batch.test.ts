@@ -32,6 +32,9 @@ describe("getBatch", () => {
       "access-token",
     );
 
+    expect(
+      () => new Headers(fetchMock.mock.calls[0]?.[1]?.headers),
+    ).not.toThrow();
     const requestBody = fetchMock.mock.calls[0]?.[1]?.body as string;
 
     expect(requestBody).toContain(

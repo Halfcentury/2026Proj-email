@@ -1,3 +1,4 @@
+import type { ContextSource } from "@/utils/ai/email-workspace/types";
 import { internalDateToDate } from "@/utils/date";
 import { extractEmailAddresses, isSameEmailAddress } from "@/utils/email";
 import type { EmailProvider } from "@/utils/email/types";
@@ -16,13 +17,19 @@ export async function collectSenderReplyExamples({
   senderEmail,
   currentMessageIds,
   logger,
+  onError,
 }: {
   emailAccount: EmailAccountWithAI;
   emailProvider: EmailProvider;
   senderEmail: string;
   currentMessageIds: Set<string>;
   logger: Logger;
-}): Promise<{ content: string; count: number } | null> {
+  onError?: () => void;
+}): Promise<{
+  content: string;
+  count: number;
+  sources?: ContextSource[];
+} | null> {
   if (!senderEmail) return null;
   if (isSameEmailAddress(senderEmail, emailAccount.email)) return null;
 
@@ -63,6 +70,22 @@ export async function collectSenderReplyExamples({
 
     return {
       count: sentReplies.length,
+      sources: sentReplies.map((message) => ({
+        id: `email:${message.id}`,
+        type: "email" as const,
+        recordId: message.id,
+        emailAccountId: emailAccount.id,
+        title: message.headers.subject,
+        excerpt: stringifyEmail(
+          getEmailForLLM(message, {
+            extractReply: true,
+            removeForwarded: true,
+          }),
+          REPLY_EXAMPLE_BODY_MAX_LENGTH,
+        ),
+        observedAt: internalDateToDate(message.internalDate).toISOString(),
+        href: `/${emailAccount.id}/mail?thread-id=${encodeURIComponent(message.threadId)}`,
+      })),
       content: sentReplies
         .map((message) => {
           const email = getEmailForLLM(message, {
@@ -75,6 +98,7 @@ export async function collectSenderReplyExamples({
         .join("\n\n"),
     };
   } catch (error) {
+    onError?.();
     logger.warn("Failed to collect same-sender reply examples", {
       error,
       senderEmail: normalizedSenderEmail,

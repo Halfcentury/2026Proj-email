@@ -24,17 +24,17 @@ test("preserves multiple server drafts without reply headers", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Multiple Server Drafts",
+    "同一邮件的多份服务端草稿",
   ).click();
   const editors = page.getByRole("textbox", { name: "邮件内容" });
   await expect(editors).toHaveCount(2);
-  await expect(editors.nth(0)).toContainText("First saved reply");
-  await expect(editors.nth(1)).toContainText("Second saved reply");
+  await expect(editors.nth(0)).toContainText("第一份已保存的回复");
+  await expect(editors.nth(1)).toContainText("第二份已保存的回复");
   await editors.nth(0).fill("Independent first edit");
   await expect(
-    page.getByText("First saved reply", { exact: true }),
+    page.getByText("第一份已保存的回复", { exact: true }),
   ).toHaveCount(0);
-  await expect(editors.nth(1)).toContainText("Second saved reply");
+  await expect(editors.nth(1)).toContainText("第二份已保存的回复");
   await capturePlaywrightCheckpoint(page, testInfo, "multiple-server-drafts");
 
   await page
@@ -43,7 +43,7 @@ test("preserves multiple server drafts without reply headers", async ({
     .click();
   await expect(editors).toHaveCount(3);
   await expect(editors.nth(0)).toContainText("Independent first edit");
-  await expect(editors.nth(1)).toContainText("Second saved reply");
+  await expect(editors.nth(1)).toContainText("第二份已保存的回复");
 
   const pendingDiscards = [
     Promise.withResolvers<void>(),
@@ -82,7 +82,7 @@ test("preserves multiple server drafts without reply headers", async ({
   pendingDiscards[1].resolve();
   await expect(editors).toHaveCount(3);
   await expect(editors.nth(0)).toContainText("Independent first edit");
-  await expect(editors.nth(1)).toContainText("Second saved reply");
+  await expect(editors.nth(1)).toContainText("第二份已保存的回复");
   await capturePlaywrightCheckpoint(page, testInfo, "restored-server-drafts");
 });
 
@@ -94,16 +94,16 @@ test("preserves multiple server drafts without a sent parent", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Drafts Without Parent",
+    "没有原邮件的多份草稿",
   ).click();
   const editors = page.getByRole("textbox", { name: "邮件内容" });
   await expect(editors).toHaveCount(2);
-  await expect(editors.nth(0)).toContainText("First saved reply");
-  await expect(editors.nth(1)).toContainText("Second saved reply");
+  await expect(editors.nth(0)).toContainText("第一份已保存的回复");
+  await expect(editors.nth(1)).toContainText("第二份已保存的回复");
   await editors.nth(0).fill("Independent first edit");
   await expect(
-    page.getByText("First saved reply", { exact: true }),
+    page.getByText("第一份已保存的回复", { exact: true }),
   ).toHaveCount(0);
-  await expect(editors.nth(1)).toContainText("Second saved reply");
+  await expect(editors.nth(1)).toContainText("第二份已保存的回复");
   await capturePlaywrightCheckpoint(page, testInfo, "draft-only-composers");
 });

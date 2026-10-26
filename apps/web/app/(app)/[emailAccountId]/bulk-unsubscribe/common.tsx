@@ -17,7 +17,6 @@ import {
   ThumbsUpIcon,
   TrashIcon,
 } from "lucide-react";
-import { type PostHog, usePostHog } from "posthog-js/react";
 import type { UserResponse } from "@/app/api/user/me/route";
 import { Button } from "@/components/ui/button";
 import { ButtonLoader } from "@/components/Loading";
@@ -38,7 +37,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { PremiumTooltip } from "@/components/PremiumAlert";
 import { NewsletterStatus } from "@/generated/prisma/enums";
 import { toastError, toastSuccess } from "@/components/Toast";
 import { createFilterAction, deleteFilterAction } from "@/utils/actions/mail";
@@ -89,8 +87,6 @@ export function ActionCell<T extends Row>({
   emailAccountId: string;
   filter: NewsletterFilterType;
 }) {
-  const posthog = usePostHog();
-
   const status = item.status ? senderStatusBadges[item.status] : undefined;
 
   return (
@@ -105,7 +101,6 @@ export function ActionCell<T extends Row>({
               item={item}
               hasUnsubscribeAccess={hasUnsubscribeAccess}
               mutate={mutate}
-              posthog={posthog}
               refetchPremium={refetchPremium}
               emailAccountId={emailAccountId}
             />
@@ -123,23 +118,10 @@ export function ActionCell<T extends Row>({
             item={item}
             hasUnsubscribeAccess={hasUnsubscribeAccess}
             mutate={mutate}
-            posthog={posthog}
             emailAccountId={emailAccountId}
             filter={filter}
           />
-          <PremiumTooltip
-            showTooltip={!hasUnsubscribeAccess}
-            openModal={openPremiumModal}
-          >
-            <UnsubscribeButton
-              item={item}
-              hasUnsubscribeAccess={hasUnsubscribeAccess}
-              mutate={mutate}
-              posthog={posthog}
-              refetchPremium={refetchPremium}
-              emailAccountId={emailAccountId}
-            />
-          </PremiumTooltip>
+          {null}
         </>
       )}
       <MoreDropdown
@@ -148,7 +130,6 @@ export function ActionCell<T extends Row>({
         userEmail={userEmail}
         emailAccountId={emailAccountId}
         labels={labels}
-        posthog={posthog}
         mutate={mutate}
         hasUnsubscribeAccess={hasUnsubscribeAccess}
         refetchPremium={refetchPremium}
@@ -163,7 +144,7 @@ function UnsubscribeButton<T extends Row>({
   item,
   hasUnsubscribeAccess,
   mutate,
-  posthog,
+
   refetchPremium,
   emailAccountId,
 }: {
@@ -171,7 +152,7 @@ function UnsubscribeButton<T extends Row>({
   hasUnsubscribeAccess: boolean;
   mutate: () => Promise<void>;
   refetchPremium: () => Promise<UserResponse | null | undefined>;
-  posthog: PostHog;
+
   emailAccountId: string;
 }) {
   const [resubscribeDialogOpen, setResubscribeDialogOpen] = useState(false);
@@ -185,7 +166,7 @@ function UnsubscribeButton<T extends Row>({
     item,
     hasUnsubscribeAccess,
     mutate,
-    posthog,
+
     refetchPremium,
     emailAccountId,
   });
@@ -257,9 +238,7 @@ function UnsubscribeButton<T extends Row>({
   return (
     <>
       {isBlock && hasUnsubscribeAccess ? (
-        <Tooltip content="无退订链接：后续邮件将自动归档">
-          {button}
-        </Tooltip>
+        <Tooltip content="无退订链接：后续邮件将自动归档">{button}</Tooltip>
       ) : (
         button
       )}
@@ -280,21 +259,21 @@ function ApproveButton<T extends Row>({
   item,
   hasUnsubscribeAccess,
   mutate,
-  posthog,
+
   emailAccountId,
   filter,
 }: {
   item: T;
   hasUnsubscribeAccess: boolean;
   mutate: () => Promise<void>;
-  posthog: PostHog;
+
   emailAccountId: string;
   filter: NewsletterFilterType;
 }) {
   const { onApprove } = useApproveButton({
     item,
     mutate,
-    posthog,
+
     emailAccountId,
     filter,
   });
@@ -364,7 +343,7 @@ export function MoreDropdown<T extends Row>({
   userEmail,
   emailAccountId,
   labels,
-  posthog,
+
   mutate,
   hasUnsubscribeAccess,
   refetchPremium,
@@ -376,7 +355,7 @@ export function MoreDropdown<T extends Row>({
   userEmail: string;
   emailAccountId: string;
   labels: EmailLabel[];
-  posthog: PostHog;
+
   mutate: () => Promise<unknown>;
   hasUnsubscribeAccess?: boolean;
   refetchPremium?: () => Promise<UserResponse | null | undefined>;
@@ -388,13 +367,12 @@ export function MoreDropdown<T extends Row>({
   const isMobile = useIsMobile();
   const [labelSheetOpen, setLabelSheetOpen] = useState(false);
   const { onBulkArchive, isBulkArchiving } = useBulkArchive({
-    posthog,
     emailAccountId,
     mutate,
   });
   const { onBulkDelete, isBulkDeleting } = useBulkDelete({
     mutate,
-    posthog,
+
     emailAccountId,
   });
   const { onBulkAutoArchive } = useBulkAutoArchive({
@@ -543,9 +521,7 @@ export function MoreDropdown<T extends Row>({
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={() => {
-              const yes = confirm(
-                `确定删除来自 ${item.name} 的全部邮件吗？`,
-              );
+              const yes = confirm(`确定删除来自 ${item.name} 的全部邮件吗？`);
               if (!yes) return;
 
               onBulkDelete([item]);

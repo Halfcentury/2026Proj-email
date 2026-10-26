@@ -13,12 +13,7 @@ import {
   syncReplyMemoriesFromDraftSendLogs,
 } from "@/utils/ai/reply/reply-memory";
 import { stripProviderSignatureFromParsedMessage } from "@/utils/email/signature-normalization";
-import {
-  replaceMessagingDraftNotificationsWithDraftSentState,
-  replaceMessagingDraftNotificationsWithHandledOnWebState,
-} from "@/utils/messaging/rule-notifications";
 import { emailToContentForAI } from "@/utils/ai/content-sanitizer";
-import { FIRST_TIME_EVENTS, trackFirstTimeEvent } from "@/utils/posthog";
 import { messageRepliesToSourceSender } from "@/utils/email";
 import { getDraftSendLogSimilarityFields } from "./draft-similarity";
 import { logReplyTrackerError } from "./error-logging";
@@ -165,10 +160,7 @@ export async function trackSentDraftStatus({
       executedActionId,
       sentMessageRepliesToSource,
     });
-    await replaceMessagingDraftNotificationsWithHandledOnWebState({
-      executedRuleId: executedAction.executedRuleId,
-      logger,
-    });
+
     if (sentMessageRepliesToSource !== false) {
       queueReplyMemoryLearning({
         emailAccountId,
@@ -225,21 +217,8 @@ export async function trackSentDraftStatus({
   );
 
   if (wasLikelyDraftSent) {
-    after(() =>
-      trackFirstTimeEvent({
-        emailAccountId,
-        event: FIRST_TIME_EVENTS.FIRST_DRAFT_SENT,
-      }),
-    );
+    after(() => undefined);
   }
-
-  const replaceMessagingDraftNotifications = wasLikelyDraftSent
-    ? replaceMessagingDraftNotificationsWithDraftSentState
-    : replaceMessagingDraftNotificationsWithHandledOnWebState;
-  await replaceMessagingDraftNotifications({
-    executedRuleId: executedAction.executedRuleId,
-    logger,
-  });
 
   queueReplyMemoryLearning({
     emailAccountId,

@@ -14,9 +14,7 @@ export const Overview = ({
         <MessageCircleIcon size={32} />
       </p>
 
-      <TypographyH3 className="mt-8">
-        你好，我是你的邮件小助手！
-      </TypographyH3>
+      <TypographyH3 className="mt-8">你好，我是你的邮件小助手！</TypographyH3>
 
       <MessageText className="mt-4 text-base">
         告诉我如何处理你的新邮件

@@ -68,7 +68,7 @@ vi.mock("@/utils/user/get", () => ({
   getWritingStyle: vi.fn().mockResolvedValue(null),
 }));
 
-vi.mock("@/utils/ai/mcp/mcp-agent", () => ({
+vi.mock("@/utils/optional-features", () => ({
   mcpAgent: vi.fn().mockResolvedValue(null),
 }));
 
@@ -212,11 +212,6 @@ describe("fetchMessagesAndGenerateDraft - AI content escaping", () => {
     expect(result).toContain("&lt;div");
     expect(result).toContain("LEAKED SECRET DATA"); // Text should still be visible (escaped)
 
-    // Referral signature HTML should NOT be escaped - link should work
-    expect(result).toContain(
-      '<a href="https://getinboxzero.com/?ref=TEST123">十组邮件小助手</a>',
-    );
-
     // User signature HTML should NOT be escaped
     expect(result).toContain('<p style="color:blue">');
     expect(result).toContain("Best regards,<br>John</p>");
@@ -251,12 +246,14 @@ describe("fetchMessagesAndGenerateDraft - AI content escaping", () => {
       logger,
     );
 
-    expect(getReplyMemoriesForPrompt).toHaveBeenCalledWith({
-      emailAccount: expect.objectContaining({ id: "test-account-id" }),
-      senderEmail: "sender@example.com",
-      emailContent: expect.stringContaining("Hello, how are you?"),
-      logger,
-    });
+    expect(getReplyMemoriesForPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailAccount: expect.objectContaining({ id: "test-account-id" }),
+        senderEmail: "sender@example.com",
+        emailContent: expect.stringContaining("Hello, how are you?"),
+        logger,
+      }),
+    );
     expect(aiDraftReplyWithConfidence).toHaveBeenCalledWith(
       expect.objectContaining({
         replyMemoryContent:
@@ -417,31 +414,6 @@ describe("fetchMessagesAndGenerateDraft - AI content escaping", () => {
       expect.objectContaining({
         hasConfiguredSignature: true,
       }),
-    );
-  });
-
-  it("places the referral signature after the configured user signature", async () => {
-    vi.mocked(aiDraftReplyWithConfidence).mockResolvedValue({
-      reply: "What do you think about it?",
-      confidence: DraftReplyConfidence.HIGH_CONFIDENCE,
-    });
-    vi.mocked(prisma.emailAccount.findUnique).mockResolvedValue(
-      createMockEmailAccountSettings({
-        includeReferralSignature: true,
-        signature: "Cheers!<br>Barbara",
-      }),
-    );
-
-    const result = await fetchMessagesAndGenerateDraft(
-      createMockEmailAccount(),
-      "thread-1",
-      createMockClient(),
-      createMockMessage(),
-      logger,
-    );
-
-    expect(result).toBe(
-      'What do you think about it?\n\nCheers!<br>Barbara\n\nDrafted by <a href="https://getinboxzero.com/?ref=TEST123">十组邮件小助手</a>.',
     );
   });
 
@@ -804,6 +776,7 @@ describe("fetchMessagesAndGenerateDraftWithConfidenceThreshold", () => {
 
     expect(result).toEqual({
       draft: "Cached draft reply",
+      textDraft: "Cached draft reply",
       confidence: DraftReplyConfidence.STANDARD,
       attribution: {
         provider: "openai",
@@ -1104,3 +1077,54 @@ function createDraftContextMetadata(): DraftContextMetadata {
     attachments: { injected: false, selectedCount: 0 },
   };
 }
+
+describe("incoming attachment shared drafting", () => {
+  it("supplies the same actual attachment text to the draft model and source display", async () => {
+    const message = {
+      ...createMockMessage(),
+      attachments: [
+        {
+          attachmentId: "csv",
+          filename: "prices.csv",
+          mimeType: "text/csv",
+          size: 20,
+        },
+      ],
+    };
+    const client = {
+      ...createMockClient(),
+      getThreadMessages: vi.fn().mockResolvedValue([message]),
+      getAttachment: vi.fn().mockResolvedValue({
+        data: Buffer.from("product,price\nA,120").toString("base64"),
+        size: 20,
+      }),
+    };
+    vi.mocked(aiDraftReplyWithConfidence).mockResolvedValue({
+      reply: "A costs 120",
+      confidence: DraftReplyConfidence.ALL_EMAILS,
+      attribution: null,
+    } as any);
+    const result = await fetchMessagesAndGenerateDraftWithConfidenceThreshold(
+      createMockEmailAccount(),
+      "thread-1",
+      client,
+      undefined,
+      logger,
+      DraftReplyConfidence.ALL_EMAILS,
+      undefined,
+      { bypassCache: true },
+    );
+    expect(aiDraftReplyWithConfidence).toHaveBeenCalledWith(
+      expect.objectContaining({
+        incomingAttachmentContext: expect.stringContaining("A,120"),
+      }),
+    );
+    expect(result.draftContextMetadata?.sources).toContainEqual(
+      expect.objectContaining({
+        type: "attachment",
+        recordId: "csv",
+        excerpt: "product,price\nA,120",
+      }),
+    );
+  });
+});

@@ -8,7 +8,7 @@ import {
 import { createScopedLogger } from "@/utils/logger";
 import { convertMentionsToLabels } from "@/utils/mention";
 import { getModelForUseCase, LlmUseCase } from "@/utils/llms/use-cases";
-import { isIntegrationActionEnabledForUserId } from "@/utils/integration-action.server";
+import { isIntegrationActionEnabledForUserId } from "@/utils/optional-features";
 
 const logger = createScopedLogger("ai-prompt-to-rules");
 

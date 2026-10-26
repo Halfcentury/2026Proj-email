@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAction } from "next-safe-action/hooks";
@@ -16,8 +15,7 @@ import { LoadingContent } from "@/components/LoadingContent";
 import { useRules } from "@/hooks/useRules";
 import { useEmailAccountFull } from "@/hooks/useEmailAccountFull";
 import { MultiSelectFilter } from "@/components/MultiSelectFilter";
-import { prefixPath } from "@/utils/path";
-import { updateDigestEmailDeliveryAction } from "@/utils/actions/messaging-channels";
+import { updateDigestEmailDeliveryAction } from "@/utils/actions/email-delivery";
 import {
   updateDigestItemsAction,
   updateDigestScheduleAction,
@@ -463,18 +461,6 @@ function DigestDeliveryChannels({
         />
       </div>
       <DigestDeliveryActivity digestStatus={digestStatus} />
-      {showChannelsHint && (
-        <MutedText>
-          聊天投递：{" "}
-          <Link
-            href={prefixPath(emailAccountId, "/channels")}
-            className="text-foreground underline"
-          >
-            在消息渠道中配置
-          </Link>
-          .
-        </MutedText>
-      )}
     </div>
   );
 }

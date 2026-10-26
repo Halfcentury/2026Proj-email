@@ -20,7 +20,7 @@ import {
 
 vi.mock("@/utils/prisma");
 vi.mock("@/utils/email/provider");
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: vi.fn().mockResolvedValue(undefined),
 }));
 

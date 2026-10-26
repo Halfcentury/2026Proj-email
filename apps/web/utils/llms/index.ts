@@ -22,7 +22,6 @@ import {
   TypeValidationError,
 } from "ai";
 import type { LanguageModelV4 } from "@ai-sdk/provider";
-import { captureAiGeneration } from "@posthog/ai";
 import { jsonrepair } from "jsonrepair";
 import { saveAiUsage } from "@/utils/usage";
 import type { EmailAccountWithAI, UserAIFields } from "@/utils/llms/types";
@@ -70,7 +69,6 @@ import {
   OLLAMA_STRUCTURED_OUTPUT_GUIDANCE,
 } from "@/utils/llms/ollama-guidance";
 import { createScopedLogger } from "@/utils/logger";
-import { getPosthogLlmClient, isPosthogLlmEvalApproved } from "@/utils/posthog";
 import {
   applyPromptHardeningToMessages,
   applyPromptHardeningToSystem,
@@ -2034,122 +2032,11 @@ function buildLlmTelemetry({
   provider: string;
   modelName: string;
 }) {
-  const posthogClient = getPosthogLlmClient();
-  if (!posthogClient) return commonOptions.telemetry;
-
-  const llmEvalsEnabled = isPosthogLlmEvalApproved(userEmail);
-  let capturedInput: unknown;
-
-  return {
-    ...commonOptions.telemetry,
-    functionId: label,
-    recordInputs: llmEvalsEnabled,
-    recordOutputs: llmEvalsEnabled,
-    integrations: {
-      onStart(event: unknown) {
-        capturedInput = getTelemetryPrompt(event);
-      },
-      onEnd(event: unknown) {
-        return captureAiGeneration(posthogClient, {
-          distinctId: userEmail,
-          provider,
-          model: modelName,
-          input: capturedInput ?? null,
-          output: getTelemetryOutput(event),
-          usage: toPosthogTokenUsage(event),
-          privacyMode: !llmEvalsEnabled,
-          stopReason: getTelemetryFinishReason(event),
-          properties: {
-            label,
-            $ai_span_name: label,
-            provider,
-            model: modelName,
-            emailAccountId,
-            llmEvalsEnabled,
-            ...(userId ? { userId } : {}),
-          },
-          onError: (error) => {
-            logger.error("Failed to capture PostHog AI generation", {
-              error,
-              label,
-            });
-          },
-        });
-      },
-    },
-  };
-}
-
-function getTelemetryPrompt(event: unknown) {
-  const messages = getProperty(event, "messages");
-  const hasMessages = Array.isArray(messages) && messages.length > 0;
-  const instructions =
-    getProperty(event, "instructions") ?? getProperty(event, "system");
-  const hasInstructions =
-    typeof instructions === "string" && instructions.length > 0;
-  const prompt = getProperty(event, "prompt");
-  const hasPrompt = typeof prompt === "string" && prompt.length > 0;
-
-  if (hasMessages && hasInstructions) {
-    return { instructions, messages };
-  }
-  if (hasMessages) return messages;
-  if (hasPrompt) return prompt;
-  if (hasInstructions) return instructions;
-  return null;
-}
-
-function getTelemetryOutput(event: unknown) {
-  const object = getProperty(event, "object");
-  if (object != null) return object;
-
-  const text = getProperty(event, "text");
-  const hasText = typeof text === "string" && text.length > 0;
-  const toolCalls = getNonEmptyArrayProperty(event, "toolCalls");
-  const toolResults = getNonEmptyArrayProperty(event, "toolResults");
-  const content = getNonEmptyArrayProperty(event, "content");
-
-  if (toolCalls || toolResults || content) {
-    return {
-      ...(hasText ? { text } : {}),
-      ...(toolCalls ? { toolCalls } : {}),
-      ...(toolResults ? { toolResults } : {}),
-      ...(content ? { content } : {}),
-    };
-  }
-
-  return hasText ? text : null;
+  return commonOptions.telemetry;
 }
 
 function getNonEmptyArrayProperty(event: unknown, key: string) {
   const value = getProperty(event, key);
   if (!Array.isArray(value) || value.length === 0) return;
   return value;
-}
-
-function getTelemetryFinishReason(event: unknown) {
-  const finishReason = getProperty(event, "finishReason");
-  return typeof finishReason === "string" ? finishReason : undefined;
-}
-
-function toPosthogTokenUsage(event: unknown) {
-  const usage = getObjectProperty(event, "usage");
-  if (!usage) return;
-
-  return {
-    inputTokens: getFiniteNumber(getProperty(usage, "inputTokens")),
-    outputTokens: getFiniteNumber(getProperty(usage, "outputTokens")),
-    reasoningTokens: getFiniteNumber(
-      getProperty(
-        getObjectProperty(usage, "outputTokenDetails"),
-        "reasoningTokens",
-      ),
-    ),
-    cacheReadInputTokens: getFiniteNumber(
-      getProperty(
-        getObjectProperty(usage, "inputTokenDetails"),
-        "cacheReadTokens",
-      ),
-    ),
-  };
 }

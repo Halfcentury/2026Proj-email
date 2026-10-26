@@ -189,9 +189,7 @@ export function ResultDisplayContent({ result }: { result: RunRulesResult }) {
       {(!!reasonDisplay.reason ||
         reasonDisplay.actionFailureMessages.length > 0) && (
         <div className="mt-4 space-y-2 bg-muted p-2 rounded-md">
-          <div className="font-medium text-sm">
-            选择此规则的原因：
-          </div>
+          <div className="font-medium text-sm">选择此规则的原因：</div>
           {!!reasonDisplay.reason && (
             <MessageText className="whitespace-pre-wrap break-words">
               {reasonDisplay.reason}

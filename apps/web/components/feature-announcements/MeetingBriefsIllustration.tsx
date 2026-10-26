@@ -92,7 +92,8 @@ export function MeetingBriefsIllustration() {
                   transition={{ duration: 0.31, ease: "easeOut" }}
                 >
                   <div className="text-[9px] text-gray-600 dark:text-gray-400">
-                    <span className="text-gray-400">-</span> Acme 公司负责人，2019 年加入
+                    <span className="text-gray-400">-</span> Acme
+                    公司负责人，2019 年加入
                   </div>
                   <div className="text-[9px] text-gray-600 dark:text-gray-400">
                     <span className="text-gray-400">-</span> 上次会面于三周前

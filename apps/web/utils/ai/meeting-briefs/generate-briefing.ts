@@ -19,7 +19,7 @@ import {
   setCachedResearch,
 } from "@/utils/redis/research-cache";
 import type { Logger } from "@/utils/logger";
-import { createMcpToolsForAgent } from "@/utils/ai/mcp/mcp-tools";
+import { createMcpToolsForAgent } from "@/utils/optional-features";
 import {
   getWebSearchConfigForProvider,
   type WebSearchConfig,

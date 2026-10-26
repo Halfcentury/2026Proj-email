@@ -158,7 +158,7 @@ async function up({ foreground, integrationTests, ownerToken }) {
       );
     }
     start(
-      integrationTests ? process.execPath : "pnpm",
+      process.execPath,
       integrationTests
         ? [
             "scripts/emulator/provider.mjs",
@@ -168,23 +168,16 @@ async function up({ foreground, integrationTests, ownerToken }) {
             seedPath,
           ]
         : [
-            "exec",
-            "emulate",
-            "start",
-            "--service",
+            "scripts/emulator/provider.mjs",
             "google",
-            "--port",
             String(ports.google),
-            "--base-url",
-            googleBaseUrl,
-            "--seed",
             seedPath,
           ],
       env,
       path.join(runDir, "google.log"),
     );
     start(
-      integrationTests ? process.execPath : "pnpm",
+      process.execPath,
       integrationTests
         ? [
             "scripts/emulator/provider.mjs",
@@ -194,16 +187,9 @@ async function up({ foreground, integrationTests, ownerToken }) {
             seedPath,
           ]
         : [
-            "exec",
-            "emulate",
-            "start",
-            "--service",
+            "scripts/emulator/provider.mjs",
             "microsoft",
-            "--port",
             String(ports.microsoft),
-            "--base-url",
-            microsoftBaseUrl,
-            "--seed",
             seedPath,
           ],
       env,
@@ -443,8 +429,6 @@ function appEnv({
     QSTASH_NEXT_SIGNING_KEY: "",
     RESEND_API_KEY: "",
     LOOPS_API_SECRET: "",
-    STRIPE_SECRET_KEY: "",
-    STRIPE_WEBHOOK_SECRET: "",
     NEXT_PUBLIC_EMAIL_SEND_ENABLED: "true",
     CRON_SECRET: "local-emulator-cron",
     APPLE_IAP_LOCAL_TESTING: "true",
@@ -458,7 +442,6 @@ function appEnv({
     APNS_ENVIRONMENT: "sandbox",
     APNS_TOPIC: "com.getinboxzero.app",
     APNS_TEAM_ID: "Z46U4K6CNL",
-    NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: "",
     NEXT_PUBLIC_POSTHOG_KEY: "",
     NEXT_PUBLIC_POSTHOG_API_HOST: "",
   };

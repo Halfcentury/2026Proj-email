@@ -6,7 +6,7 @@ import { withEmailAccount } from "@/utils/middleware";
 import prisma from "@/utils/prisma";
 import { EMAIL_SEND_LIMITS, sendEmailBody } from "@/utils/types/mail";
 import { executeDurableEmailSend } from "@/utils/email/durable-email-send";
-import { sendHtmlEmailWithOpenTracking } from "@/utils/email/sent-message-open/sent-message-open.server";
+import { sendHtmlEmail } from "@/utils/email/send-html";
 import {
   DURABLE_MULTIPART_ATTACHMENT_LIMIT_MESSAGE,
   DURABLE_MULTIPART_EMAIL_SEND_LIMITS,
@@ -65,7 +65,7 @@ export const POST = withEmailAccount("messages/send", async (request) => {
   try {
     const { getEmailProvider } = await getProviderContext(request);
     const emailProvider = await getEmailProvider();
-    const result = await sendHtmlEmailWithOpenTracking({
+    const result = await sendHtmlEmail({
       emailAccountId: request.auth.emailAccountId,
       email: body,
       emailProvider,

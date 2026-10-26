@@ -9,7 +9,7 @@ import { getMockMessage } from "@/__tests__/helpers";
 import { aiGenerateMeetingBriefing } from "@/utils/ai/meeting-briefs/generate-briefing";
 import { createScopedLogger } from "@/utils/logger";
 
-vi.mock("@/utils/ai/mcp/mcp-tools", () => ({
+vi.mock("@/utils/optional-features", () => ({
   createMcpToolsForAgent: async () => ({ tools: {}, cleanup: async () => {} }),
 }));
 vi.mock("@/utils/ai/web-search", () => ({

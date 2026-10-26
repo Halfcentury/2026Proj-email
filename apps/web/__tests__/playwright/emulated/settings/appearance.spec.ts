@@ -40,9 +40,9 @@ test("persists the global appearance across reloads", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "设置", exact: true }),
   ).toBeVisible({ timeout: 60_000 });
-  await expect(
-    page.getByRole("switch", { name: "切换深色模式" }),
-  ).toBeChecked({ checked: enableDarkMode });
+  await expect(page.getByRole("switch", { name: "切换深色模式" })).toBeChecked({
+    checked: enableDarkMode,
+  });
   await expectThemeClass(page, enableDarkMode);
 });
 

@@ -5,7 +5,7 @@ import { createTestLogger } from "@/__tests__/helpers";
 import { updatePersonalInstructionsTool } from "./update-personal-instructions-tool";
 
 vi.mock("@/utils/prisma");
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: vi.fn().mockResolvedValue(undefined),
 }));
 

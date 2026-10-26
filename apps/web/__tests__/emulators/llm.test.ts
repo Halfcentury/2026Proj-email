@@ -82,12 +82,12 @@ describe("LLM emulator through the AI SDK", () => {
 
   it("answers plain and streamed chat with text", async () => {
     const plain = await generateText({ model: model(), prompt: "Hello" });
-    expect(plain.text).toBe("Emulated response.");
+    expect(plain.text).toBe("模拟回复。");
 
     const streamed = streamText({ model: model(), prompt: "Hello again" });
     let text = "";
     for await (const chunk of streamed.textStream) text += chunk;
-    expect(text).toBe("Emulated response.");
+    expect(text).toBe("模拟回复。");
     expect(await streamed.finishReason).toBe("stop");
   });
 
@@ -110,7 +110,7 @@ describe("LLM emulator through the AI SDK", () => {
     expect(result.toolCalls).toHaveLength(1);
     expect(result.toolCalls[0]).toMatchObject({
       toolName: "archive",
-      input: { threadId: "Emulated response", reason: null },
+      input: { threadId: "模拟回复", reason: null },
     });
   });
 
@@ -138,7 +138,7 @@ describe("fillJsonSchema", () => {
           short: { type: "string", maxLength: 8 },
         },
       }),
-    ).toEqual({ negative: -1, belowZero: -1, short: "Emulated" });
+    ).toEqual({ negative: -1, belowZero: -1, short: "模拟回复" });
   });
 
   it("follows refs, honors minimums, and prefers null when allowed", () => {
@@ -163,7 +163,7 @@ describe("fillJsonSchema", () => {
       }),
     ).toEqual({
       count: 3,
-      items: ["Emulated response", "Emulated response"],
+      items: ["模拟回复", "模拟回复"],
       child: { ok: false },
       maybe: null,
       when: "1970-01-01T00:00:00.000Z",

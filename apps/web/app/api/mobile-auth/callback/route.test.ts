@@ -208,23 +208,6 @@ describe("mobile auth callback route", () => {
     );
   });
 
-  it("redirects to the stored desktop scheme mode", async () => {
-    redeemMobileAuthStateMock.mockResolvedValue({
-      returnUrlMode: "desktop-scheme",
-    });
-
-    const response = await GET(
-      new NextRequest(
-        "https://www.getinboxzero.com/api/mobile-auth/callback?state=state-1234567890",
-      ),
-      {} as never,
-    );
-
-    expect(response.headers.get("location")).toBe(
-      "inboxzero://auth-callback?state=state-1234567890&code=one-time-code",
-    );
-  });
-
   it("ignores tampered return URL modes on callback URLs", async () => {
     redeemMobileAuthStateMock.mockResolvedValue({
       returnUrlMode: "app-link",

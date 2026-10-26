@@ -1,177 +1,56 @@
-import { buildMeetingBriefingBlocks } from "@/utils/messaging/providers/slack/messages/meeting-briefing";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import prisma from "@/utils/__mocks__/prisma";
-import {
-  MessagingProvider,
-  MessagingRoutePurpose,
-  MessagingRouteTargetType,
-} from "@/generated/prisma/enums";
-import type { CalendarEvent } from "@/utils/calendar/event-types";
-import { createTestLogger } from "@/__tests__/helpers";
 import { sendBriefing } from "./send-briefing";
-import {
-  resolveSlackRouteDestination,
-  sendMeetingBriefingToSlack,
-} from "@/utils/messaging/providers/slack/send";
-import { sendAutomationMessage } from "@/utils/automation-jobs/messaging";
-
+import { sendNotificationEmail } from "@/utils/email/send-notification-email";
+import { createTestLogger } from "@/__tests__/helpers";
 vi.mock("@/utils/prisma");
-vi.mock("@/utils/messaging/providers/slack/send", () => ({
-  resolveSlackRouteDestination: vi.fn(),
-  sendMeetingBriefingToSlack: vi.fn(),
+vi.mock("@/utils/email/send-notification-email", () => ({
+  sendNotificationEmail: vi.fn(),
 }));
-vi.mock("@/utils/automation-jobs/messaging", () => ({
-  sendAutomationMessage: vi.fn(),
+vi.mock("@/utils/unsubscribe", () => ({
+  createUnsubscribeToken: vi.fn(async () => "unsubscribe-token"),
 }));
-vi.mock("@/utils/date", () => ({
-  formatTimeInUserTimezone: vi.fn(() => "Monday, Jan 1 at 10:00 AM"),
-}));
-
-const logger = createTestLogger();
-
-const event: CalendarEvent = {
-  id: "event-1",
-  title: "Sync",
-  startTime: new Date("2026-04-17T10:00:00Z"),
-  endTime: new Date("2026-04-17T11:00:00Z"),
-  videoConferenceLink: null,
-  eventUrl: null,
-} as any;
-
-const briefingContent = {
-  priorities: [],
-  guests: [],
+const input = {
+  event: {
+    id: "event-1",
+    title: "Review",
+    startTime: new Date("2026-10-25T10:00:00Z"),
+    endTime: new Date("2026-10-25T11:00:00Z"),
+    videoConferenceLink: null,
+    eventUrl: null,
+  },
+  briefingContent: { priorities: [], guests: [] },
   internalTeamMembers: [],
-} as any;
-
-describe("sendBriefing", () => {
+  emailAccountId: "account",
+  userEmail: "user@example.com",
+  provider: "google",
+  userTimezone: null,
+  logger: createTestLogger(),
+} as Parameters<typeof sendBriefing>[0];
+describe("meeting briefing email delivery", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prisma.emailAccount.findUnique.mockResolvedValue({
-      meetingBriefsSendEmail: false,
-    } as any);
+      meetingBriefsSendEmail: true,
+    } as never);
   });
-
-  it("delivers meeting priorities before attendee context in messaging apps", async () => {
-    prisma.messagingChannel.findMany.mockResolvedValue([
-      {
-        id: "channel",
-        provider: MessagingProvider.TEAMS,
-        isConnected: true,
-        accessToken: null,
-        teamId: "team",
-        providerUserId: "recipient",
-        routes: [
-          {
-            purpose: MessagingRoutePurpose.MEETING_BRIEFS,
-            targetType: MessagingRouteTargetType.DIRECT_MESSAGE,
-            targetId: "recipient",
-          },
-        ],
-      },
-    ] as any);
-    const content = {
-      priorities: ["Confirm the maintenance window before approving release."],
-      guests: [
-        {
-          name: "Partner",
-          email: "partner@example.com",
-          bullets: ["Technical contact"],
-        },
-      ],
-    };
-    await sendBriefing({
-      event,
-      briefingContent: content,
-      internalTeamMembers: [],
-      emailAccountId: "account",
-      userEmail: "user@example.com",
-      provider: "google",
-      userTimezone: null,
-      logger,
-    });
-    const message = vi.mocked(sendAutomationMessage).mock.calls[0][0].text;
-    expect(message).toContain(content.priorities[0]);
-    expect(message.indexOf(content.priorities[0])).toBeLessThan(
-      message.indexOf("Technical contact"),
-    );
-    const slack = JSON.stringify(
-      buildMeetingBriefingBlocks({
-        meetingTitle: "Review",
-        formattedTime: "10:00 AM",
-        briefingContent: content,
+  it("delivers the brief using the existing email notification helper", async () => {
+    await sendBriefing(input);
+    expect(sendNotificationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailAccountId: "account",
+        userEmail: "user@example.com",
+        provider: "google",
+        renderHtml: expect.any(Function),
+        sendViaResend: expect.any(Function),
       }),
     );
-    expect(slack).toContain(content.priorities[0]);
-    expect(slack.indexOf(content.priorities[0])).toBeLessThan(
-      slack.indexOf("Technical contact"),
-    );
   });
-
-  it("skips Slack delivery when the channel is missing a provider user id", async () => {
-    prisma.messagingChannel.findMany.mockResolvedValue([
-      {
-        id: "channel-1",
-        provider: MessagingProvider.SLACK,
-        isConnected: true,
-        accessToken: "xoxb-token",
-        teamId: "team-1",
-        providerUserId: null,
-        routes: [
-          {
-            purpose: MessagingRoutePurpose.MEETING_BRIEFS,
-            targetType: MessagingRouteTargetType.CHANNEL,
-            targetId: "C1",
-          },
-        ],
-      },
-    ] as any);
-
-    await sendBriefing({
-      event,
-      briefingContent,
-      internalTeamMembers: [],
-      emailAccountId: "email-account-1",
-      userEmail: "user@example.com",
-      provider: "google",
-      userTimezone: null,
-      logger,
-    });
-
-    expect(resolveSlackRouteDestination).not.toHaveBeenCalled();
-    expect(sendMeetingBriefingToSlack).not.toHaveBeenCalled();
-  });
-
-  it("skips Teams delivery when the channel is missing a provider user id", async () => {
-    prisma.messagingChannel.findMany.mockResolvedValue([
-      {
-        id: "channel-2",
-        provider: MessagingProvider.TEAMS,
-        isConnected: true,
-        accessToken: null,
-        teamId: "team-2",
-        providerUserId: null,
-        routes: [
-          {
-            purpose: MessagingRoutePurpose.MEETING_BRIEFS,
-            targetType: MessagingRouteTargetType.DIRECT_MESSAGE,
-            targetId: "29:teams-user",
-          },
-        ],
-      },
-    ] as any);
-
-    await sendBriefing({
-      event,
-      briefingContent,
-      internalTeamMembers: [],
-      emailAccountId: "email-account-1",
-      userEmail: "user@example.com",
-      provider: "google",
-      userTimezone: null,
-      logger,
-    });
-
-    expect(sendAutomationMessage).not.toHaveBeenCalled();
+  it("respects the account's email delivery setting", async () => {
+    prisma.emailAccount.findUnique.mockResolvedValue({
+      meetingBriefsSendEmail: false,
+    } as never);
+    await sendBriefing(input);
+    expect(sendNotificationEmail).not.toHaveBeenCalled();
   });
 });

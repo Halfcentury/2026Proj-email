@@ -35,9 +35,7 @@ export function ReviewSignInForm() {
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit(handleSignIn)}>
-      {error ? (
-        <AlertError title="无法登录" description={error} />
-      ) : null}
+      {error ? <AlertError title="无法登录" description={error} /> : null}
 
       <div className="grid gap-2">
         <Label htmlFor="review-email">邮件</Label>

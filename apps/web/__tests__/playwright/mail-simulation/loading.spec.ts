@@ -120,9 +120,7 @@ test(`measures current client under ${profile}`, async ({
       loaded: navigationLoaded,
       detailRequests: detailRequests - navigationRequests,
     });
-    await page
-      .getByRole("button", { name: "返回收件箱", exact: true })
-      .click();
+    await page.getByRole("button", { name: "返回收件箱", exact: true }).click();
     const switchStart = performance.now();
     const switchRequests = detailRequests;
     for (let index = 0; index < 12; index++) {
@@ -150,9 +148,7 @@ test(`measures current client under ${profile}`, async ({
     await other.goto(`/${emailAccountId}/mail`, {
       waitUntil: "domcontentloaded",
     });
-    await expect(
-      other.getByRole("listbox", { name: "会话" }),
-    ).toBeVisible();
+    await expect(other.getByRole("listbox", { name: "会话" })).toBeVisible();
     await other.close();
     if (profile === "constrained") {
       phases.push(await snapshot());

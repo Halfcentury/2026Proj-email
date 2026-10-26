@@ -1,4 +1,4 @@
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
+import { getInboxZeroDesktopApp } from "@/utils/browser-platform";
 import { hasDesktopMailEngineIpc } from "@/utils/mail-engine/desktop-ipc";
 import { selectMailEngineRuntimeMode } from "@/utils/mail-engine/runtime-mode";
 import { browserMailEngineCapabilities } from "@/utils/mail-engine/worker-protocol";

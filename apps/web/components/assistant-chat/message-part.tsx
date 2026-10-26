@@ -1,5 +1,8 @@
 "use client";
 
+import { ResourceToolResult } from "@/components/assistant-chat/resource-result";
+import { EmailWorkspaceToolResult } from "@/components/assistant-chat/workspace-result";
+
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { AssistantInlineEmailResponse } from "@/components/assistant-chat/assistant-inline-email-response";
@@ -813,6 +816,45 @@ export function MessagePart({
     return null;
   }
 
+  if (part.type === "tool-analyzeEmail" || part.type === "tool-generateReply") {
+    return renderToolStatus({
+      part,
+      loadingText:
+        part.type === "tool-analyzeEmail"
+          ? "正在分析邮件…"
+          : "正在检索资料并生成回复…",
+      renderSuccess: ({ toolCallId, output }) => (
+        <EmailWorkspaceToolResult key={toolCallId} output={output} />
+      ),
+    });
+  }
+
+  if (
+    part.type === "tool-getEmailWorkspaceResources" ||
+    part.type === "tool-manageBooking" ||
+    part.type === "tool-suggestAttachmentFiling" ||
+    part.type === "tool-getCalendarEvents" ||
+    part.type === "tool-getMeetingContext" ||
+    part.type === "tool-configureMeetingRecording"
+  ) {
+    return renderToolStatus({
+      part,
+      loadingText: "正在准备相关资料…",
+      renderSuccess: ({ toolCallId, output }) => (
+        <ResourceToolResult
+          key={toolCallId}
+          type={part.type}
+          output={output}
+          threadId={
+            part.input && "threadId" in part.input
+              ? part.input.threadId
+              : undefined
+          }
+          disabled={disableConfirm || !isPersistedMessage}
+        />
+      ),
+    });
+  }
   if (part.type.startsWith("tool-")) {
     const toolPart = part as {
       type: `tool-${string}`;

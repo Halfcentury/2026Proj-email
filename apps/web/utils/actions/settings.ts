@@ -24,7 +24,7 @@ import { SafeError } from "@/utils/error";
 import { env } from "@/env";
 import { addActionOwnershipToInput } from "@/utils/rule/rule";
 import { isSensitiveDataPolicyLocked } from "@/utils/dlp/policy.server";
-import { assertCanUseDigests } from "@/utils/premium/server";
+import { assertCanUseDigests } from "@/utils/feature-access";
 
 export const updateEmailSettingsAction = actionClient
   .metadata({ name: "updateEmailSettings" })

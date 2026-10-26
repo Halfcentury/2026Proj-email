@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { SparklesIcon } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/utils/prisma";
@@ -11,7 +10,6 @@ import { AIChatButton } from "@/app/(app)/[emailAccountId]/assistant/AIChatButto
 import { AllRulesDisabledBanner } from "@/app/(app)/[emailAccountId]/assistant/AllRulesDisabledBanner";
 import { PageWrapper } from "@/components/PageWrapper";
 import { PageHeader } from "@/components/PageHeader";
-import { DismissibleVideoCard } from "@/components/VideoCard";
 import {
   STEP_KEYS,
   getOnboardingStepHref,
@@ -52,16 +50,7 @@ export default async function AutomationPage({
         <PageWrapper>
           <div className="flex items-center justify-between">
             <div>
-              <PageHeader
-                title="智能助手"
-                video={{
-                  title: "智能私人助手入门",
-                  description:
-                    "了解如何使用智能私人助手自动添加标签、归档及执行其他操作。",
-                  muxPlaybackId:
-                    "TYo3SIMdhg008x022H79400CxeRSiB6mLyuwHx8Szc00Rec",
-                }}
-              />
+              <PageHeader title="自动化" video={undefined} />
             </div>
 
             <div className="ml-4">
@@ -70,19 +59,6 @@ export default async function AutomationPage({
           </div>
 
           <AllRulesDisabledBanner />
-
-          <DismissibleVideoCard
-            className="my-4"
-            icon={<SparklesIcon className="h-5 w-5" />}
-            title="智能助手入门"
-            description="了解如何使用智能助手自动添加标签、归档及执行其他操作。"
-            muxPlaybackId="TYo3SIMdhg008x022H79400CxeRSiB6mLyuwHx8Szc00Rec"
-            storageKey="ai-assistant-onboarding-video"
-            videoAnalytics={{
-              page: "automation",
-              surface: "dismissible_card",
-            }}
-          />
 
           <AutomationTabs />
         </PageWrapper>

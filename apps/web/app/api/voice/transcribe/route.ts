@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withEmailAccount } from "@/utils/middleware";
 import { getEmailAccountWithAi } from "@/utils/user/get";
-import { assertHasAiAccess } from "@/utils/premium/limits";
+import { assertHasAiAccess } from "@/utils/feature-access.server";
 import { SafeError } from "@/utils/error";
 import { voiceErrorResponse } from "@/utils/voice/api-error";
 import { requireVoiceCapability } from "@/utils/voice/factory";

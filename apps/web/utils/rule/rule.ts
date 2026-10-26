@@ -30,15 +30,15 @@ import {
   assertRuleActionsEnabled,
   getDisabledRuleActionTypesToPreserve,
 } from "@/utils/rule-action-feature-gates";
-import { findIntegration } from "@/utils/mcp/integrations";
+import { findIntegration } from "@/utils/optional-features";
 import {
   buildDefaultIntegrationArgs,
   getIntegrationToolSpec,
   getOnlyIntegrationToolSpec,
   normalizeSelectArgValue,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 import { assertNoSenderOnlyOverlap } from "@/utils/rule/sender-scope-overlap";
-import { isIntegrationActionEnabledForEmailAccountId } from "@/utils/integration-action.server";
+import { isIntegrationActionEnabledForEmailAccountId } from "@/utils/optional-features";
 
 export type RuleActionCreateData = Omit<
   Prisma.ActionCreateManyRuleInput,

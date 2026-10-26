@@ -8,7 +8,6 @@ import { createEmailProvider } from "@/utils/email/provider";
 import { getEmailAccountWithAiAndTokens } from "@/utils/user/get";
 import { SafeError } from "@/utils/error";
 import { getEmailForLLM } from "@/utils/get-email-from-message";
-import { updateContactRole } from "@inboxzero/loops";
 import {
   updateHiddenAiDraftLinksBody,
   updateReferralSignatureBody,
@@ -46,14 +45,7 @@ export const updateEmailAccountRoleAction = actionClient
         }),
       ]);
 
-      after(async () => {
-        await updateContactRole({
-          email: userEmail,
-          role,
-        }).catch((error) => {
-          logger.error("Loops: Error updating role", { error });
-        });
-      });
+      after(async () => {});
     },
   );
 

@@ -65,15 +65,12 @@ test("switches between list and split reading layouts", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Project Label Message",
+    "项目标签测试邮件",
   ).click();
   await expect(
-    page.getByRole("heading", { name: "Project Label Message" }),
+    page.getByRole("heading", { name: "项目标签测试邮件" }),
   ).toBeVisible();
-  await expectThreadReaderBody(
-    page,
-    "This conversation is visible in the seeded project label.",
-  );
+  await expectThreadReaderBody(page, "此会话可在预置的项目标签中查看。");
   await expect(conversations).toBeVisible();
   await capturePlaywrightCheckpoint(
     page,
@@ -95,9 +92,7 @@ test("expands and shortens the conversation preview text", async ({
   const { conversations, emailAccountId } = await openMail(page);
   // Only the wide list puts the snippet beside the subject, so the split
   // preference has to be off for the two preview branches to differ.
-  await expect(
-    page.getByText("未选择邮件", { exact: true }),
-  ).toBeHidden();
+  await expect(page.getByText("未选择邮件", { exact: true })).toBeHidden();
 
   const toggle = page.getByRole("button", {
     name: "展开或缩短预览文字",

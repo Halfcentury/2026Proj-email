@@ -23,7 +23,7 @@ vi.mock("@/hooks/useSignupEvent", () => ({ useSignUpEvent: vi.fn() }));
 vi.mock("@/providers/EmailAccountProvider", () => ({
   useAccount: () => ({ emailAccountId: "account-test", provider: "google" }),
 }));
-vi.mock("@/hooks/useOrganizationMembership", () => ({
+vi.mock("@/hooks/useAccountScope", () => ({
   useOrganizationMembership: () => ({ data: {} }),
 }));
 vi.mock("@/hooks/useRules", () => ({ useRules: () => ({ data: [] }) }));

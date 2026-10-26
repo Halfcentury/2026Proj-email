@@ -5,7 +5,7 @@ import { isDefined } from "@/utils/types";
 import {
   getOnlyIntegrationToolSpec,
   type IntegrationToolSpec,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 import {
   getAvailableActionsForRuleEditor,
   getExtraAvailableActionsForRuleEditor,
@@ -17,7 +17,7 @@ import {
   isInvalidStaticFromValue,
   STATIC_FROM_CONDITION_DESCRIPTION,
 } from "@/utils/ai/rule/rule-condition-descriptions";
-import { isIntegrationActionGloballyEnabled } from "@/utils/integration-action";
+import { isIntegrationActionGloballyEnabled } from "@/utils/optional-features";
 
 const conditionalOperatorSchema = z
   .enum([LogicalOperator.AND, LogicalOperator.OR])

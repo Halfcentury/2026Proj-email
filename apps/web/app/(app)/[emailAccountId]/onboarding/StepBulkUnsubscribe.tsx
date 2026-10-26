@@ -5,7 +5,6 @@ import useSWR from "swr";
 import { subDays } from "date-fns/subDays";
 import { startOfDay } from "date-fns/startOfDay";
 import { ArrowRightIcon, MailXIcon, SparklesIcon } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { PageHeading, TypographyP } from "@/components/Typography";
 import { Button } from "@/components/ui/button";
 import { ButtonLoader } from "@/components/Loading";
@@ -22,7 +21,7 @@ import type {
   NewsletterStatsResponse,
 } from "@/app/api/user/stats/newsletters/route";
 import { useAccount } from "@/providers/EmailAccountProvider";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/hooks/useFeatureAccess";
 import { createSearchParams } from "@/utils/url";
 
 type Newsletter = NewsletterStatsResponse["newsletters"][number];
@@ -35,7 +34,7 @@ const SKELETON_ROW_KEYS = Array.from(
 
 export function StepBulkUnsubscribe({ onNext }: { onNext: () => void }) {
   const { emailAccountId } = useAccount();
-  const posthog = usePostHog();
+
   const { hasUnsubscribeAccess, mutate: refetchPremium } = usePremium();
 
   // Day-boundary date range keeps the SWR key stable across mounts, so
@@ -92,7 +91,7 @@ export function StepBulkUnsubscribe({ onNext }: { onNext: () => void }) {
   const { onBulkUnsubscribe } = useBulkUnsubscribe<Newsletter>({
     hasUnsubscribeAccess,
     mutate,
-    posthog,
+
     refetchPremium,
     emailAccountId,
     filter: "unhandled",
@@ -109,21 +108,11 @@ export function StepBulkUnsubscribe({ onNext }: { onNext: () => void }) {
     if (suggestionsShownRef.current) return;
     if (!previewSenders.length) return;
     suggestionsShownRef.current = true;
-    posthog?.capture("onboarding_unsubscribe_suggestions_shown", {
-      shownCount: previewSenders.length,
-      totalSuggestions: suggestions.length,
-      lowReadSuggestionCount: lowReadSuggestions.length,
-      lowReadSuggestionWithAutomaticUnsubscribeCount:
-        lowReadSuggestionsWithAutomaticUnsubscribe,
-      lowReadSuggestionMissingAutomaticUnsubscribeCount:
-        lowReadSuggestions.length - lowReadSuggestionsWithAutomaticUnsubscribe,
-    });
   }, [
     previewSenders.length,
     suggestions.length,
     lowReadSuggestions.length,
     lowReadSuggestionsWithAutomaticUnsubscribe,
-    posthog,
   ]);
 
   if (!emailAccountId) return null;
@@ -148,10 +137,6 @@ export function StepBulkUnsubscribe({ onNext }: { onNext: () => void }) {
   };
 
   const onSkip = () => {
-    posthog?.capture("onboarding_unsubscribe_skipped", {
-      selectedCount: selectedSenders.length,
-      totalSuggestions: suggestions.length,
-    });
     onNext();
   };
 
@@ -160,17 +145,6 @@ export function StepBulkUnsubscribe({ onNext }: { onNext: () => void }) {
       onSkip();
       return;
     }
-
-    posthog?.capture("onboarding_unsubscribe_cta_clicked", {
-      selectedCount: selectedSenders.length,
-      totalSuggestions: suggestions.length,
-      hasUnsubscribeAccess,
-    });
-
-    posthog?.capture("onboarding_unsubscribe_clicked", {
-      count: selectedSenders.length,
-      totalSuggestions: suggestions.length,
-    });
 
     setSubmitting(true);
     try {

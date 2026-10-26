@@ -18,7 +18,6 @@ import { toastError, toastSuccess } from "@/components/Toast";
 import { useBookingLinksEnabled } from "@/hooks/useFeatureFlags";
 import { useBookingLinks } from "@/hooks/useBookingLinks";
 import { useCalendars } from "@/hooks/useCalendars";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { getActionErrorMessage } from "@/utils/error";
 import {
@@ -176,7 +175,7 @@ function CalendarBookingLinkCard({
   disabledByInboxZeroLink?: boolean;
 }) {
   const { emailAccountId } = useAccount();
-  const analytics = useProductAnalytics("calendars");
+
   const { data, isLoading, error, mutate } = useCalendars();
   const calendarBookingLink = data?.calendarBookingLink || null;
 
@@ -184,9 +183,6 @@ function CalendarBookingLinkCard({
     updateCalendarBookingLinkAction.bind(null, emailAccountId),
     {
       onSuccess: () => {
-        analytics.captureAction("calendar_booking_link_saved", {
-          had_existing_booking_link: Boolean(calendarBookingLink),
-        });
         toastSuccess({ description: "预约链接已更新！" });
         mutate();
       },
@@ -198,9 +194,6 @@ function CalendarBookingLinkCard({
   ) => {
     if (disabledByInboxZeroLink) return;
 
-    analytics.captureAction("calendar_booking_link_save_started", {
-      has_booking_link: Boolean(formData.bookingLink),
-    });
     execute(formData);
   };
 

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/Tooltip";
 import { VoiceOverlay } from "@/components/voice/VoiceOverlay";
 import { toastError } from "@/components/Toast";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { useVoiceDictation } from "@/hooks/useVoiceDictation";
 import { useVoiceLive } from "@/hooks/useVoiceLive";
 import { useVoiceStatus } from "@/hooks/useVoiceStatus";
@@ -29,7 +28,6 @@ export function VoiceInput({
   onSend: (text: string) => void;
   className?: string;
 }) {
-  const analytics = useProductAnalytics();
   const { status: voiceStatus } = useVoiceStatus();
   const dictation = useVoiceDictation();
   const live = useVoiceLive();
@@ -43,17 +41,15 @@ export function VoiceInput({
   const beginDictation = useCallback(async () => {
     finishingDictationRef.current = false;
     setMode("dictation");
-    analytics.captureAction("chat_voice_dictation_started", {
-      live_available: canLive,
-    });
+
     await dictation.start();
-  }, [analytics, canLive, dictation]);
+  }, [canLive, dictation]);
 
   const beginLive = useCallback(async () => {
     setMode("live");
-    analytics.captureAction("chat_voice_live_started");
+
     await live.start(liveHistory);
-  }, [analytics, live, liveHistory]);
+  }, [live, liveHistory]);
 
   const finishDictation = useCallback(
     async (submit: boolean) => {

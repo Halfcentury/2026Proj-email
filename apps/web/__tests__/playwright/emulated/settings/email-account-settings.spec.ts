@@ -60,9 +60,9 @@ test("persists draft cleanup settings and disables all account rules", async ({
     name: "禁用全部规则？",
   });
   await confirmation.getByRole("button", { name: "全部禁用" }).click();
-  await expect(
-    page.getByText("全部规则已禁用", { exact: true }),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("全部规则已禁用", { exact: true })).toBeVisible({
+    timeout: 60_000,
+  });
 
   await expect
     .poll(() => getSettingsDatabaseState(settingsFixture))

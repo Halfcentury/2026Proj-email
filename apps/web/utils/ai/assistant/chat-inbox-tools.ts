@@ -2,7 +2,6 @@ import { type InferUITool, tool } from "ai";
 import { z } from "zod";
 import type { Logger } from "@/utils/logger";
 import prisma from "@/utils/prisma";
-import { posthogCaptureEvent } from "@/utils/posthog";
 import { createEmailProvider } from "@/utils/email/provider";
 import { isGoogleProvider } from "@/utils/email/provider-types";
 import {
@@ -796,12 +795,7 @@ export const readAttachmentTool = ({
     description:
       "Read the text content of an email attachment. First call readEmail for the message and use its attachment metadata; do not guess attachment IDs. Supports PDF, DOCX, plain text, CSV, and HTML. Returns metadata only for binary files (images, etc.).",
     inputSchema: readAttachmentInputSchema,
-    execute: async ({
-      messageId,
-      attachmentId,
-      mimeType: inputMimeType,
-      filename: inputFilename,
-    }) => {
+    execute: async ({ messageId, attachmentId }) => {
       trackToolCall({ tool: "read_attachment", email, logger });
 
       try {
@@ -811,69 +805,16 @@ export const readAttachmentTool = ({
           logger,
         });
 
-        let resolvedMimeType = inputMimeType;
-        let resolvedFilename = inputFilename;
-
-        if (!resolvedMimeType || !resolvedFilename) {
-          try {
-            const message = await emailProvider.getMessage(messageId);
-            const matchedAttachment = message.attachments?.find(
-              (attachment) => attachment.attachmentId === attachmentId,
-            );
-
-            resolvedMimeType ??= matchedAttachment?.mimeType ?? undefined;
-            resolvedFilename ??= matchedAttachment?.filename ?? undefined;
-          } catch (error) {
-            logger.warn("Failed to load attachment metadata from message", {
-              error,
-            });
-          }
-        }
-
-        resolvedMimeType ??= "application/octet-stream";
-        resolvedFilename ??= "unknown";
-
-        if (!isExtractableMimeType(resolvedMimeType)) {
-          return {
-            filename: resolvedFilename,
-            mimeType: resolvedMimeType,
-            contentAvailable: false,
-            message:
-              "This attachment type cannot be read as text. Only PDF, DOCX, plain text, CSV, and HTML are supported.",
-          };
-        }
-
-        const attachment = await emailProvider.getAttachment(
-          messageId,
+        const { readEmailAttachment } = await import(
+          "@/utils/attachments/read-email-attachment"
+        );
+        const message = await emailProvider.getMessage(messageId);
+        return readEmailAttachment({
+          emailProvider,
+          message,
           attachmentId,
-        );
-
-        const buffer = Buffer.from(attachment.data, "base64");
-
-        const extracted = await extractAttachmentText(
-          buffer,
-          resolvedMimeType,
           logger,
-        );
-
-        if (!extracted) {
-          return {
-            filename: resolvedFilename,
-            mimeType: resolvedMimeType,
-            size: attachment.size,
-            contentAvailable: false,
-            message: "Failed to extract text from this attachment.",
-          };
-        }
-
-        return {
-          filename: resolvedFilename,
-          mimeType: resolvedMimeType,
-          size: attachment.size,
-          contentAvailable: true,
-          content: extracted.text,
-          truncated: extracted.truncated,
-        };
+        });
       } catch (error) {
         logger.error("Failed to read attachment", { error });
         return { error: "Failed to read attachment" };
@@ -1394,7 +1335,7 @@ async function trackToolCall({
   logger: Logger;
 }) {
   logger.info("Tracking tool call", { tool, email });
-  return posthogCaptureEvent(email, "AI Assistant Chat Tool Call", { tool });
+  return;
 }
 
 async function listLabelNames({
@@ -1954,69 +1895,4 @@ function getValidationErrorMessage(toolName: string, error: z.ZodError) {
   if (!field) return `Invalid ${toolName} input: ${firstIssue.message}`;
 
   return `Invalid ${toolName} input: ${field} ${firstIssue.message}`;
-}
-
-const MAX_ATTACHMENT_TEXT_LENGTH = 8000;
-
-const EXTRACTABLE_MIME_TYPES = new Set([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "text/plain",
-  "text/csv",
-  "text/html",
-]);
-
-function isExtractableMimeType(mimeType: string): boolean {
-  return EXTRACTABLE_MIME_TYPES.has(mimeType);
-}
-
-async function extractAttachmentText(
-  buffer: Buffer,
-  mimeType: string,
-  logger: Logger,
-): Promise<{ text: string; truncated: boolean } | null> {
-  if (
-    mimeType === "application/pdf" ||
-    mimeType ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    mimeType === "text/plain"
-  ) {
-    const { extractTextFromDocument } = await import(
-      "@/utils/drive/document-extraction"
-    );
-    const result = await extractTextFromDocument(buffer, mimeType, {
-      maxLength: MAX_ATTACHMENT_TEXT_LENGTH,
-      logger,
-    });
-    if (!result) return null;
-    return { text: result.text, truncated: result.truncated };
-  }
-
-  if (mimeType === "text/csv") {
-    const text = buffer.toString("utf-8");
-    const truncated = text.length > MAX_ATTACHMENT_TEXT_LENGTH;
-    return {
-      text: truncated
-        ? `${text.slice(0, MAX_ATTACHMENT_TEXT_LENGTH)}... (truncated)`
-        : text,
-      truncated,
-    };
-  }
-
-  if (mimeType === "text/html") {
-    const { htmlToText } = await import("html-to-text");
-    const text = htmlToText(buffer.toString("utf-8"), {
-      wordwrap: false,
-      selectors: [{ selector: "img", format: "skip" }],
-    });
-    const truncated = text.length > MAX_ATTACHMENT_TEXT_LENGTH;
-    return {
-      text: truncated
-        ? `${text.slice(0, MAX_ATTACHMENT_TEXT_LENGTH)}... (truncated)`
-        : text,
-      truncated,
-    };
-  }
-
-  return { text: "", truncated: false };
 }

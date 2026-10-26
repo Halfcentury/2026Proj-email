@@ -235,9 +235,7 @@ export function ThreadDeliveryStatus({
                         operationId: row.operationId,
                       });
                       if (result && result.status !== "cancelled") {
-                        throw new Error(
-                          "此回复状态已更改，请刷新会话后重试。",
-                        );
+                        throw new Error("此回复状态已更改，请刷新会话后重试。");
                       }
                     }
                     if (

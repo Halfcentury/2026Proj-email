@@ -6,7 +6,6 @@ on:
     paths:
       - "packages/mail-*/**"
       - "packages/email-editor/**"
-      - "apps/desktop/**"
       - "apps/web/app/**"
       - "apps/web/components/**"
       - "apps/web/hooks/**"
@@ -30,7 +29,6 @@ on:
       - "apps/web/next.config.*"
       - "apps/web/package.json"
       - "pnpm-lock.yaml"
-      - "scripts/pnpm-install-without-desktop.sh"
       - "scripts/publish-playwright-report.sh"
       - ".github/workflows/playwright.yml"
       - ".github/workflows/publish-playwright-report.yml"
@@ -39,7 +37,6 @@ on:
     paths:
       - "packages/mail-*/**"
       - "packages/email-editor/**"
-      - "apps/desktop/**"
       - "apps/web/app/**"
       - "apps/web/components/**"
       - "apps/web/hooks/**"
@@ -60,7 +57,6 @@ on:
       - "apps/web/next.config.*"
       - "apps/web/package.json"
       - "pnpm-lock.yaml"
-      - "scripts/pnpm-install-without-desktop.sh"
       - "scripts/publish-playwright-report.sh"
       - ".github/workflows/playwright.yml"
       - ".github/workflows/publish-playwright-report.yml"
@@ -102,17 +98,7 @@ env:
   NEXT_PUBLIC_MEETING_RECORDER_ENABLED: "true"
   NEXT_PUBLIC_CONTACTS_ENABLED: "true"
   NEXT_PUBLIC_MAIL_ENGINE_TEST_INSPECT: "true"
-  NEXT_PUBLIC_INTEGRATIONS_ENABLED: "true"
-  NEXT_PUBLIC_INTEGRATION_ACTION_ENABLED: "true"
   NEXT_PUBLIC_EXTERNAL_API_ENABLED: "true"
-  # Stripe emulator price ids. The emulator accepts any id; these only have to
-  # match what the build was frozen with so the tier lookup resolves.
-  NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID: price_playwright_starter_monthly
-  NEXT_PUBLIC_STRIPE_BUSINESS_ANNUALLY_PRICE_ID: price_playwright_starter_annually
-  NEXT_PUBLIC_STRIPE_PLUS_MONTHLY_PRICE_ID: price_playwright_plus_monthly
-  NEXT_PUBLIC_STRIPE_PLUS_ANNUALLY_PRICE_ID: price_playwright_plus_annually
-  NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_MONTHLY_PRICE_ID: price_playwright_professional_monthly
-  NEXT_PUBLIC_STRIPE_BUSINESS_PLUS_ANNUALLY_PRICE_ID: price_playwright_professional_annually
 
 jobs:
   select:
@@ -164,7 +150,7 @@ jobs:
         with:
           node-version: "24"
       - name: Install dependencies
-        run: bash scripts/pnpm-install-without-desktop.sh --frozen-lockfile
+        run: pnpm install --frozen-lockfile
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - name: Select isolated spec batches
@@ -242,7 +228,6 @@ jobs:
     env:
       PLAYWRIGHT_CHANGED_TEST_FILES: ${{ needs.select.outputs.changed_tests }}
       PLAYWRIGHT_MAIL_PROVIDER: ${{ matrix.batch.provider }}
-      MAIL_REQUIRE_ELECTRON: ${{ contains(join(matrix.batch.paths, ' '), 'hosted-electron-') && '1' || '0' }}
 
     steps:
       - name: Checkout repository
@@ -260,12 +245,6 @@ jobs:
         run: pnpm install --frozen-lockfile
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
-
-      - name: Install required Electron runtime
-        if: env.MAIL_REQUIRE_ELECTRON == '1'
-        working-directory: apps/desktop
-        run: node node_modules/electron/install.js
 
       - name: Setup Playwright cache
         uses: actions/cache@v4
@@ -347,7 +326,7 @@ jobs:
         with:
           node-version: "24"
       - name: Install dependencies
-        run: bash scripts/pnpm-install-without-desktop.sh --frozen-lockfile
+        run: pnpm install --frozen-lockfile
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - name: Download spec reports

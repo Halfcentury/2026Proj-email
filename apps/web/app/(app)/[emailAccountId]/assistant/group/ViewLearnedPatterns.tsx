@@ -107,9 +107,7 @@ function ViewGroupInner({ groupId }: { groupId: string }) {
             (group?.items?.length ? (
               <GroupItems items={group.items} mutate={mutate} />
             ) : (
-              <MessageText className="my-4 px-4">
-                暂无学习规律
-              </MessageText>
+              <MessageText className="my-4 px-4">暂无学习规律</MessageText>
             ))}
         </LoadingContent>
       </div>

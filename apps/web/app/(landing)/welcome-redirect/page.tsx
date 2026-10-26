@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@/utils/auth";
 import prisma from "@/utils/prisma";
 import { redirectToEmailAccountPath } from "@/utils/account";
-import { isPremiumRecord, premiumEntitlementSelect } from "@/utils/premium";
+import {
+  isPremiumRecord,
+  premiumEntitlementSelect,
+} from "@/utils/feature-access";
 
 export default async function WelcomeRedirectPage(props: {
   searchParams: Promise<{ force?: boolean; mode?: string }>;

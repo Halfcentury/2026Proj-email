@@ -1,6 +1,6 @@
 import { clearRecentSearchHistory } from "@/store/mail-search-history";
 import { clearStoredSenderQueues } from "@/store/sender-queue";
-import { getInboxZeroDesktopApp } from "@/utils/desktop-app";
+import { getInboxZeroDesktopApp } from "@/utils/browser-platform";
 import { wipeOpfsMailEngine } from "@/utils/mail-engine/wasm-sqlite";
 
 export async function wipeLocalMailbox() {

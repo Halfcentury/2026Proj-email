@@ -27,9 +27,7 @@ export function SelectAllCheckbox({
     <Tooltip
       content={allSelected ? "取消选择全部会话" : undefined}
       shortcuts={
-        allSelected
-          ? undefined
-          : [{ id: "selectAll", label: "选择全部会话" }]
+        allSelected ? undefined : [{ id: "selectAll", label: "选择全部会话" }]
       }
     >
       <Checkbox

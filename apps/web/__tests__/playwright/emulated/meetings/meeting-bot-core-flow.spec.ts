@@ -35,9 +35,7 @@ test("enables the notetaker and persists meeting choices, notes, and settings", 
     .getByRole("group", { name: "参加的会议范围" })
     .getByText("仅我手动启用的会议", { exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "开始记录我的会议" })
-    .click();
+  await page.getByRole("button", { name: "开始记录我的会议" }).click();
 
   await expect(
     page.getByRole("heading", { name: "会议", exact: true }),
@@ -45,29 +43,23 @@ test("enables the notetaker and persists meeting choices, notes, and settings", 
   await expect(page.getByRole("heading", { name: "即将开始" })).toBeVisible();
 
   const upcomingToggle = page.getByRole("switch", {
-    name: "Record Product planning with notetaker",
+    name: "Record 带会议记录的产品规划会",
   });
   await expect(upcomingToggle).toBeVisible({ timeout: 60_000 });
   await expect(upcomingToggle).not.toBeChecked();
   await upcomingToggle.click();
   await expect(upcomingToggle).toBeChecked();
 
-  await page.getByRole("button", { name: "Recorded product review" }).click();
+  await page.getByRole("button", { name: "产品复盘会议记录" }).click();
   const meetingDialog = page.getByRole("dialog", {
-    name: "Recorded product review",
+    name: "产品复盘会议记录",
   });
   await expect(meetingDialog).toContainText(
-    "The team finalized the launch plan for onboarding improvements.",
+    "团队确定了入门流程改进的发布计划。",
   );
-  await expect(meetingDialog).toContainText(
-    "Release the onboarding improvements on Friday.",
-  );
-  await expect(meetingDialog).toContainText(
-    "Prepare the customer announcement.",
-  );
-  await expect(meetingDialog).toContainText(
-    "We will ship the onboarding improvements on Friday.",
-  );
+  await expect(meetingDialog).toContainText("周五发布入门流程改进。");
+  await expect(meetingDialog).toContainText("准备客户公告。");
+  await expect(meetingDialog).toContainText("我们将在周五发布入门流程改进。");
   await expect(meetingDialog).toContainText("跟进草稿已准备好");
   await meetingDialog.getByRole("button", { name: "关闭" }).click();
 
@@ -89,7 +81,7 @@ test("enables the notetaker and persists meeting choices, notes, and settings", 
   ).toBeVisible({ timeout: 60_000 });
   await expect(
     page.getByRole("switch", {
-      name: "Record Product planning with notetaker",
+      name: "Record 带会议记录的产品规划会",
     }),
   ).toBeChecked({ timeout: 60_000 });
 

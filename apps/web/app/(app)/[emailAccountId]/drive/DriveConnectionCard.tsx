@@ -82,11 +82,7 @@ export function DriveConnectionCard({
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon2xs"
-            aria-label="连接选项"
-          >
+          <Button variant="ghost" size="icon2xs" aria-label="连接选项">
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

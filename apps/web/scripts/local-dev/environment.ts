@@ -6,7 +6,6 @@ export function createLocalEnvironment({
   googlePort,
   microsoftPort,
   llmPort,
-  stripePort,
   secrets,
   inherited,
 }: {
@@ -17,7 +16,6 @@ export function createLocalEnvironment({
   googlePort: number;
   microsoftPort: number;
   llmPort: number;
-  stripePort: number;
   secrets: {
     database: string;
     auth: string;
@@ -88,10 +86,6 @@ export function createLocalEnvironment({
     REDIS_URL: `redis://127.0.0.1:${redisPort}`,
     REDIS_HTTP_URL: `http://127.0.0.1:${redisHttpPort}`,
     REDIS_HTTP_TOKEN: secrets.redis,
-    STRIPE_API_BASE_URL: `http://127.0.0.1:${stripePort}`,
-    STRIPE_SECRET_KEY: "emulator-stripe-key",
-    STRIPE_WEBHOOK_SECRET: "whsec_emulator",
-    NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS: "true",
     NEXT_PUBLIC_EMAIL_SEND_ENABLED: "true",
     NEXT_PUBLIC_CONTACTS_ENABLED: "true",
   };

@@ -32,7 +32,7 @@ export default async function AuthenticationPage(props: {
   const searchParams = await props.searchParams;
   const session = await auth();
   const nextPath = normalizeInternalPath(searchParams?.next);
-  const isSelfHosted = env.NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS;
+  const isSelfHosted = true;
 
   if (session?.user && !searchParams?.error) {
     redirect(nextPath ?? WELCOME_PATH);

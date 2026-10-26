@@ -94,7 +94,9 @@ export function CleanInstructionsStep() {
             rows={3}
             name="instructions"
             registerProps={register("instructions")}
-            placeholder={"例如：我是一名自由设计师，请保留客户邮件。我正在参与一个建筑项目，相关邮件也需要保留。"}
+            placeholder={
+              "例如：我是一名自由设计师，请保留客户邮件。我正在参与一个建筑项目，相关邮件也需要保留。"
+            }
             error={errors.instructions}
           />
         </div>

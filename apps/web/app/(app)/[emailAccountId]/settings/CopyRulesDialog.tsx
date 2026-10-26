@@ -263,8 +263,7 @@ export function CopyRulesDialog({
             disabled={selectedRuleIds.size === 0}
             loading={isExecuting}
           >
-            转移{" "}
-            {selectedRuleIds.size > 0 ? `${selectedRuleIds.size} ` : ""}
+            转移 {selectedRuleIds.size > 0 ? `${selectedRuleIds.size} ` : ""}
             rule{selectedRuleIds.size !== 1 ? "s" : ""}
           </Button>
         </DialogFooter>

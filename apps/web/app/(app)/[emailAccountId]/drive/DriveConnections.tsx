@@ -26,9 +26,7 @@ export function DriveConnections() {
         <Empty>
           <EmptyHeader>
             <EmptyTitle>暂无云存储连接</EmptyTitle>
-            <EmptyDescription>
-              连接云存储后可开始整理文档。
-            </EmptyDescription>
+            <EmptyDescription>连接云存储后可开始整理文档。</EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}

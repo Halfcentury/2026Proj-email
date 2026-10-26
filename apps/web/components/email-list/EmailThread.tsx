@@ -21,7 +21,6 @@ import {
 } from "@/utils/mail-engine/reply-drafts";
 import { internalDateToDate } from "@/utils/date";
 import { GmailLabel } from "@/utils/gmail/label";
-import { useSentMessageOpens } from "@/hooks/useSentMessageOpens";
 import type { OutgoingThreadMessage } from "@/utils/mail-engine/conversation-thread";
 
 const NO_OUTGOING: OutgoingThreadMessage[] = [];
@@ -86,7 +85,7 @@ export function EmailThread({
       ...outgoing.map((item) => item.message.id),
     ],
   );
-  const { data: sentMessageOpens } = useSentMessageOpens(threadId || null);
+  const sentMessageOpens = undefined;
   const hiddenDraftMessageIds = useHiddenDraftMessageIds(emailAccountId);
   const organizedMessages = useMemo(
     (): Array<{
@@ -276,15 +275,9 @@ export function EmailThread({
 
         {!renderToolbar && organizedMessages.length > 1 && (
           <div className="flex justify-end pt-2">
-            <Tooltip
-              content={
-                allExpanded ? "收起全部邮件" : "展开全部邮件"
-              }
-            >
+            <Tooltip content={allExpanded ? "收起全部邮件" : "展开全部邮件"}>
               <Button
-                aria-label={
-                  allExpanded ? "收起全部邮件" : "展开全部邮件"
-                }
+                aria-label={allExpanded ? "收起全部邮件" : "展开全部邮件"}
                 onClick={toggleAll}
                 size="iconXs"
                 variant="ghostMuted"
@@ -401,7 +394,6 @@ export function EmailThread({
                       }
                 }
                 refetch={refetch}
-                sentMessageOpen={sentMessageOpens?.opens[message.id]}
                 showReplyButton={
                   showReplyButton &&
                   !message.labelIds?.includes(GmailLabel.DRAFT)

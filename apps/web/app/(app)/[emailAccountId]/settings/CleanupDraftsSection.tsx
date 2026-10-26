@@ -86,8 +86,7 @@ export function CleanupDraftsSection({
             toastSuccess({ description: "未找到过期草稿。" });
           } else if (res.data.deleted === 0) {
             toastSuccess({
-              description:
-                "所有过期草稿均已由你编辑，本次未删除任何草稿。",
+              description: "所有过期草稿均已由你编辑，本次未删除任何草稿。",
             });
           } else {
             toastSuccess({
@@ -192,7 +191,8 @@ export function CleanupDraftsSection({
             <div className="px-4 pb-2">
               <p className="text-xs text-muted-foreground">
                 {result.skippedModified} draft
-                {result.skippedModified === 1 ? " was" : "份"} 因已编辑而保留 {result.skippedModified === 1 ? "it" : "them"}
+                {result.skippedModified === 1 ? " was" : "份"} 因已编辑而保留{" "}
+                {result.skippedModified === 1 ? "it" : "them"}
               </p>
             </div>
           )}

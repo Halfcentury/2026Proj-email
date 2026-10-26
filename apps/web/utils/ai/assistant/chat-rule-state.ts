@@ -5,7 +5,7 @@ import {
   MessagingRoutePurpose,
 } from "@/generated/prisma/enums";
 import { filterNullProperties } from "@/utils";
-import { getMessagingProviderName } from "@/utils/messaging/platforms";
+import { getMessagingProviderName } from "@/utils/retired-notifications";
 import prisma from "@/utils/prisma";
 
 export type RuleReadState = {

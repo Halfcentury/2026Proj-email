@@ -11,8 +11,14 @@ const { checkHasAccessMock, fetchEventsMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/utils/prisma");
-vi.mock("@/utils/premium/server", () => ({
-  checkHasAccess: (...args: unknown[]) => checkHasAccessMock(...args),
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      checkHasAccess: (...args: unknown[]) => checkHasAccessMock(...args),
+    },
+  },
 }));
 vi.mock("@/utils/calendar/fetch-events-in-window", () => ({
   fetchCalendarEventsInWindow: (...args: unknown[]) => fetchEventsMock(...args),

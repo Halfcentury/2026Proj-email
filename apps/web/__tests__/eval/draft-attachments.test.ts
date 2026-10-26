@@ -15,8 +15,14 @@ import { selectDraftAttachmentsForRule } from "@/utils/attachments/draft-attachm
 
 vi.mock("@/utils/prisma");
 
-vi.mock("@/utils/premium/server", () => ({
-  checkHasAccess: vi.fn().mockResolvedValue(true),
+vi.mock("@/utils/feature-access", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...{
+    ...(await importOriginal()),
+    ...{
+      checkHasAccess: vi.fn().mockResolvedValue(true),
+    },
+  },
 }));
 
 vi.mock("@/utils/drive/provider", () => ({

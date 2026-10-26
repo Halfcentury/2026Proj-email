@@ -1,7 +1,7 @@
 import { Client } from "pg";
 
-export const RULE_NAME = "Playwright receipts";
-export const UPDATED_RULE_NAME = "Playwright vendor receipts";
+export const RULE_NAME = "验收收据规则";
+export const UPDATED_RULE_NAME = "验收服务商收据规则";
 
 export async function cleanupTestRules(emailAccountId?: string) {
   if (!emailAccountId) return;

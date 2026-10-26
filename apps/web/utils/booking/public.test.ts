@@ -588,6 +588,7 @@ describe("public booking", () => {
     );
     expect(sendBookingCancellationEmails).toHaveBeenCalled();
     expect(result.status).toBe(BookingStatus.CANCELED);
+    expect(result.providerCancellationPending).toBe(true);
   });
 
   it("does not re-cancel or re-notify when another request already canceled the booking", async () => {

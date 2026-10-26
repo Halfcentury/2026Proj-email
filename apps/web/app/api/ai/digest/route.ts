@@ -10,7 +10,7 @@ import {
   releaseDigestSummarySlot,
   reserveDigestSummarySlot,
 } from "@/utils/digest/summary-limit";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 import { upsertDigest } from "@/app/api/ai/digest/upsert-digest";
 
 export const POST = withError(

@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { subDays } from "date-fns/subDays";
 import { ChevronDown } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import {
   ArchiveIcon,
   CheckIcon,
@@ -25,9 +24,9 @@ import type {
   NewsletterStatsQuery,
   NewsletterStatsResponse,
 } from "@/app/api/user/stats/newsletters/route";
-import { getDateRangeParams } from "@/app/(app)/[emailAccountId]/stats/params";
-import { useEmailsToIncludeFilter } from "@/app/(app)/[emailAccountId]/stats/EmailsToIncludeFilter";
-import { usePremium } from "@/hooks/usePremium";
+import { getDateRangeParams } from "@/components/mail-data/params";
+import { useEmailsToIncludeFilter } from "@/components/mail-data/EmailsToIncludeFilter";
+import { usePremium } from "@/hooks/useFeatureAccess";
 import {
   useArchiveOnUnsubscribe,
   useNewsletterFilter,
@@ -42,7 +41,7 @@ import {
 } from "@/app/(app)/[emailAccountId]/bulk-unsubscribe/suggestions";
 import { getUserFacingUnsubscribeLink } from "@/utils/parse/unsubscribe";
 import { useStatLoader } from "@/providers/StatLoaderProvider";
-import { usePremiumModal } from "@/app/(app)/premium/PremiumModal";
+import { usePremiumModal } from "@/hooks/useFeatureAccess";
 import { useLabels } from "@/hooks/useLabels";
 import {
   BulkUnsubscribeDesktop,
@@ -59,7 +58,6 @@ import { useAccount } from "@/providers/EmailAccountProvider";
 import { PageWrapper } from "@/components/PageWrapper";
 import { PageHeader } from "@/components/PageHeader";
 import { TextLink } from "@/components/Typography";
-import { DismissibleVideoCard } from "@/components/VideoCard";
 import { DatePickerWithRange } from "@/components/DatePickerWithRange";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -181,7 +179,6 @@ export function BulkUnsubscribe() {
 
   const { typesArray } = useEmailsToIncludeFilter();
   const { filtersArray, filter, setFilter } = useNewsletterFilter();
-  const posthog = usePostHog();
 
   const [search, setSearch] = useState("");
 
@@ -250,7 +247,6 @@ export function BulkUnsubscribe() {
 
   const onOpenNewsletter = (newsletter: Newsletter) => {
     setOpenedNewsletterName(newsletter.name);
-    posthog?.capture("Clicked Expand Sender");
   };
 
   const [selectedRow, setSelectedRow] = useState<Newsletter | undefined>();
@@ -316,10 +312,7 @@ export function BulkUnsubscribe() {
 
     selectItems(suggestedRows.map((row) => row.name));
     setIsSuggestedMode(true);
-    posthog?.capture("Clicked Select Suggested Unsubscribes", {
-      count: suggestedRows.length,
-    });
-  }, [isSuggestedMode, selectItems, suggestedRows, posthog]);
+  }, [isSuggestedMode, selectItems, suggestedRows]);
 
   const onToggleVisibleRow = useCallback(
     (id: string, shiftKey = false) =>
@@ -419,20 +412,7 @@ export function BulkUnsubscribe() {
         <ScanOlderEmailsButton />
       </div>
 
-      <DismissibleVideoCard
-        className="my-4"
-        icon={<ArchiveIcon className="size-5" />}
-        title="批量退订入门"
-        description={
-          "了解如何使用批量退订来退订和归档不需要的邮件。"
-        }
-        muxPlaybackId="qxP8P5aKm7k7I01seCEMP1ZepHQAmdKCcW02x1fM7xQm00"
-        storageKey="bulk-unsubscribe-onboarding-video"
-        videoAnalytics={{
-          page: "bulk_unsubscribe",
-          surface: "dismissible_card",
-        }}
-      />
+      {null}
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
         <DropdownMenu>
@@ -506,8 +486,8 @@ export function BulkUnsubscribe() {
                 >
                   <SparklesIcon className="size-4 text-amber-500" />
                   <span className="ml-2">
-                    {isSuggestedMode ? "显示" : "选择"}{" "}
-                    {suggestedRows.length} suggested
+                    {isSuggestedMode ? "显示" : "选择"} {suggestedRows.length}{" "}
+                    suggested
                   </span>
                 </Button>
               </TooltipTrigger>
@@ -538,9 +518,7 @@ export function BulkUnsubscribe() {
               </label>
             </div>
           </TooltipTrigger>
-          <TooltipContent>
-            退订时同时归档已有邮件
-          </TooltipContent>
+          <TooltipContent>退订时同时归档已有邮件</TooltipContent>
         </Tooltip>
       </div>
 

@@ -1,6 +1,6 @@
 import { env } from "@/env";
 import { secureCompare } from "@/utils/crypto-compare";
-import type { IntegrationKey } from "@/utils/mcp/integrations";
+import type { IntegrationKey } from "@/utils/optional-features";
 import crypto from "node:crypto";
 
 const OAUTH_STATE_DEFAULT_MAX_AGE_MS = 10 * 60 * 1000;

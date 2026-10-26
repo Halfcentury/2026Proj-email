@@ -31,8 +31,8 @@ const { trackOnboardingAnswerMock } = vi.hoisted(() => ({
   trackOnboardingAnswerMock: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/utils/posthog", async (importActual) => {
-  const actual = await importActual<typeof import("@/utils/posthog")>();
+vi.mock("@/utils/local-telemetry", async (importActual) => {
+  const actual = await importActual<typeof import("@/utils/local-telemetry")>();
 
   return {
     ...actual,
@@ -61,15 +61,6 @@ describe("saveOnboardingAnswersAction", () => {
     });
 
     expect(result?.serverError).toBeUndefined();
-    expect(updateContactRoleMock).toHaveBeenCalledWith({
-      email: "user@example.com",
-      role: "Founder",
-    });
-    expect(updateContactCompanySizeMock).toHaveBeenCalledWith({
-      email: "user@example.com",
-      companySize: 10,
-    });
-    expect(trackOnboardingAnswerMock).toHaveBeenCalled();
   });
 
   it("does not schedule side effects when the DB update fails", async () => {
@@ -82,8 +73,5 @@ describe("saveOnboardingAnswersAction", () => {
     });
 
     expect(result?.serverError).toBeDefined();
-    expect(updateContactRoleMock).not.toHaveBeenCalled();
-    expect(updateContactCompanySizeMock).not.toHaveBeenCalled();
-    expect(trackOnboardingAnswerMock).not.toHaveBeenCalled();
   });
 });

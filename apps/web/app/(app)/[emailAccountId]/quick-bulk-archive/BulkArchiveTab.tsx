@@ -264,17 +264,13 @@ export function BulkArchiveTab() {
                 {groupedByConfidence.high.length > 0 && (
                   <div className="flex items-center gap-1.5">
                     <div className="size-2 rounded-full bg-green-500" />
-                    <span>
-                      {groupedByConfidence.high.length} 可安全归档
-                    </span>
+                    <span>{groupedByConfidence.high.length} 可安全归档</span>
                   </div>
                 )}
                 {groupedByConfidence.medium.length > 0 && (
                   <div className="flex items-center gap-1.5">
                     <div className="size-2 rounded-full bg-amber-500" />
-                    <span>
-                      {groupedByConfidence.medium.length} 可能可归档
-                    </span>
+                    <span>{groupedByConfidence.medium.length} 可能可归档</span>
                   </div>
                 )}
                 {groupedByConfidence.low.length > 0 && (

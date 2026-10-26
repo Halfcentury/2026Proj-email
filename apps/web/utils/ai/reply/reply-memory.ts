@@ -144,14 +144,21 @@ export async function getReplyMemoriesForPrompt({
   senderEmail,
   emailContent,
   logger,
+  onError,
 }: {
   emailAccount: EmailAccountWithAI;
   senderEmail: string;
   emailContent: string;
   logger: Logger;
+  onError?: () => void;
 }): Promise<{
   content: string | null;
-  selectedMemories: Array<Pick<ReplyMemory, "id" | "kind" | "scopeType">>;
+  selectedMemories: Array<
+    Pick<ReplyMemory, "id" | "kind" | "scopeType"> & {
+      content?: string;
+      updatedAt?: string;
+    }
+  >;
 }> {
   const emailAccountId = emailAccount.id;
 
@@ -246,9 +253,12 @@ export async function getReplyMemoriesForPrompt({
         id: memory.id,
         kind: memory.kind,
         scopeType: memory.scopeType,
+        content: memory.content,
+        updatedAt: memory.updatedAt?.toISOString(),
       })),
     };
   } catch (error) {
+    onError?.();
     logger.error("Failed to load reply memories", { error, emailAccountId });
     return {
       content: null,

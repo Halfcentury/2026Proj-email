@@ -6,7 +6,6 @@ import prisma from "@/utils/__mocks__/prisma";
 import { deleteUser } from "@/utils/user/delete";
 import { deleteTinybirdEmailData } from "@inboxzero/tinybird";
 import { publishConversationChange } from "@/utils/team-comments/events";
-import { deleteContact as deleteLoopsContact } from "@inboxzero/loops";
 import { releaseAccountRecordings } from "@/utils/meeting-recorder/delete-media";
 
 vi.mock("@/utils/prisma");
@@ -22,7 +21,7 @@ vi.mock("@inboxzero/transactional-email", () => ({
 vi.mock("@inboxzero/tinybird", () => ({
   deleteTinybirdEmailData: vi.fn(() => Promise.resolve()),
 }));
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   deletePosthogUser: vi.fn(() => Promise.resolve()),
   trackUserDeleted: vi.fn(() => Promise.resolve()),
   trackUserDeletionRequested: vi.fn(() => Promise.resolve()),
@@ -184,25 +183,6 @@ describe("deleteUser", () => {
     ).toBeGreaterThan(prisma.$transaction.mock.invocationCallOrder[0]);
   });
 
-  it("removes the marketing contact by email address", async () => {
-    prisma.account.findMany.mockResolvedValue([
-      {
-        provider: "google",
-        emailAccount: {
-          id: "email-account-1",
-          email: "user@example.com",
-          watchEmailsSubscriptionId: null,
-        },
-      },
-    ] as Awaited<ReturnType<typeof prisma.account.findMany>>);
-    prisma.executedRule.findMany.mockResolvedValue([]);
-    prisma.user.deleteMany.mockResolvedValue({ count: 1 } as any);
-
-    await deleteUser({ userId: "user-1", logger });
-
-    expect(deleteLoopsContact).toHaveBeenCalledWith("user@example.com");
-  });
-
   it("releases every mailbox's recordings before deleting the user", async () => {
     prisma.account.findMany.mockResolvedValue([
       {
@@ -266,7 +246,6 @@ describe("deleteUser", () => {
       "provider unavailable",
     );
     expect(prisma.user.deleteMany).not.toHaveBeenCalled();
-    expect(deleteLoopsContact).not.toHaveBeenCalled();
   });
 
   it("deletes ownerless solo organizations before deleting the user", async () => {

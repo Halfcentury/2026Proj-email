@@ -2,28 +2,8 @@ import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
 import type { Logger } from "@/utils/logger";
 import prisma from "@/utils/prisma";
-import { posthogCaptureEvent } from "@/utils/posthog";
-import {
-  ActionType,
-  MessagingProvider,
-  MessagingRoutePurpose,
-} from "@/generated/prisma/enums";
-import { describeCronSchedule } from "@/utils/automation-jobs/describe";
-import { DEFAULT_AUTOMATION_JOB_CRON } from "@/utils/automation-jobs/defaults";
-import { SUPPORTED_AUTOMATION_MESSAGING_PROVIDERS } from "@/utils/automation-jobs/messaging-channel";
-import {
-  formatRouteTargetLabel,
-  getMessagingRoute,
-} from "@/utils/messaging/routes";
-import {
-  getNextAutomationJobRunAt,
-  validateAutomationCronExpression,
-} from "@/utils/automation-jobs/cron";
-import {
-  canEnableAutomationJobs,
-  createAutomationJob,
-} from "@/utils/actions/automation-jobs.helpers";
-import { ensureScheduledCheckInsRouteForChannel } from "@/utils/automation-jobs/destination";
+import { ActionType, MessagingProvider } from "@/generated/prisma/enums";
+import { SUPPORTED_AUTOMATION_MESSAGING_PROVIDERS } from "@/utils/retired-notifications";
 import { getDigestDeliveryState } from "@/utils/digest/delivery-state";
 import {
   DIGEST_DISPATCH_INTERVAL_MINUTES,
@@ -482,7 +462,7 @@ export async function trackSettingsToolCall({
   logger: Logger;
 }) {
   logger.trace("Tracking tool call", { tool, email });
-  return posthogCaptureEvent(email, "AI Assistant Chat Tool Call", { tool });
+  return;
 }
 
 export async function executeUpdateAssistantSettings({
@@ -500,6 +480,12 @@ export async function executeUpdateAssistantSettings({
     const existing = await loadAccountSettingsSnapshot(emailAccountId);
     if (!existing) return { error: "Email account not found" };
 
+    if (
+      changes.some(
+        (change) => change.path === "assistant.scheduledCheckIns.config",
+      )
+    )
+      return { error: "当前项目不启用消息渠道定时通知" };
     const normalizedChanges = dedupeSettingsChanges(changes);
     const data: {
       about?: string;
@@ -626,7 +612,7 @@ export async function executeUpdateAssistantSettings({
         })
       ) {
         if (hasScheduledCheckInsPremium === null) {
-          hasScheduledCheckInsPremium = await canEnableAutomationJobs(userId);
+          hasScheduledCheckInsPremium = false;
         }
 
         if (!hasScheduledCheckInsPremium) {
@@ -824,7 +810,7 @@ function getCurrentValue({
 }
 
 export function getWritableCapabilities(snapshot: AccountSettingsSnapshot) {
-  return [
+  const capabilities = [
     {
       path: "assistant.multiRuleSelection.enabled",
       title: "Multi-rule selection",
@@ -894,18 +880,25 @@ export function getWritableCapabilities(snapshot: AccountSettingsSnapshot) {
       ],
     },
   ] as const;
+  return capabilities.filter(
+    (capability) => capability.path !== "assistant.scheduledCheckIns",
+  );
 }
 
 export function getReadOnlyCapabilities(snapshot: AccountSettingsSnapshot) {
-  return readOnlyCapabilities.map((capability) => ({
-    ...capability,
-    canRead: true,
-    canWrite: false,
-    value: getReadOnlyValue({
-      snapshot,
-      path: capability.path,
-    }),
-  }));
+  return readOnlyCapabilities
+    .filter(
+      (capability) => capability.path !== "assistant.referralSignature.enabled",
+    )
+    .map((capability) => ({
+      ...capability,
+      canRead: true,
+      canWrite: false,
+      value: getReadOnlyValue({
+        snapshot,
+        path: capability.path,
+      }),
+    }));
 }
 
 function getReadOnlyValue({
@@ -963,58 +956,7 @@ function resolveScheduledCheckInsConfig({
   snapshot: AccountSettingsSnapshot["scheduledCheckIns"];
   change: z.infer<typeof scheduledCheckInsConfigSchema>;
 }) {
-  const enabled = change.enabled ?? snapshot.enabled;
-  const cronExpression =
-    change.cronExpression?.trim() ||
-    snapshot.cronExpression ||
-    (enabled ? DEFAULT_AUTOMATION_JOB_CRON : null);
-  const prompt =
-    change.prompt === undefined
-      ? snapshot.prompt
-      : normalizePrompt(change.prompt);
-
-  const messagingChannelId =
-    change.messagingChannelId ?? snapshot.messagingChannelId ?? null;
-
-  if (enabled && !messagingChannelId) {
-    throw new Error(
-      "Provide a messagingChannelId when enabling scheduled check-ins. Ask the user to choose a destination from availableChannels.",
-    );
-  }
-
-  if (
-    enabled &&
-    messagingChannelId &&
-    !snapshot.availableChannels.some(
-      (channel) => channel.id === messagingChannelId,
-    )
-  ) {
-    throw new Error(
-      "Selected messaging destination is unavailable. Refresh capabilities and choose another channel.",
-    );
-  }
-
-  if (enabled && !cronExpression) {
-    throw new Error(
-      "Invalid schedule. Please provide a valid cron expression.",
-    );
-  }
-
-  if (enabled && cronExpression) {
-    validateAutomationCronExpression(cronExpression);
-  }
-
-  return {
-    enabled,
-    cronExpression,
-    messagingChannelId,
-    prompt,
-  };
-}
-
-function normalizePrompt(prompt: string | null) {
-  const normalized = prompt?.trim();
-  return normalized ? normalized : null;
+  throw new Error("此通知渠道功能已移除。");
 }
 
 async function applyScheduledCheckInsConfig({
@@ -1026,116 +968,23 @@ async function applyScheduledCheckInsConfig({
   current: AccountSettingsSnapshot["scheduledCheckIns"];
   config: ScheduledCheckInsConfig;
 }) {
-  const cronExpression = config.cronExpression ?? DEFAULT_AUTOMATION_JOB_CRON;
-
-  const messagingChannelId =
-    config.messagingChannelId ?? current.messagingChannelId;
-
-  if (current.jobId && config.enabled && messagingChannelId) {
-    const route = await ensureScheduledCheckInsRouteForChannel({
-      emailAccountId,
-      messagingChannelId,
-    });
-    if (!route) {
-      throw new Error(
-        "Selected messaging destination is unavailable. Refresh capabilities and choose another channel.",
-      );
-    }
-  }
-
-  if (!current.jobId) {
-    if (!config.enabled || !config.messagingChannelId) return;
-
-    await createAutomationJob({
-      emailAccountId,
-      cronExpression,
-      prompt: config.prompt,
-      messagingChannelId: config.messagingChannelId,
-    });
-    return;
-  }
-
-  const nextRunAt =
-    config.enabled &&
-    getNextAutomationJobRunAt({
-      cronExpression,
-      fromDate: new Date(),
-    });
-
-  await prisma.automationJob.update({
-    where: { id: current.jobId },
-    data: {
-      enabled: config.enabled,
-      cronExpression,
-      prompt: config.prompt,
-      ...(config.messagingChannelId && {
-        messagingChannelId: config.messagingChannelId,
-      }),
-      ...(nextRunAt && { nextRunAt }),
-    },
-  });
+  throw new Error("此通知渠道功能已移除。");
 }
 
 function buildScheduledCheckInsSnapshot(
   emailAccount: ScheduledCheckInsSnapshotSource,
 ) {
-  const availableChannels = emailAccount.messagingChannels.map((channel) => ({
-    id: channel.id,
-    label: formatMessagingChannelLabel({
-      provider: channel.provider,
-      teamName: channel.teamName,
-      routeLabel: formatRouteTargetLabel(
-        getMessagingRoute(
-          channel.routes,
-          MessagingRoutePurpose.SCHEDULED_CHECK_INS,
-        ),
-      ),
-    }),
-  }));
-
   return {
-    jobId: emailAccount.automationJob?.id ?? null,
-    enabled: Boolean(emailAccount.automationJob?.enabled),
-    cronExpression: emailAccount.automationJob?.cronExpression ?? null,
-    scheduleDescription: emailAccount.automationJob
-      ? describeCronSchedule(emailAccount.automationJob.cronExpression)
-      : null,
-    prompt: emailAccount.automationJob?.prompt ?? null,
-    nextRunAt: emailAccount.automationJob?.nextRunAt.toISOString() ?? null,
-    messagingChannelId: emailAccount.automationJob?.messagingChannelId ?? null,
-    messagingChannelName: emailAccount.automationJob?.messagingChannel
-      ? formatMessagingChannelLabel({
-          provider: emailAccount.automationJob.messagingChannel.provider,
-          teamName: emailAccount.automationJob.messagingChannel.teamName,
-          routeLabel: formatRouteTargetLabel(
-            getMessagingRoute(
-              emailAccount.automationJob.messagingChannel.routes,
-              MessagingRoutePurpose.SCHEDULED_CHECK_INS,
-            ),
-          ),
-        })
-      : null,
-    availableChannels,
+    jobId: null,
+    enabled: false,
+    cronExpression: null,
+    scheduleDescription: null,
+    prompt: null,
+    nextRunAt: null,
+    messagingChannelId: null,
+    messagingChannelName: null,
+    availableChannels: [],
   };
-}
-
-function formatMessagingChannelLabel({
-  provider,
-  teamName,
-  routeLabel,
-}: {
-  provider: MessagingProvider;
-  teamName: string | null;
-  routeLabel: string | null;
-}) {
-  if (routeLabel && teamName) return `${routeLabel} (${teamName})`;
-  if (routeLabel) return routeLabel;
-  if (teamName) return teamName;
-
-  if (provider === MessagingProvider.TEAMS) return "Teams destination";
-  if (provider === MessagingProvider.TELEGRAM) return "Telegram destination";
-
-  return "Slack workspace";
 }
 
 function requiresScheduledCheckInsPremium({

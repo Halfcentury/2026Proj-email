@@ -22,6 +22,7 @@ export function CancelBookingClient({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [providerPending, setProviderPending] = useState(false);
 
   const {
     register,
@@ -45,6 +46,7 @@ export function CancelBookingClient({
       });
       const body = await response.json();
       if (!response.ok) throw new Error(getApiError(body));
+      setProviderPending(body.providerCancellationPending === true);
       setDone(true);
     } catch (cancelError) {
       setError(
@@ -68,7 +70,14 @@ export function CancelBookingClient({
         <Card>
           <CardContent className="p-5">
             {done ? (
-              <p className="text-sm text-muted-foreground">预约已取消。</p>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">预约已取消。</p>
+                {providerPending && (
+                  <p role="alert" className="text-sm text-amber-700">
+                    日历端取消尚未确认，请与主办人核对日历状态。
+                  </p>
+                )}
+              </div>
             ) : bookingToken ? (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <Input

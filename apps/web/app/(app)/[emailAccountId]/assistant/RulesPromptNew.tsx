@@ -143,9 +143,7 @@ function RulesPromptForm({
               await onSubmit();
             }}
           >
-            <Label className="font-title text-xl leading-7">
-              添加新规则
-            </Label>
+            <Label className="font-title text-xl leading-7">添加新规则</Label>
 
             <div className="mt-1.5 space-y-2">
               <LoadingContent
@@ -157,7 +155,9 @@ function RulesPromptForm({
                   defaultValue={undefined}
                   minHeight={180}
                   userLabels={userLabels}
-                  placeholder={"* 为紧急邮件添加“紧急”标签 * 将收据转发到 jane@accounting.com"}
+                  placeholder={
+                    "* 为紧急邮件添加“紧急”标签 * 将收据转发到 jane@accounting.com"
+                  }
                 />
               </LoadingContent>
 

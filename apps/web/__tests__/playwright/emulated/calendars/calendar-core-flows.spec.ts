@@ -23,7 +23,7 @@ test("changes which Google calendar is used for availability", async ({
   await openCalendars(page);
 
   const calendarSummary = page.getByRole("button", {
-    name: "1 of 1 calendars selected for availability",
+    name: "1 of 1 个日历用于检查可预约时间",
   });
   await expect(calendarSummary).toBeVisible({ timeout: 60_000 });
   await calendarSummary.click();
@@ -45,7 +45,7 @@ test("changes which Google calendar is used for availability", async ({
   await openCalendars(page);
   await expect(
     page.getByRole("button", {
-      name: "0 of 1 calendars selected for availability",
+      name: "0 of 1 个日历用于检查可预约时间",
     }),
   ).toBeVisible({ timeout: 120_000 });
 });

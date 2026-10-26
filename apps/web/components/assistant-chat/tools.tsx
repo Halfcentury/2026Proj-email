@@ -357,9 +357,7 @@ export function ManageSenderCategoryResult({ output }: { output: unknown }) {
   const categoryName = category?.name?.trim() || "Category";
 
   if (senders.length === 0) {
-    return (
-      <BasicToolInfo text={`“${categoryName}”中没有可归档发件人`} />
-    );
+    return <BasicToolInfo text={`“${categoryName}”中没有可归档发件人`} />;
   }
 
   const hiddenCount = Math.max(sendersCount - senders.length, 0);
@@ -685,7 +683,9 @@ function EmailActionResult({
             {recipient}
           </div>
           {cc && (
-            <div className="mt-0.5 text-xs text-muted-foreground">抄送： {cc}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              抄送： {cc}
+            </div>
           )}
           {bcc && (
             <div className="mt-0.5 text-xs text-muted-foreground">
@@ -1118,9 +1118,7 @@ function PendingCreateRuleCardContent({
         <AlertTriangleIcon className="size-4 text-amber-600" />
         <AlertTitle>启用前检查</AlertTitle>
         <AlertDescription className="space-y-2 text-sm">
-          <p>
-            此规则可自动发送邮件，启用前请检查。
-          </p>
+          <p>此规则可自动发送邮件，启用前请检查。</p>
           {riskMessages.length === 1 ? (
             <p className="text-muted-foreground">{riskMessages[0]}</p>
           ) : riskMessages.length > 1 ? (
@@ -1742,13 +1740,13 @@ function RuleEditToggleActions({
             if (result?.serverError) {
               setEnabled(!checked);
               toastError({
-                description: `规则操作失败。`,
+                description: "规则操作失败。",
               });
             }
           } catch {
             setEnabled(!checked);
             toastError({
-              description: `规则操作失败。`,
+              description: "规则操作失败。",
             });
           }
         }}

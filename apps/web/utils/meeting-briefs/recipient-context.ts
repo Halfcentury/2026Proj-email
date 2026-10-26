@@ -12,9 +12,11 @@ const MAX_DESCRIPTION_LENGTH = 500;
 
 export interface MeetingContext {
   eventDescription?: string;
+  eventId?: string;
   eventLocation?: string;
   eventTime: Date;
   eventTitle: string;
+  eventUrl?: string;
   isPast: boolean;
 }
 
@@ -46,11 +48,13 @@ export async function getMeetingContext({
   recipientEmail,
   additionalRecipients = [],
   logger,
+  onError,
 }: {
   emailAccountId: string;
   recipientEmail: string;
   additionalRecipients?: string[];
   logger: Logger;
+  onError?: () => void;
 }): Promise<MeetingContext[]> {
   try {
     const calendarProviders = await createCalendarEventProviders(
@@ -99,6 +103,7 @@ export async function getMeetingContext({
         });
         upcomingMeetings.push(...upcomingEvents);
       } catch (error) {
+        onError?.();
         logger.warn("Failed to fetch events from provider", { error });
       }
     }
@@ -138,6 +143,8 @@ export async function getMeetingContext({
       event: CalendarEvent,
       isPast: boolean,
     ): MeetingContext => ({
+      eventId: event.id,
+      eventUrl: event.eventUrl,
       eventTitle: event.title,
       eventTime: event.startTime,
       eventDescription: event.description,
@@ -150,6 +157,7 @@ export async function getMeetingContext({
       ...limitedUpcomingMeetings.map((e) => mapToContext(e, false)),
     ];
   } catch (error) {
+    onError?.();
     logger.error("Failed to get meeting context", { error });
     return [];
   }

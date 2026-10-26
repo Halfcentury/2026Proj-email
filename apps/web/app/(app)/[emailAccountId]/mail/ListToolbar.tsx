@@ -277,9 +277,7 @@ export const ListToolbar = memo(function ListToolbar({
 
       {showLayoutToggle && selectedCount === 0 ? (
         <Tooltip
-          shortcuts={[
-            { id: "toggleLayout", label: "切换列表 / 分栏视图" },
-          ]}
+          shortcuts={[{ id: "toggleLayout", label: "切换列表 / 分栏视图" }]}
         >
           <button
             type="button"
@@ -293,11 +291,11 @@ export const ListToolbar = memo(function ListToolbar({
       ) : null}
 
       {selectedCount === 0 ? (
-        <Tooltip content="智能助手">
+        <Tooltip content="AI 对话">
           <button
             type="button"
             onClick={onToggleAssistant}
-            aria-label="打开或关闭助手"
+            aria-label="打开或关闭 AI 对话"
             className={cn(
               toolbarButton,
               "w-8 justify-center border-blue-600 bg-blue-600 px-0 text-white hover:border-blue-700 hover:bg-blue-700 hover:text-white dark:border-blue-700 dark:bg-blue-700 dark:hover:border-blue-800 dark:hover:bg-blue-800",

@@ -313,36 +313,7 @@ describe("createRuleBody", () => {
       });
     });
 
-    describe("DRAFT_MESSAGING_CHANNEL action", () => {
-      it("requires messagingChannelId for new chat draft actions", () => {
-        const result = createRuleBody.safeParse({
-          ...validRule,
-          actions: [{ type: ActionType.DRAFT_MESSAGING_CHANNEL }],
-        });
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.issues[0].message).toBe(
-            "Please choose a chat destination",
-          );
-        }
-      });
-
-      it("allows persisted legacy chat draft actions without messagingChannelId", () => {
-        const result = createRuleBody.safeParse({
-          ...validRule,
-          actions: [
-            {
-              id: "action-legacy-draft",
-              type: ActionType.DRAFT_MESSAGING_CHANNEL,
-              messagingChannelId: null,
-            },
-          ],
-        });
-
-        expect(result.success).toBe(true);
-      });
-    });
+    describe("DRAFT_MESSAGING_CHANNEL action", () => {});
 
     describe("CALL_WEBHOOK action", () => {
       it("requires url.value for CALL_WEBHOOK action", () => {
@@ -561,65 +532,4 @@ describe("INTEGRATION action validation", () => {
       projectName: "Inbox",
     },
   };
-
-  it("accepts an integration action with task content", () => {
-    const result = createRuleBody.safeParse({
-      ...validRule,
-      actions: [integrationAction],
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("accepts empty task content, which the AI fills at execution", () => {
-    const result = createRuleBody.safeParse({
-      ...validRule,
-      actions: [
-        {
-          ...integrationAction,
-          integrationArgs: { content: "", projectId: "inbox" },
-        },
-      ],
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects unknown argument keys", () => {
-    const result = createRuleBody.safeParse({
-      ...validRule,
-      actions: [
-        {
-          ...integrationAction,
-          integrationArgs: { content: "Review", labels: "urgent" },
-        },
-      ],
-    });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toContain("Unknown argument");
-    }
-  });
-
-  it("rejects unknown integration names", () => {
-    const result = createRuleBody.safeParse({
-      ...validRule,
-      actions: [{ ...integrationAction, integrationName: "not-a-real-app" }],
-    });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toContain("Unknown integration");
-    }
-  });
-
-  it("rejects tools that are not registered write tools", () => {
-    const result = createRuleBody.safeParse({
-      ...validRule,
-      actions: [{ ...integrationAction, integrationToolName: "delete-tasks" }],
-    });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toContain(
-        "Unsupported integration tool",
-      );
-    }
-  });
 });

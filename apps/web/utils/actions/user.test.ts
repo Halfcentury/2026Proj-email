@@ -2,8 +2,7 @@ import { withThreadPageBufferDeletion } from "@/utils/redis/thread-page-buffer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/utils/__mocks__/prisma";
-import { updateAccountSeats } from "@/utils/premium/seats";
-import { aliasPosthogUser } from "@/utils/posthog";
+import { aliasPosthogUser } from "@/utils/local-telemetry";
 import { betterAuthConfig } from "@/utils/auth";
 import { deleteUser } from "@/utils/user/delete";
 import { stopWatchingEmailAccount } from "@/utils/email/watch-manager";
@@ -51,7 +50,7 @@ vi.mock("@/utils/user/delete", () => ({
 vi.mock("@/utils/email/watch-manager", () => ({
   stopWatchingEmailAccount: vi.fn(),
 }));
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   aliasPosthogUser: vi.fn(),
 }));
 vi.mock("@/utils/premium/seats", () => ({
@@ -161,11 +160,6 @@ describe("deleteEmailAccountAction", () => {
       "shared-1",
       expect.anything(),
     );
-    expect(aliasPosthogUser).toHaveBeenCalledWith({
-      oldEmail: "primary@example.com",
-      newEmail: "alternate@example.com",
-    });
-    expect(updateAccountSeats).toHaveBeenCalledWith({ userId: "user-1" });
   });
 
   it("does not delete the primary account when promotion loses a concurrent update", async () => {
@@ -185,7 +179,6 @@ describe("deleteEmailAccountAction", () => {
 
     expect(result?.serverError).toBe("Email account already changed");
     expect(aliasPosthogUser).not.toHaveBeenCalled();
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("does not delete a promoted account with a stale non-primary request", async () => {
@@ -210,7 +203,6 @@ describe("deleteEmailAccountAction", () => {
         user: { email: "primary@example.com" },
       },
     });
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("stops watching a removed mailbox before deleting it", async () => {
@@ -375,7 +367,6 @@ describe("deleteEmailAccountAction", () => {
     });
 
     expect(result?.serverError).toBeUndefined();
-    expect(updateAccountSeats).toHaveBeenCalledWith({ userId: "user-1" });
   });
 
   it("shows a specific error when the remaining email is already in use", async () => {
@@ -400,7 +391,6 @@ describe("deleteEmailAccountAction", () => {
     expect(result?.serverError).toBe(
       "We couldn't make the remaining email account primary because that email is already in use.",
     );
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("shows a specific error when linked data blocks account deletion", async () => {
@@ -423,7 +413,6 @@ describe("deleteEmailAccountAction", () => {
     expect(result?.serverError).toBe(
       "We couldn't delete this email account because linked data still exists. Please contact support.",
     );
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("shows the ownership transfer message when membership blocks account deletion", async () => {
@@ -448,7 +437,6 @@ describe("deleteEmailAccountAction", () => {
     expect(result?.serverError).toBe(
       "Transfer organization ownership before deleting this email account.",
     );
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("shows an action-specific fallback for unexpected delete failures", async () => {
@@ -469,7 +457,6 @@ describe("deleteEmailAccountAction", () => {
     expect(result?.serverError).toBe(
       "We couldn't delete this email account. Please contact support if this keeps happening.",
     );
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("does not delete an email account when an organization would keep members but no owner", async () => {
@@ -496,7 +483,6 @@ describe("deleteEmailAccountAction", () => {
     );
     expect(prisma.emailAccount.delete).not.toHaveBeenCalled();
     expect(prisma.account.delete).not.toHaveBeenCalled();
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 
   it("deletes an admin membership before deleting its email account when another owner remains", async () => {
@@ -545,7 +531,6 @@ describe("deleteEmailAccountAction", () => {
     expect(prisma.account.delete).toHaveBeenCalledWith({
       where: { id: "account-2", userId: "user-1" },
     });
-    expect(updateAccountSeats).toHaveBeenCalledWith({ userId: "user-1" });
   });
 
   it("deletes a solo organization before deleting its only email account", async () => {
@@ -606,7 +591,6 @@ describe("deleteEmailAccountAction", () => {
     expect(result?.serverError).toBe(
       "Transfer organization ownership before deleting this email account.",
     );
-    expect(updateAccountSeats).not.toHaveBeenCalled();
   });
 });
 

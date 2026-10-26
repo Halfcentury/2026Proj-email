@@ -31,7 +31,7 @@ vi.mock("@/providers/EmailAccountProvider", () => ({
   useAccount: () => mockUseAccount(),
 }));
 
-vi.mock("@/utils/desktop-app", () => ({
+vi.mock("@/utils/browser-platform", () => ({
   getInboxZeroDesktopApp: () => ({ openWindow: mockOpenWindow }),
 }));
 

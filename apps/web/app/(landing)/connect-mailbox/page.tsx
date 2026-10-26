@@ -33,9 +33,7 @@ export default async function ConnectMailboxPage(props: {
     <div className="flex min-h-screen flex-col justify-center text-foreground">
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4">
         <div className="text-center">
-          <h1 className="font-title text-2xl text-foreground">
-            连接邮箱
-          </h1>
+          <h1 className="font-title text-2xl text-foreground">连接邮箱</h1>
           <p className="mt-4 text-muted-foreground">
             连接 Gmail 或 Outlook，开始使用 {BRAND_NAME}.
           </p>

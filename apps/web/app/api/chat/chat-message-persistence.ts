@@ -1,3 +1,5 @@
+import { workspaceReviewKey } from "@/utils/ai/email-workspace/operation-record";
+import { workspaceResultsFromParts } from "@/utils/ai/email-workspace/result-metadata";
 import type { UIMessage } from "ai";
 import type { Prisma } from "@/generated/prisma/client";
 import { trimToNonEmptyString } from "@/utils/string";
@@ -25,14 +27,57 @@ export function mapUiMessagesToChatMessageRows(
   return messages.map((message) => {
     const persistedMessageId = trimToNonEmptyString(message.id);
     const assistantRun = options?.assistantRun;
+    const results =
+      message.role === "assistant"
+        ? workspaceResultsFromParts(message.parts)
+        : [];
+    const reviewKeys =
+      message.role === "assistant"
+        ? message.parts.flatMap((part) => {
+            if (
+              !("output" in part) ||
+              !part.output ||
+              typeof part.output !== "object"
+            )
+              return [];
+            if (
+              ![
+                "tool-manageBooking",
+                "tool-configureMeetingRecording",
+                "tool-suggestAttachmentFiling",
+              ].includes(part.type)
+            )
+              return [];
+            const output = part.output as {
+              reviewToken?: string;
+              signature?: string;
+            };
+            const token = output.reviewToken ?? output.signature;
+            return typeof token === "string" ? [workspaceReviewKey(token)] : [];
+          })
+        : [];
+    const metadata = {
+      ...(message.role === "assistant" && assistantRun
+        ? buildAssistantChatMessageMetadata(assistantRun)
+        : {}),
+      ...(reviewKeys.length ? { workspaceReviewKeys: reviewKeys } : {}),
+      ...(results.length
+        ? {
+            emailWorkspaces: results,
+            emailWorkspaceThreadIds: [
+              ...new Set(results.map((r) => r.threadId)),
+            ],
+          }
+        : {}),
+    };
 
     return {
       ...(persistedMessageId ? { id: persistedMessageId } : {}),
       chatId,
       role: message.role,
       parts: message.parts as Prisma.InputJsonValue,
-      ...(message.role === "assistant" && assistantRun
-        ? { metadata: buildAssistantChatMessageMetadata(assistantRun) }
+      ...(Object.keys(metadata).length
+        ? { metadata: JSON.parse(JSON.stringify(metadata)) }
         : {}),
     };
   });

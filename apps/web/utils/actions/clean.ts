@@ -26,7 +26,7 @@ import { SafeError } from "@/utils/error";
 import { createEmailProvider } from "@/utils/email/provider";
 import { isGoogleProvider } from "@/utils/email/provider-types";
 import { getUserPremium } from "@/utils/user/get";
-import { isActivePremium } from "@/utils/premium";
+import { isActivePremium } from "@/utils/feature-access";
 import { ONE_DAY_MS } from "@/utils/date";
 
 export const cleanInboxAction = actionClient

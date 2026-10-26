@@ -87,9 +87,7 @@ export function DraftRepliesIllustration() {
             transition={{ duration: 0.3 }}
             className="mt-1 text-left text-[10px] leading-relaxed text-gray-800 dark:text-gray-200"
           >
-            <p>
-              感谢联系，我们可以讨论项目进度。明天下午两点方便吗？
-            </p>
+            <p>感谢联系，我们可以讨论项目进度。明天下午两点方便吗？</p>
             <p className="mt-1">祝好</p>
           </motion.div>
         </div>

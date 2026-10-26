@@ -56,7 +56,6 @@ import { submitConversationChange } from "@/utils/mail-engine/submit-conversatio
 import { admissionRejectionCopy } from "@/utils/mail-engine/admission-notice";
 import { AccountCommandList } from "@/components/AccountCommandList";
 import { toastError } from "@/components/Toast";
-import { trackMailAction } from "@/utils/analytics/mail-usage";
 
 const SECTION_ORDER: CommandSection[] = [
   "actions",
@@ -360,7 +359,6 @@ function CommandPaletteContent({
       setPage("root");
     }
     command.action();
-    trackMailAction({ action: command.id, source: "palette" });
   };
 
   const handleOpenChange = (isOpen: boolean) => {

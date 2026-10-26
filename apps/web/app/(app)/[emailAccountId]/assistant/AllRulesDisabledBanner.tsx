@@ -27,7 +27,7 @@ export function AllRulesDisabledBanner() {
       variant="blue"
       icon={<SettingsIcon className="h-5 w-5" />}
       title="所有规则均已禁用"
-      description="所有规则均已禁用，智能助手暂未处理邮件。启用规则后即可开始。"
+      description="所有规则均已禁用，自动化暂未处理邮件。启用规则后即可开始。"
       action={
         <Button asChild variant="primaryBlack">
           <Link

@@ -7,7 +7,6 @@ import {
   type UIMessage,
 } from "ai";
 import { withEmailAccount } from "@/utils/middleware";
-import { FIRST_TIME_EVENTS, trackFirstTimeEvent } from "@/utils/posthog";
 import { getEmailAccountWithAi } from "@/utils/user/get";
 import {
   aiProcessAssistantChat,
@@ -172,12 +171,7 @@ export const POST = withEmailAccount("chat", async (request) => {
       }),
     });
 
-    after(() =>
-      trackFirstTimeEvent({
-        emailAccountId,
-        event: FIRST_TIME_EVENTS.FIRST_CHAT_MESSAGE,
-      }),
-    );
+    after(() => undefined);
 
     const latestCompaction = chat.compactions[0];
 

@@ -12,9 +12,7 @@ export function ColdEmailTest() {
       <CardHeader>
         <CardTitle>测试陌生邮件拦截</CardTitle>
 
-        <CardDescription>
-          检查拦截功能对历史邮件的识别结果。
-        </CardDescription>
+        <CardDescription>检查拦截功能对历史邮件的识别结果。</CardDescription>
       </CardHeader>
       <TestRulesContent />
     </Card>

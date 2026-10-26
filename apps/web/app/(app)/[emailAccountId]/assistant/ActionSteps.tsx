@@ -55,19 +55,19 @@ import type { AttachmentSourceInput } from "@/utils/attachments/source-schema";
 import {
   getConnectAppLabel,
   getMessagingProviderName,
-} from "@/utils/messaging/platforms";
-import { getConnectedRuleNotificationChannels } from "@/utils/messaging/routes";
-import type { GetMessagingChannelsResponse } from "@/app/api/user/messaging-channels/route";
+} from "@/utils/retired-notifications";
+import { getConnectedRuleNotificationChannels } from "@/utils/retired-notifications";
+import type { GetMessagingChannelsResponse } from "@/utils/retired-notifications";
 import { prefixPath } from "@/utils/path";
 import { isDraftReplyActionType } from "@/utils/actions/draft-reply";
-import { findIntegration } from "@/utils/mcp/integrations";
+import { findIntegration } from "@/utils/optional-features";
 import {
   buildDefaultIntegrationArgs,
   getIntegrationToolSpec,
   getOnlyIntegrationToolSpec,
   type IntegrationArgSpec,
   normalizeSelectArgValue,
-} from "@/utils/mcp/tool-specs";
+} from "@/utils/retired-action-metadata";
 import { useIntegrations } from "@/hooks/useIntegrations";
 import { useIntegrationArgOptions } from "@/hooks/useIntegrationArgOptions";
 import { LoadingContent } from "@/components/LoadingContent";
@@ -1015,10 +1015,7 @@ function DraftReplyReviewChannelsSection({
           />
           <div className="min-w-0">
             <span className="font-medium text-foreground">邮件</span>
-            <span className="text-muted-foreground">
-              {" "}
-              — 草稿将显示在收件箱
-            </span>
+            <span className="text-muted-foreground"> — 草稿将显示在收件箱</span>
           </div>
         </div>
 
@@ -1601,7 +1598,9 @@ function VariableExamplesDialog() {
           <div>
             <h4 className="font-medium">示例：邮件正文</h4>
             <div className="mt-2 whitespace-pre-wrap rounded-md bg-muted p-3 font-mono text-sm">
-              {"你好 {{name}}，{{回答邮件中的问题}} 如需预约通话，请使用此链接：cal.com/example"}
+              {
+                "你好 {{name}}，{{回答邮件中的问题}} 如需预约通话，请使用此链接：cal.com/example"
+              }
             </div>
           </div>
           <div>

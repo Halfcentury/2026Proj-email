@@ -40,11 +40,9 @@ test("opens mail with settings cached before the split condition upgrade", async
   try {
     const { conversations } = await openMail(page);
     await expect(
-      conversationWithSubject(page, conversations, "Archive Action Message"),
+      conversationWithSubject(page, conversations, "归档操作测试邮件"),
     ).toBeVisible();
-    await expect(
-      page.getByText("发生错误", { exact: true }),
-    ).toBeHidden();
+    await expect(page.getByText("发生错误", { exact: true })).toBeHidden();
     await capturePlaywrightCheckpoint(
       page,
       testInfo,

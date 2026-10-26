@@ -1,5 +1,4 @@
 import { checkCommonErrors, isInvalidGrantError } from "@/utils/error";
-import { trackError } from "@/utils/posthog";
 import type { Logger } from "@/utils/logger";
 import { recordRateLimitFromApiError } from "@/utils/email/rate-limit";
 import { isProviderRateLimitModeError } from "@/utils/email/rate-limit-mode-error";
@@ -40,13 +39,6 @@ export async function handleWebhookError(
     // The rate-limit guard throws on every skipped call while the mode is
     // active, so tracking it records our own skips rather than provider errors.
     if (!isProviderRateLimitModeError(error)) {
-      await trackError({
-        email,
-        emailAccountId,
-        errorType: apiError.type,
-        type: "api",
-        url,
-      });
     }
 
     logger.warn("Error processing webhook", {

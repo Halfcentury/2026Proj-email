@@ -37,7 +37,7 @@ import {
   toggleRuleAction,
   updateRuleAction,
 } from "@/utils/actions/rule";
-import { RULE_MANAGED_BY_ORGANIZATION_ERROR } from "@/utils/organizations/rules";
+import { RULE_MANAGED_BY_ORGANIZATION_ERROR } from "@/utils/rule/legacy-rule-guard";
 
 describe("enableDraftRepliesAction", () => {
   beforeEach(() => {

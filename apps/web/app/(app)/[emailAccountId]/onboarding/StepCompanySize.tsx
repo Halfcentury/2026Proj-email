@@ -62,17 +62,14 @@ export function StepCompanySize({ onNext }: { onNext: () => void }) {
       })
         .then((result) => {
           if (result?.serverError || result?.validationErrors) {
-            captureException(
-              new Error("保存公司规模失败"),
-              {
-                extra: {
-                  context: "onboarding",
-                  step: "company_size",
-                  serverError: result?.serverError,
-                  validationErrors: result?.validationErrors,
-                },
+            captureException(new Error("保存公司规模失败"), {
+              extra: {
+                context: "onboarding",
+                step: "company_size",
+                serverError: result?.serverError,
+                validationErrors: result?.validationErrors,
               },
-            );
+            });
             toastError({
               description: getActionErrorMessage(
                 {
@@ -95,8 +92,7 @@ export function StepCompanySize({ onNext }: { onNext: () => void }) {
             },
           });
           toastError({
-            description:
-              "未能保存此回答，你可以继续。",
+            description: "未能保存此回答，你可以继续。",
           });
         });
     },

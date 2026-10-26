@@ -22,7 +22,7 @@ import type { AddressInfo } from "node:net";
 
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 const DEFAULT_MODEL_NAME = "emulated";
-const DEFAULT_TEXT = "Emulated response.";
+const DEFAULT_TEXT = "模拟回复。";
 
 type JsonSchema = Record<string, unknown>;
 

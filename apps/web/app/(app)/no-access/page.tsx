@@ -18,9 +18,7 @@ export default function NoAccessPage() {
             <AlertCircle className="h-5 w-5 text-destructive" />
             无访问权限
           </CardTitle>
-          <CardDescription>
-            邮箱账户不存在或无访问权限
-          </CardDescription>
+          <CardDescription>邮箱账户不存在或无访问权限</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>

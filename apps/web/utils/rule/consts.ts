@@ -51,8 +51,7 @@ const ruleConfig: Record<
     draftReply: true,
     runOnThreads: true,
     categoryAction: "label",
-    tooltipText:
-      "需要你回复或等待对方回复的邮件，标签会随会话进展自动更新",
+    tooltipText: "需要你回复或等待对方回复的邮件，标签会随会话进展自动更新",
     shouldLearn: false,
   },
   [SystemType.AWAITING_REPLY]: {
@@ -162,8 +161,7 @@ const ruleConfig: Record<
     runOnThreads: false,
     categoryAction: "label_archive",
     categoryActionMicrosoft: "move_folder",
-    tooltipText:
-      "未经请求的销售推广邮件；此前联系过的发件人不会被此规则拦截",
+    tooltipText: "未经请求的销售推广邮件；此前联系过的发件人不会被此规则拦截",
     shouldLearn: true,
   },
 };

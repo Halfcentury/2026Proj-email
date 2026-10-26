@@ -59,7 +59,7 @@ test(`${playwrightMailProvider} emulator signs in and creates an app account`, a
         },
         data: {
           "@odata.type": "#microsoft.graph.fileAttachment",
-          name: "reader-preview.png",
+          name: "邮件图片.png",
           contentType: "image/png",
           contentBytes: attachment.toString("base64"),
         },

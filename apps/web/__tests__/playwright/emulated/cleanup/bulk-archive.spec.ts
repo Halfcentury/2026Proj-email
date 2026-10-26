@@ -16,8 +16,8 @@ import {
 } from "./cleanup-test-helpers";
 
 const ARCHIVE_SENDER = "cleanup-archive@example.com";
-const ARCHIVE_SUBJECT = "Cleanup Category Archive Candidate";
-const KEEP_SUBJECT = "Cleanup Category Keep Candidate";
+const ARCHIVE_SUBJECT = "分类归档候选邮件";
+const KEEP_SUBJECT = "分类保留候选邮件";
 const BULK_ARCHIVE_THREAD_IDS = [
   CLEANUP_ARCHIVE_THREAD_ID,
   CLEANUP_KEEP_THREAD_ID,
@@ -87,9 +87,9 @@ test("rehydrates an interrupted sender archive and completes after reconnect", a
       });
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(
-      page.getByRole("heading", { name: "批量归档" }),
-    ).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: "批量归档" })).toBeVisible({
+      timeout: 60_000,
+    });
     await expect
       .poll(() =>
         readLatestMailMutation(page, {
@@ -205,7 +205,7 @@ async function selectOnlyArchiveSender(page: Page) {
   await expect(
     page.getByText("2 of 2 selected", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("checkbox", { name: "Select Cleanup Keep" }).click();
+  await page.getByRole("checkbox", { name: "Select 保留测试发件人" }).click();
   await expect(
     page.getByText("1 of 2 selected", { exact: true }),
   ).toBeVisible();

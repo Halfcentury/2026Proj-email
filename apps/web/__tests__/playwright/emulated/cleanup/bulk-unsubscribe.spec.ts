@@ -29,9 +29,7 @@ test("blocks a selected sender and surfaces it in Auto-archived", async ({
   test.setTimeout(360_000);
   if (!fixture) throw new Error("Cleanup fixture was not initialized");
   await openCleanupFeature(page, fixture, "bulk-unsubscribe");
-  await expect(
-    page.getByRole("heading", { name: "批量退订" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "批量退订" })).toBeVisible();
 
   await selectNewsletterFilter(page, "To review", "All senders");
 

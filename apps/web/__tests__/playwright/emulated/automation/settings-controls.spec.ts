@@ -83,9 +83,9 @@ test("persists personalization, drafting, and advanced settings", async ({
     .locator('[contenteditable="true"]')
     .fill("Use short paragraphs, a warm tone, and direct recommendations.");
   await writingStyleDialog.getByRole("button", { name: "保存" }).click();
-  await expect(
-    page.getByText("写作风格已保存！", { exact: true }),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("写作风格已保存！", { exact: true })).toBeVisible(
+    { timeout: 60_000 },
+  );
   await expect
     .poll(() => getAutomationSettingsState(emailAccountId), {
       timeout: 60_000,

@@ -186,9 +186,7 @@ export function ThreadActionsMenu({
               ) : (
                 <ArchiveIcon className="mr-2 size-4" />
               )}
-              {isAutoArchived
-                ? "关闭自动归档"
-                : "自动归档后续邮件"}
+              {isAutoArchived ? "关闭自动归档" : "自动归档后续邮件"}
               <MenuShortcut id="toggleAutoArchive" />
             </DropdownMenuItem>
           ) : null}

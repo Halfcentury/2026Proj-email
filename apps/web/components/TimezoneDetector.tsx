@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toastSuccess } from "@/components/Toast";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { useOrgAccess } from "@/hooks/useOrgAccess";
 import { isValidTimeZone } from "@inboxzero/scheduling";
 
@@ -32,7 +31,7 @@ export function TimezoneDetector() {
   const { emailAccountId } = useAccount();
   const { data, mutate } = useCalendars();
   const { isAccountOwner } = useOrgAccess();
-  const analytics = useProductAnalytics();
+
   const [showDialog, setShowDialog] = useState(false);
   const trackedPromptRef = useRef<string | null>(null);
   const fillAttemptedAccountIdRef = useRef<string | null>(null);
@@ -58,9 +57,6 @@ export function TimezoneDetector() {
     {
       onSuccess: ({ data: result, input }) => {
         if (result?.updated) {
-          analytics.captureAction("timezone_auto_set", {
-            detected_timezone: input.timezone,
-          });
         }
         mutate();
       },
@@ -97,30 +93,20 @@ export function TimezoneDetector() {
       const promptKey = `${savedTimezone}:${currentTimezone}`;
       if (trackedPromptRef.current !== promptKey) {
         trackedPromptRef.current = promptKey;
-        analytics.captureAction("timezone_prompt_shown", {
-          saved_timezone: savedTimezone,
-          detected_timezone: currentTimezone,
-        });
       }
     }
   }, [data, dismissedPrompts, isAccountOwner]);
 
   const handleUpdateTimezone = () => {
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    analytics.captureAction("timezone_prompt_accepted", {
-      saved_timezone: data?.timezone,
-      detected_timezone: currentTimezone,
-    });
+
     executeUpdateTimezone({ timezone: currentTimezone });
   };
 
   const handleKeepCurrent = () => {
     // Remember this choice so we don't ask again for this timezone combination (for 30 days)
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    analytics.captureAction("timezone_prompt_dismissed", {
-      saved_timezone: data?.timezone,
-      detected_timezone: currentTimezone,
-    });
+
     if (data?.timezone) {
       const updated = addDismissedPrompt(
         dismissedPrompts,
@@ -155,7 +141,8 @@ export function TimezoneDetector() {
           <DialogTitle>检测到时区变化</DialogTitle>
           <DialogDescription>
             已保存的时区： <strong>{data.timezone}</strong>，检测到当前时区：{" "}
-            <strong>{detectedTimezone}</strong>。更新后，可预约时间和预约链接也将使用此时区。
+            <strong>{detectedTimezone}</strong>
+            。更新后，可预约时间和预约链接也将使用此时区。
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

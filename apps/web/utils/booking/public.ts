@@ -28,6 +28,12 @@ import {
   sendBookingConfirmationEmails,
   sendBookingRescheduledEmails,
 } from "@/utils/booking/emails";
+type BookingSourceContext = {
+  emailAccountId: string;
+  threadId: string;
+  messageId: string;
+  aiRunId: string;
+};
 import { secureCompareBuffers } from "@/utils/crypto-compare";
 
 const MAX_AVAILABILITY_RANGE_MS = 32 * 24 * 60 * 60 * 1000;
@@ -78,7 +84,9 @@ export async function getPublicAvailability({
   excludeBookingId,
   excludeBusyPeriod,
   logger,
+  throwOnFailure = false,
 }: {
+  throwOnFailure?: boolean;
   slug: string;
   start: Date;
   end: Date;
@@ -95,7 +103,7 @@ export async function getPublicAvailability({
     start,
     end,
     logger,
-    providerFailureMode: "return-null",
+    providerFailureMode: throwOnFailure ? "throw-safe-error" : "return-null",
     excludeBookingId,
     excludeBusyPeriod,
   });
@@ -116,9 +124,11 @@ export async function getPublicAvailability({
 export async function createPublicBooking({
   input,
   logger,
+  sourceContext,
 }: {
   input: PublicBookingBody;
   logger: Logger;
+  sourceContext?: BookingSourceContext;
 }) {
   const selectedStartTime = new Date(input.startTime);
   if (Number.isNaN(selectedStartTime.getTime())) {
@@ -126,6 +136,11 @@ export async function createPublicBooking({
   }
 
   const config = await loadPublicBookingLink(input.slug);
+  if (
+    sourceContext &&
+    sourceContext.emailAccountId !== config.link.emailAccountId
+  )
+    throw new SafeError("邮箱来源不匹配");
   const selectedEndTime = addMinutes(
     selectedStartTime,
     config.link.durationMinutes,
@@ -157,6 +172,7 @@ export async function createPublicBooking({
       selectedStartTime,
       selectedEndTime,
       cancelToken,
+      sourceContext,
     });
   } catch (error) {
     if (isSlotConflictError(error)) {
@@ -210,6 +226,7 @@ export async function createPublicBooking({
         providerEventId: createdEvent.id,
         videoConferenceLink: createdEvent.videoConferenceLink ?? null,
         status: BookingStatus.CONFIRMED,
+        ...(sourceContext ? { sourceContext } : {}),
       },
       include: getBookingHostInclude(),
     });
@@ -277,11 +294,13 @@ export async function createPublicBooking({
 export async function cancelPublicBooking({
   id,
   token,
+  ownerEmailAccountId,
   reason,
   logger,
 }: {
   id: string;
-  token: string;
+  token?: string;
+  ownerEmailAccountId?: string;
   reason?: string;
   logger: Logger;
 }) {
@@ -291,7 +310,10 @@ export async function cancelPublicBooking({
   });
 
   if (!booking) throw new SafeError(INVALID_CANCELLATION_LINK_MESSAGE, 404);
-  if (!isMatchingToken({ token, tokenHash: booking.cancelTokenHash })) {
+  if (
+    !(ownerEmailAccountId && ownerEmailAccountId === booking.emailAccountId) &&
+    !(token && isMatchingToken({ token, tokenHash: booking.cancelTokenHash }))
+  ) {
     throw new SafeError(INVALID_CANCELLATION_LINK_MESSAGE, 404);
   }
   if (booking.status === BookingStatus.CANCELED) {
@@ -317,6 +339,7 @@ export async function cancelPublicBooking({
     throw new SafeError("Booking is already canceled");
   }
 
+  let providerCancellationPending = true;
   if (
     booking.providerConnectionId &&
     booking.providerCalendarId &&
@@ -334,6 +357,7 @@ export async function cancelPublicBooking({
         providerEventId: booking.providerEventId,
         logger,
       });
+      providerCancellationPending = false;
     } catch (error) {
       logger.error("Failed to cancel provider event during booking cancel", {
         bookingId: booking.id,
@@ -352,18 +376,25 @@ export async function cancelPublicBooking({
     logger,
   });
 
-  return toPublicBookingResult(canceledBooking);
+  return {
+    ...toPublicBookingResult(canceledBooking),
+    ...(providerCancellationPending
+      ? { providerCancellationPending: true }
+      : {}),
+  };
 }
 
 export async function reschedulePublicBooking({
   id,
   token,
+  ownerEmailAccountId,
   startTime,
   guestTimezone,
   logger,
 }: {
   id: string;
-  token: string;
+  token?: string;
+  ownerEmailAccountId?: string;
   startTime: string;
   guestTimezone: string;
   logger: Logger;
@@ -379,7 +410,10 @@ export async function reschedulePublicBooking({
   });
 
   if (!booking) throw new SafeError(INVALID_RESCHEDULE_LINK_MESSAGE, 404);
-  if (!isMatchingToken({ token, tokenHash: booking.cancelTokenHash })) {
+  if (
+    !(ownerEmailAccountId && ownerEmailAccountId === booking.emailAccountId) &&
+    !(token && isMatchingToken({ token, tokenHash: booking.cancelTokenHash }))
+  ) {
     throw new SafeError(INVALID_RESCHEDULE_LINK_MESSAGE, 404);
   }
   if (booking.status !== BookingStatus.CONFIRMED) {
@@ -487,8 +521,17 @@ export async function reschedulePublicBooking({
     endTime: newEndTime,
   };
 
-  const cancelUrl = getCancelUrl({ id: booking.id, token });
-  const rescheduleUrl = getRescheduleUrl({ id: booking.id, token });
+  const managementToken = token ?? randomToken();
+  if (!token)
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { cancelTokenHash: hashToken(managementToken) },
+    });
+  const cancelUrl = getCancelUrl({ id: booking.id, token: managementToken });
+  const rescheduleUrl = getRescheduleUrl({
+    id: booking.id,
+    token: managementToken,
+  });
 
   await sendBookingRescheduledEmails({
     booking: rescheduledBooking,
@@ -839,15 +882,18 @@ async function createPendingBooking({
   selectedStartTime,
   selectedEndTime,
   cancelToken,
+  sourceContext,
 }: {
   config: Awaited<ReturnType<typeof loadPublicBookingLink>>;
   input: PublicBookingBody;
   selectedStartTime: Date;
   selectedEndTime: Date;
   cancelToken: string;
+  sourceContext?: BookingSourceContext;
 }) {
   return prisma.booking.create({
     data: {
+      ...(sourceContext ? { sourceContext } : {}),
       bookingLinkId: config.link.id,
       emailAccountId: config.link.emailAccountId,
       guestName: input.guestName,

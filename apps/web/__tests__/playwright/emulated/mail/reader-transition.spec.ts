@@ -9,8 +9,8 @@ test("never paints an empty reader when moving between loaded HTML threads", asy
 }, testInfo) => {
   const { conversations } = await openMail(page);
   const subject = isMicrosoftPlaywright()
-    ? "Playwright Test Message"
-    : "Cleanup Block Candidate";
+    ? "邮件功能测试邮件"
+    : "批量退订候选邮件";
   await conversations
     .getByRole("option")
     .filter({ has: page.getByText(subject, { exact: true }) })
@@ -59,7 +59,7 @@ test("never paints an empty reader when moving between loaded HTML threads", asy
       page
         .frameLocator('iframe[title="Email content preview"]:visible')
         .last()
-        .getByText(`Navigation body for ${threadId}`),
+        .getByText(`导航测试正文： ${threadId}`),
     ).toBeVisible();
   }
   await page.keyboard.press("j");
@@ -70,7 +70,7 @@ test("never paints an empty reader when moving between loaded HTML threads", asy
       .frameLocator('iframe[title="Email content preview"]:visible')
       .last()
       .getByText(
-        `Navigation body for ${new URL(initialUrl).searchParams.get("thread-id")}`,
+        `导航测试正文： ${new URL(initialUrl).searchParams.get("thread-id")}`,
       ),
   ).toBeVisible();
   const samples = await page.evaluate(() => {
@@ -143,7 +143,7 @@ test("never paints an empty reader when moving between loaded HTML threads", asy
     page
       .frameLocator('iframe[title="Email content preview"]:visible')
       .last()
-      .getByText(`Navigation body for ${nextThreadId}`),
+      .getByText(`导航测试正文： ${nextThreadId}`),
   ).toBeVisible({ timeout: 10_000 });
   await page.getByRole("button", { name: /更多操作/ }).click();
   await expect(page.getByRole("menu")).toBeVisible();

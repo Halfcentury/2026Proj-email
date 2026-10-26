@@ -2,8 +2,12 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "@playwright/test";
 
-const runtime = JSON.parse(readFileSync(resolve("../../.context/local-dev/runtime.json"), "utf8"));
-process.env.PLAYWRIGHT_LLM_BASE_URL = new URL(runtime.OPENAI_COMPATIBLE_BASE_URL).origin;
+const runtime = JSON.parse(
+  readFileSync(resolve("../../.context/local-dev/runtime.json"), "utf8"),
+);
+process.env.PLAYWRIGHT_LLM_BASE_URL = new URL(
+  runtime.OPENAI_COMPATIBLE_BASE_URL,
+).origin;
 
 export default defineConfig({
   testDir: "./__tests__/playwright",
@@ -20,7 +24,10 @@ export default defineConfig({
     storageState: resolve("../../.tmp/demo-screenshots/auth.json"),
     viewport: { width: 1440, height: 1000 },
     headless: true,
-    launchOptions: { executablePath: "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" },
+    launchOptions: {
+      executablePath:
+        "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+    },
     screenshot: "only-on-failure",
   },
 });

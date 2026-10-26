@@ -15,7 +15,7 @@ import {
   getDocumentPreview,
 } from "@/utils/drive/document-extraction";
 import prisma from "@/utils/prisma";
-import { checkHasAccess } from "@/utils/premium/server";
+import { checkHasAccess } from "@/utils/feature-access";
 import type { SelectedAttachment } from "@/utils/attachments/source-schema";
 
 const MAX_ATTACHMENTS = 3;
@@ -76,7 +76,7 @@ export async function selectDraftAttachmentsForRule({
   logger,
 }: {
   emailAccount: EmailAccountWithAI;
-  ruleId: string;
+  ruleId?: string;
   emailContent: string;
   logger: Logger;
 }): Promise<{
@@ -90,9 +90,10 @@ export async function selectDraftAttachmentsForRule({
 
   const attachmentSources = await prisma.attachmentSource.findMany({
     where: {
-      ruleId,
+      ...(ruleId ? { ruleId } : {}),
       rule: {
         emailAccountId: emailAccount.id,
+        ...(!ruleId ? { enabled: true } : {}),
       },
     },
     include: {
@@ -635,6 +636,10 @@ preview: ${candidate.preview || "No preview available"}
             filename: candidate.document.name,
             mimeType: candidate.document.mimeType,
             reason: selection.reason,
+            sourceExcerpt:
+              candidate.document.summary ||
+              getDocumentPreview(candidate.document.content || "", 1200) ||
+              "仅文件名可用，未提取正文",
           } satisfies SelectedAttachment,
         ];
       })

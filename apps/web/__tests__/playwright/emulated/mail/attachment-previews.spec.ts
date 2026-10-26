@@ -11,11 +11,9 @@ test("downloads opened attachment previews over the network", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Visual Message",
+    "回复：阅读器视觉测试邮件",
   ).click();
-  await expect(
-    page.getByText("reader-preview.png", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("邮件图片.png", { exact: true })).toBeVisible();
   const downloadRequest = page.waitForRequest(
     (request) =>
       request.method() === "GET" &&
@@ -23,12 +21,12 @@ test("downloads opened attachment previews over the network", async ({
   );
   const download = page.waitForEvent("download");
   await page
-    .getByText("reader-preview.png", { exact: true })
+    .getByText("邮件图片.png", { exact: true })
     .locator("..")
     .getByRole("button", { name: "下载" })
     .click();
   const savedFile = await download;
-  expect(savedFile.suggestedFilename()).toBe("reader-preview.png");
+  expect(savedFile.suggestedFilename()).toBe("邮件图片.png");
   expect(await savedFile.failure()).toBeNull();
   const contentRequest = await downloadRequest;
   expect(contentRequest.method()).toBe("GET");
@@ -56,18 +54,14 @@ test("opens an attachment preview from its card", async ({
   await conversationWithSubject(
     page,
     conversations,
-    "Re: Reader Visual Message",
+    "回复：阅读器视觉测试邮件",
   ).click();
-  await page
-    .getByRole("button", { name: "Preview reader-preview.png" })
-    .click();
-  const dialog = page.getByRole("dialog", { name: "reader-preview.png" });
-  await expect(
-    dialog.getByRole("img", { name: "reader-preview.png" }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Preview 邮件图片.png" }).click();
+  const dialog = page.getByRole("dialog", { name: "邮件图片.png" });
+  await expect(dialog.getByRole("img", { name: "邮件图片.png" })).toBeVisible();
   const download = page.waitForEvent("download");
   await dialog.getByRole("button", { name: "下载" }).click();
-  expect((await download).suggestedFilename()).toBe("reader-preview.png");
+  expect((await download).suggestedFilename()).toBe("邮件图片.png");
   await capturePlaywrightCheckpoint(
     page,
     testInfo,

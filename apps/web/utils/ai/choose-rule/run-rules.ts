@@ -25,7 +25,6 @@ import { sanitizeActionFields } from "@/utils/action-item";
 import { extractEmailAddress } from "@/utils/email";
 import { filterNullProperties } from "@/utils";
 import { analyzeSenderPattern } from "@/utils/ai/choose-rule/analyze-sender-pattern";
-import { FIRST_TIME_EVENTS, trackFirstTimeEvent } from "@/utils/posthog";
 import {
   scheduleDelayedActions,
   cancelScheduledActions,
@@ -518,12 +517,7 @@ async function executeMatchedRule(
     { logger },
   );
 
-  after(() =>
-    trackFirstTimeEvent({
-      emailAccountId: emailAccount.id,
-      event: FIRST_TIME_EVENTS.FIRST_AUTOMATED_RULE_RUN,
-    }),
-  );
+  after(() => undefined);
 
   // Re-saving a pattern that was itself the match teaches us nothing, and it would
   // overwrite how the pattern was originally learned. Taking a message out of junk

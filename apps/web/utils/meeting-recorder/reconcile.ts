@@ -216,6 +216,14 @@ export async function upsertMeeting({
   event: CalendarEvent;
   joinOverride?: boolean;
 }) {
+  const sourceBooking = await prisma.booking.findFirst({
+    where: {
+      emailAccountId,
+      providerEventId: event.id,
+      sourceContext: { not: Prisma.DbNull },
+    },
+    select: { sourceContext: true },
+  });
   const snapshot = {
     eventTitle: event.title,
     startTime: event.startTime,
@@ -238,6 +246,9 @@ export async function upsertMeeting({
   if (
     existing &&
     isSameMeetingSnapshot(existing, snapshot) &&
+    (!sourceBooking?.sourceContext ||
+      JSON.stringify(existing.sourceContext) ===
+        JSON.stringify(sourceBooking.sourceContext)) &&
     (joinOverride === undefined || joinOverride === existing.joinOverride)
   ) {
     return existing;
@@ -245,6 +256,9 @@ export async function upsertMeeting({
 
   const data = {
     ...snapshot,
+    ...(sourceBooking?.sourceContext
+      ? { sourceContext: sourceBooking.sourceContext as Prisma.InputJsonValue }
+      : {}),
     ...(joinOverride === undefined ? {} : { joinOverride }),
   };
 

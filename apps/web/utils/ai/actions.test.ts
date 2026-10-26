@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  ActionType,
-  AttachmentSourceType,
-  MessagingMessageStatus,
-} from "@/generated/prisma/enums";
+import { ActionType, AttachmentSourceType } from "@/generated/prisma/enums";
 import { createMockEmailProvider } from "@/utils/__mocks__/email-provider";
 import { runActionFunction } from "@/utils/ai/actions";
 import {
@@ -48,7 +44,7 @@ vi.mock("@/utils/mcp/call-tool", () => ({
   callMcpTool: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@/utils/integration-action.server", () => ({
+vi.mock("@/utils/optional-features", () => ({
   isIntegrationActionEnabledForUserId: mockIsIntegrationActionEnabledForUserId,
 }));
 
@@ -258,63 +254,6 @@ describe("runActionFunction", () => {
     expect(client.draftEmail).not.toHaveBeenCalled();
   });
 
-  it("sends chat drafts through the messaging notification path", async () => {
-    const client = createMockEmailProvider();
-
-    const result = await runActionFunction({
-      client,
-      email,
-      action: {
-        id: "action-1",
-        type: ActionType.DRAFT_MESSAGING_CHANNEL,
-        messagingChannelId: "channel-1",
-        content: "Draft in chat",
-      },
-      emailAccount,
-      executedRule: {
-        id: "executed-rule-1",
-        threadId: "thread-1",
-        emailAccountId: "account-1",
-        ruleId: "rule-1",
-      } as any,
-      logger,
-    });
-
-    expect(sendMessagingRuleNotification).toHaveBeenCalledWith({
-      executedActionId: "action-1",
-      email,
-      logger: expect.anything(),
-    });
-    expect(result).toEqual({ success: true });
-    expect(client.draftEmail).not.toHaveBeenCalled();
-  });
-
-  it("keeps legacy messaging-targeted mailbox drafts on the Slack notification path", async () => {
-    const client = createMockEmailProvider();
-
-    await runActionFunction({
-      client,
-      email,
-      action: {
-        id: "action-1",
-        type: ActionType.DRAFT_EMAIL,
-        messagingChannelId: "channel-1",
-        content: "Draft in chat",
-      },
-      emailAccount,
-      executedRule: {
-        id: "executed-rule-1",
-        threadId: "thread-1",
-        emailAccountId: "account-1",
-        ruleId: "rule-1",
-        actionItems: [{ type: ActionType.DRAFT_EMAIL }],
-      } as any,
-      logger,
-    });
-
-    expect(client.draftEmail).not.toHaveBeenCalled();
-  });
-
   it("falls back to mailbox drafts when legacy chat delivery is unavailable", async () => {
     const client = createMockEmailProvider();
     vi.mocked(getMessagingRuleNotificationResult).mockResolvedValueOnce({
@@ -375,70 +314,6 @@ describe("runActionFunction", () => {
     expect(client.draftEmail).toHaveBeenCalled();
   });
 
-  it("marks chat draft actions failed when delivery cannot be completed", async () => {
-    const client = createMockEmailProvider();
-    vi.mocked(sendMessagingRuleNotification).mockResolvedValueOnce(false);
-
-    const result = await runActionFunction({
-      client,
-      email,
-      action: {
-        id: "action-1",
-        type: ActionType.DRAFT_MESSAGING_CHANNEL,
-        messagingChannelId: "channel-1",
-        content: "Draft in chat",
-      },
-      emailAccount,
-      executedRule: {
-        id: "executed-rule-1",
-        threadId: "thread-1",
-        emailAccountId: "account-1",
-        ruleId: "rule-1",
-      } as any,
-      logger,
-    });
-
-    expect(result).toEqual({
-      success: false,
-      errorCode: "MESSAGING_DELIVERY_FAILED",
-    });
-    expect(prisma.executedAction.update).toHaveBeenCalledWith({
-      where: { id: "action-1" },
-      data: {
-        messagingMessageStatus: MessagingMessageStatus.FAILED,
-      },
-    });
-  });
-
-  it("sends NOTIFY_MESSAGING_CHANNEL actions through the messaging notification path", async () => {
-    const client = createMockEmailProvider();
-
-    const result = await runActionFunction({
-      client,
-      email,
-      action: {
-        id: "action-1",
-        type: ActionType.NOTIFY_MESSAGING_CHANNEL,
-        messagingChannelId: "channel-1",
-      },
-      emailAccount,
-      executedRule: {
-        id: "executed-rule-1",
-        threadId: "thread-1",
-        emailAccountId: "account-1",
-        ruleId: "rule-1",
-      } as any,
-      logger,
-    });
-
-    expect(sendMessagingRuleNotification).toHaveBeenCalledWith({
-      executedActionId: "action-1",
-      email,
-      logger: expect.anything(),
-    });
-    expect(result).toEqual({ success: true });
-  });
-
   it("stars the matched message for STAR actions", async () => {
     const client = createMockEmailProvider();
 
@@ -460,39 +335,6 @@ describe("runActionFunction", () => {
     });
 
     expect(client.starMessage).toHaveBeenCalledWith("message-1");
-  });
-
-  it("marks notify messaging actions failed when missing a channel id", async () => {
-    const client = createMockEmailProvider();
-
-    const result = await runActionFunction({
-      client,
-      email,
-      action: {
-        id: "action-1",
-        type: ActionType.NOTIFY_MESSAGING_CHANNEL,
-        messagingChannelId: null,
-      },
-      emailAccount,
-      executedRule: {
-        id: "executed-rule-1",
-        threadId: "thread-1",
-        emailAccountId: "account-1",
-        ruleId: "rule-1",
-      } as any,
-      logger,
-    });
-
-    expect(result).toEqual({
-      success: false,
-      errorCode: "MISSING_MESSAGING_CHANNEL",
-    });
-    expect(prisma.executedAction.update).toHaveBeenCalledWith({
-      where: { id: "action-1" },
-      data: {
-        messagingMessageStatus: MessagingMessageStatus.FAILED,
-      },
-    });
   });
 
   it("passes static attachments into replies", async () => {
@@ -954,111 +796,6 @@ describe("runActionFunction", () => {
       vi.mocked(callMcpTool).mockResolvedValue([]);
     });
 
-    it("adds a Todoist task with the resolved args", async () => {
-      const result = await runIntegration(integrationAction);
-
-      expect(callMcpTool).toHaveBeenCalledWith({
-        emailAccountId: "account-1",
-        integration: "todoist",
-        toolName: "add-tasks",
-        args: {
-          tasks: [
-            {
-              content: "Follow up on lease packet",
-              description: "From the property email",
-              dueString: "tomorrow",
-              projectId: "inbox",
-            },
-          ],
-        },
-      });
-      expect(result).toEqual({ success: true });
-    });
-
-    it("omits empty optional args (e.g. AI decided there is no due date)", async () => {
-      await runIntegration({
-        ...integrationAction,
-        integrationArgs: { content: "Follow up", dueString: "  " },
-      });
-
-      expect(callMcpTool).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: { tasks: [{ content: "Follow up" }] },
-        }),
-      );
-    });
-
-    it("maps stored due-date options to the tool's wire format", async () => {
-      await runIntegration({
-        ...integrationAction,
-        integrationArgs: {
-          content: "Follow up",
-          dueString: "in-7-days",
-          projectId: "inbox",
-          projectName: "Inbox",
-        },
-      });
-
-      expect(callMcpTool).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: {
-            tasks: [
-              {
-                content: "Follow up",
-                dueString: "in 7 days",
-                projectId: "inbox",
-              },
-            ],
-          },
-        }),
-      );
-    });
-
-    it("sends a custom due date through unchanged", async () => {
-      await runIntegration({
-        ...integrationAction,
-        integrationArgs: { content: "Follow up", dueString: "next Friday" },
-      });
-
-      expect(callMcpTool).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: {
-            tasks: [{ content: "Follow up", dueString: "next Friday" }],
-          },
-        }),
-      );
-    });
-
-    it("omits the due date when the AI option was never filled", async () => {
-      await runIntegration({
-        ...integrationAction,
-        integrationArgs: { content: "Follow up", dueString: "ai" },
-      });
-
-      expect(callMcpTool).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: { tasks: [{ content: "Follow up" }] },
-        }),
-      );
-    });
-
-    it("never sends the display-only project name to the tool", async () => {
-      await runIntegration({
-        ...integrationAction,
-        integrationArgs: {
-          content: "Follow up",
-          projectId: "6X7",
-          projectName: "Work",
-        },
-      });
-
-      expect(callMcpTool).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: { tasks: [{ content: "Follow up", projectId: "6X7" }] },
-        }),
-      );
-    });
-
     it("skips when integration actions are disabled", async () => {
       mockIsIntegrationActionEnabledForUserId.mockResolvedValue(false);
 
@@ -1068,56 +805,6 @@ describe("runActionFunction", () => {
       expect(result).toEqual({
         skipped: true,
         reason: "INTEGRATION_ACTION_DISABLED",
-      });
-    });
-
-    it("fails with a clear code when the integration is not connected", async () => {
-      vi.mocked(prisma.mcpConnection.findFirst).mockResolvedValue(null);
-
-      const result = await runIntegration(integrationAction);
-
-      expect(callMcpTool).not.toHaveBeenCalled();
-      expect(result).toMatchObject({
-        success: false,
-        errorCode: "INTEGRATION_NOT_CONNECTED",
-      });
-    });
-
-    it("fails when the action has no task content", async () => {
-      const result = await runIntegration({
-        ...integrationAction,
-        integrationArgs: { description: "no content" },
-      });
-
-      expect(callMcpTool).not.toHaveBeenCalled();
-      expect(result).toMatchObject({
-        success: false,
-        errorCode: "MISSING_INTEGRATION_ARGS",
-      });
-    });
-
-    it("rejects tools that are not registered write tools", async () => {
-      const result = await runIntegration({
-        ...integrationAction,
-        integrationToolName: "delete-tasks",
-      });
-
-      expect(callMcpTool).not.toHaveBeenCalled();
-      expect(result).toMatchObject({
-        success: false,
-        errorCode: "UNSUPPORTED_INTEGRATION_TOOL",
-      });
-    });
-
-    it("returns a structured failure when the tool call throws", async () => {
-      vi.mocked(callMcpTool).mockRejectedValue(new Error("server unavailable"));
-
-      const result = await runIntegration(integrationAction);
-
-      expect(result).toMatchObject({
-        success: false,
-        errorCode: "INTEGRATION_CALL_FAILED",
-        errorMessage: expect.stringContaining("server unavailable"),
       });
     });
   });

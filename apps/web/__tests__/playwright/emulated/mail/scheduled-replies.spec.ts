@@ -24,9 +24,7 @@ test("schedules a reply with a reminder, persists it and cancels both", async ({
     const sendDialog = page.getByRole("dialog", { name: "定时发送" });
     await expect(sendDialog).toBeVisible();
     await capturePlaywrightCheckpoint(page, testInfo, "16-send-later-menu");
-    await sendDialog
-      .getByRole("button", { name: "选择日期和时间" })
-      .click();
+    await sendDialog.getByRole("button", { name: "选择日期和时间" }).click();
     await expect(
       sendDialog.getByLabel("Send later date and time"),
     ).toBeVisible();
@@ -44,10 +42,14 @@ test("schedules a reply with a reminder, persists it and cancels both", async ({
       .click();
     await page.getByRole("button", { name: "发送", exact: true }).click();
     await expect(delivery.getByText(/^Scheduled for/)).toBeVisible();
-    await expect(delivery.getByText(/未收到回复时提醒，截止时间/)).toBeVisible();
+    await expect(
+      delivery.getByText(/未收到回复时提醒，截止时间/),
+    ).toBeVisible();
     await page.reload();
     await expect(delivery.getByText(/^Scheduled for/)).toBeVisible();
-    await expect(delivery.getByText(/未收到回复时提醒，截止时间/)).toBeVisible();
+    await expect(
+      delivery.getByText(/未收到回复时提醒，截止时间/),
+    ).toBeVisible();
     await capturePlaywrightCheckpoint(
       page,
       testInfo,
@@ -62,7 +64,7 @@ test("schedules a reply with a reminder, persists it and cancels both", async ({
     await expect(delivery.getByText(/^Scheduled for/)).toHaveCount(0);
     await page.reload();
     await expect(
-      page.getByRole("heading", { name: "Reply Workflow Message" }),
+      page.getByRole("heading", { name: "回复流程测试邮件" }),
     ).toBeVisible();
     await expect(delivery.getByText(/^Scheduled for/)).toHaveCount(0);
     await capturePlaywrightCheckpoint(page, testInfo, "19-scheduled-cancelled");
@@ -340,9 +342,7 @@ test("schedules a new message from the composer", async ({
     await dialog
       .locator("[contenteditable='true']")
       .pressSequentially("A scheduled message body.");
-    await dialog
-      .getByRole("button", { name: "定时发送", exact: true })
-      .click();
+    await dialog.getByRole("button", { name: "定时发送", exact: true }).click();
     await page
       .getByRole("dialog", { name: "定时发送" })
       .getByRole("button", { name: /明天上午/ })
@@ -397,9 +397,7 @@ test("hides a scheduled new message's mailbox draft from Drafts until it's cance
       .toHaveLength(1);
     await expect(draftInList).toBeVisible({ timeout: 60_000 });
 
-    await dialog
-      .getByRole("button", { name: "定时发送", exact: true })
-      .click();
+    await dialog.getByRole("button", { name: "定时发送", exact: true }).click();
     await page
       .getByRole("dialog", { name: "定时发送" })
       .getByRole("button", { name: /明天上午/ })
@@ -495,9 +493,7 @@ test("adds a newly scheduled message to the Scheduled view already on screen", a
     await dialog
       .locator("[contenteditable='true']")
       .pressSequentially("A scheduled message body.");
-    await dialog
-      .getByRole("button", { name: "定时发送", exact: true })
-      .click();
+    await dialog.getByRole("button", { name: "定时发送", exact: true }).click();
     await page
       .getByRole("dialog", { name: "定时发送" })
       .getByRole("button", { name: /明天上午/ })
@@ -523,7 +519,7 @@ async function openReply(page: Page) {
   const { emailAccountId } = await openMail(page);
   await page.goto(`/${emailAccountId}/mail?thread-id=${THREAD_ID}`);
   await expect(
-    page.getByRole("heading", { name: /Reply Workflow Message/ }),
+    page.getByRole("heading", { name: /回复流程测试邮件/ }),
   ).toBeVisible();
   await page
     .locator('li[data-thread-message-id="msg_playwright_reply"]')

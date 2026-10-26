@@ -48,29 +48,6 @@ describe("createRuleSchema", () => {
     mockEnv.webhookActionsEnabled = true;
   });
 
-  it("exposes integration actions only when their dedicated flag is enabled", () => {
-    const rule = {
-      name: "TaskRule",
-      condition: {
-        conditionalOperator: null,
-        aiInstructions: "Emails with follow-up tasks",
-        static: null,
-      },
-      actions: [
-        {
-          type: ActionType.INTEGRATION,
-          fields: { content: "Follow up" },
-          delayInMinutes: null,
-        },
-      ],
-    };
-
-    expect(createRuleSchema(provider, false).safeParse(rule).success).toBe(
-      false,
-    );
-    expect(createRuleSchema(provider, true).safeParse(rule).success).toBe(true);
-  });
-
   it("includes SEND_EMAIL in available actions for this test provider", () => {
     assertSendEmailAvailable();
   });
@@ -417,15 +394,6 @@ describe("getExtraActions", () => {
   it("includes CALL_WEBHOOK when webhook actions are enabled", () => {
     expect(getExtraActions({ integrationActionsEnabled: false })).toContain(
       ActionType.CALL_WEBHOOK,
-    );
-  });
-
-  it("exposes integration actions only to early access users", () => {
-    expect(getExtraActions({ integrationActionsEnabled: true })).toContain(
-      ActionType.INTEGRATION,
-    );
-    expect(getExtraActions({ integrationActionsEnabled: false })).not.toContain(
-      ActionType.INTEGRATION,
     );
   });
 

@@ -14,15 +14,12 @@ import { useCategorizeProgress } from "@/app/(app)/[emailAccountId]/smart-catego
 import { CategorizeWithAiButton } from "@/app/(app)/[emailAccountId]/smart-categories/CategorizeWithAiButton";
 import type { CategorizedSendersResponse } from "@/app/api/user/categorize/senders/categorized/route";
 import { PageWrapper } from "@/components/PageWrapper";
-import { PageHeaderVideoButton } from "@/components/PageHeaderVideoButton";
 import { LoadingContent } from "@/components/LoadingContent";
 import { TooltipExplanation } from "@/components/TooltipExplanation";
 import { PageHeading } from "@/components/Typography";
 import { EmailStatsPreloader } from "@/components/EmailStatsPreloader";
-import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 export function BulkArchive() {
-  const analytics = useProductAnalytics("bulk_archive");
   const { isBulkCategorizing } = useCategorizeProgress();
   const [onboarding] = useQueryState("onboarding", parseAsBoolean);
   const [bulkAction, setBulkAction] = useState<BulkActionType>("archive");
@@ -50,9 +47,8 @@ export function BulkArchive() {
   );
 
   const handleProgressComplete = useCallback(() => {
-    analytics.captureAction("bulk_archive_categorization_completed");
     mutate();
-  }, [analytics, mutate]);
+  }, [mutate]);
 
   const [setupDismissed, setSetupDismissed] = useState(false);
 
@@ -69,23 +65,12 @@ export function BulkArchive() {
           <div className="flex items-center gap-2">
             <PageHeading>批量归档</PageHeading>
             <TooltipExplanation text="按分类批量归档、删除或标记已读，快速整理收件箱。" />
-            <PageHeaderVideoButton
-              video={{
-                title: "批量归档入门",
-                description:
-                  "了解如何按分类批量归档历史邮件。",
-                muxPlaybackId:
-                  "jyy00xnJVvyjVsyNKjclj02r023p200rOyDMAFNUE6Lwnpo",
-              }}
-            />
+            {null}
           </div>
           <div className="flex items-center gap-2">
             <BulkArchiveSettingsModal
               selectedAction={bulkAction}
               onActionChange={(action) => {
-                analytics.captureAction("bulk_archive_action_changed", {
-                  action,
-                });
                 setBulkAction(action);
               }}
             />
@@ -105,9 +90,6 @@ export function BulkArchive() {
       <AutoCategorizationSetup
         open={shouldShowSetup}
         onOpenChange={(open) => {
-          analytics.captureAction("bulk_archive_setup_dialog_toggled", {
-            open,
-          });
           if (!open) setSetupDismissed(true);
         }}
       />

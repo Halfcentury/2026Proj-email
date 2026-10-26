@@ -5,7 +5,7 @@ import { BRAND_NAME, getBrandTitle } from "@/utils/branding";
 
 export const metadata: Metadata = {
   title: getBrandTitle("使用说明"),
-  description: "邮箱连接、邮件整理、智能助手、日历和账户设置的使用说明。",
+  description: "邮箱连接、邮件整理、自动化、日历和账户设置的使用说明。",
 };
 
 /** 展示中文使用说明及常用功能入口。 */
@@ -39,9 +39,9 @@ export default function HelpPage() {
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold">智能助手与规则</h2>
+          <h2 className="text-xl font-semibold">AI 对话与自动化</h2>
           <p>
-            通过对话查找邮件和创建规则。在助手页面检查规则的匹配条件与操作，配置回复风格、签名、知识库和跟进提醒。会自动发送邮件的规则应在启用前检查。
+            通过对话查找邮件和创建规则。在自动化页面检查规则的匹配条件与操作，配置回复风格、签名、知识库和跟进提醒。会自动发送邮件的规则应在启用前检查。
           </p>
         </section>
         <section>
@@ -51,10 +51,9 @@ export default function HelpPage() {
           </p>
         </section>
         <section>
-          <h2 className="text-xl font-semibold">日历与消息渠道</h2>
+          <h2 className="text-xl font-semibold">日历、会议与附件</h2>
           <p>
-            连接日历后设置时区、可预约时间和预约链接。按需启用会前简报，并在消息渠道中选择邮件、Slack、Telegram
-            或 Teams 接收通知。
+            连接日历后设置时区、可预约时间和预约链接。在会议页面查看记录与纪要，在附件页面连接云盘、配置归档目录并纠正归档结果。
           </p>
         </section>
         <div className="flex gap-6 border-t pt-6">

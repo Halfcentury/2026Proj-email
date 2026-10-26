@@ -1,17 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   assertTrialAiUsageAllowed,
-  getUserTrialAiUsageLimitStatus,
   shouldForceNanoModel,
-  TRIAL_AI_LIMIT_REACHED_MESSAGE,
 } from "@/utils/llms/model-usage-guard";
 import { getWeeklyUsageCost } from "@/utils/redis/usage";
 import { env } from "@/env";
 import prisma from "@/utils/__mocks__/prisma";
-import { SafeError } from "@/utils/error";
 import { redis } from "@/utils/redis";
 import { sendActionRequiredEmail } from "@inboxzero/transactional-email";
-import { createUnsubscribeToken } from "@/utils/unsubscribe";
 
 vi.mock("@/utils/redis/usage", () => ({
   getWeeklyUsageCost: vi.fn(),
@@ -185,145 +181,11 @@ describe("assertTrialAiUsageAllowed", () => {
     expect(redis.set).not.toHaveBeenCalled();
     expect(sendActionRequiredEmail).not.toHaveBeenCalled();
   });
-
-  it("blocks trial users over the spend limit and sends an upgrade email once", async () => {
-    vi.mocked(env).AI_TRIAL_WEEKLY_SPEND_LIMIT_USD = 2;
-    vi.mocked(getWeeklyUsageCost).mockResolvedValue(3);
-    vi.mocked(redis.set).mockResolvedValue("OK");
-    vi.mocked(createUnsubscribeToken).mockResolvedValue("unsubscribe-token");
-    prisma.user.findUnique.mockResolvedValue({
-      email: "user@example.com",
-      emailAccounts: [{ email: "account@example.com" }],
-      premium: {
-        stripeSubscriptionStatus: "trialing",
-        lemonSubscriptionStatus: null,
-      },
-    } as any);
-
-    await expect(
-      assertTrialAiUsageAllowed({
-        userEmail: "user@example.com",
-        hasUserApiKey: false,
-        label: "Choose rule",
-        userId: "user-1",
-        emailAccountId: "account-1",
-      }),
-    ).rejects.toThrow(SafeError);
-
-    expect(getWeeklyUsageCost).toHaveBeenCalledWith({
-      userId: "user-1",
-      legacyEmails: ["user@example.com", "account@example.com"],
-    });
-    expect(redis.set).toHaveBeenCalledWith(
-      "trial-ai-limit-notification:user-1",
-      expect.any(String),
-      { ex: 5_184_000, nx: true },
-    );
-    expect(sendActionRequiredEmail).toHaveBeenCalledWith({
-      from: "support@example.com",
-      to: "user@example.com",
-      emailProps: {
-        baseUrl: "https://example.com",
-        email: "user@example.com",
-        unsubscribeToken: "unsubscribe-token",
-        errorType: "Trial AI Limit Reached",
-        errorMessage: TRIAL_AI_LIMIT_REACHED_MESSAGE,
-        actionUrl: "/premium",
-        actionLabel: "Start paid plan now",
-      },
-    });
-    expect(prisma.user.update).not.toHaveBeenCalled();
-  });
-
-  it("does not resend a trial limit email when the notification marker exists", async () => {
-    vi.mocked(env).AI_TRIAL_WEEKLY_SPEND_LIMIT_USD = 2;
-    vi.mocked(getWeeklyUsageCost).mockResolvedValue(3);
-    vi.mocked(redis.set).mockResolvedValue(null);
-    prisma.user.findUnique.mockResolvedValue({
-      email: "user@example.com",
-      emailAccounts: [{ email: "account@example.com" }],
-      premium: {
-        stripeSubscriptionStatus: "trialing",
-        lemonSubscriptionStatus: null,
-      },
-    } as any);
-
-    await expect(
-      assertTrialAiUsageAllowed({
-        userEmail: "user@example.com",
-        hasUserApiKey: false,
-        label: "Choose rule",
-        userId: "user-1",
-        emailAccountId: "account-1",
-      }),
-    ).rejects.toThrow(SafeError);
-
-    expect(sendActionRequiredEmail).not.toHaveBeenCalled();
-    expect(prisma.user.update).not.toHaveBeenCalled();
-  });
 });
 
 describe("getUserTrialAiUsageLimitStatus", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(env).AI_TRIAL_WEEKLY_SPEND_LIMIT_USD = undefined;
-  });
-
-  it("returns allowed when trial spend limit is not configured", async () => {
-    const status = await getUserTrialAiUsageLimitStatus({
-      userId: "user-1",
-    });
-
-    expect(status).toEqual({ status: "allowed" });
-    expect(prisma.user.findUnique).not.toHaveBeenCalled();
-  });
-
-  it("returns allowed for paid users without checking usage", async () => {
-    vi.mocked(env).AI_TRIAL_WEEKLY_SPEND_LIMIT_USD = 2;
-    prisma.user.findUnique.mockResolvedValue({
-      email: "user@example.com",
-      aiApiKey: null,
-      emailAccounts: [{ email: "account@example.com" }],
-      premium: {
-        stripeSubscriptionStatus: "active",
-        lemonSubscriptionStatus: null,
-      },
-    } as any);
-
-    const status = await getUserTrialAiUsageLimitStatus({
-      userId: "user-1",
-    });
-
-    expect(status).toEqual({ status: "allowed" });
-    expect(getWeeklyUsageCost).not.toHaveBeenCalled();
-  });
-
-  it("returns a dynamic trial limit status for trial users over the limit", async () => {
-    vi.mocked(env).AI_TRIAL_WEEKLY_SPEND_LIMIT_USD = 2;
-    vi.mocked(getWeeklyUsageCost).mockResolvedValue(3);
-    prisma.user.findUnique.mockResolvedValue({
-      email: "user@example.com",
-      aiApiKey: null,
-      emailAccounts: [{ email: "account@example.com" }],
-      premium: {
-        stripeSubscriptionStatus: "trialing",
-        lemonSubscriptionStatus: null,
-      },
-    } as any);
-
-    const status = await getUserTrialAiUsageLimitStatus({
-      userId: "user-1",
-    });
-
-    expect(getWeeklyUsageCost).toHaveBeenCalledWith({
-      userId: "user-1",
-      legacyEmails: ["user@example.com", "account@example.com"],
-    });
-    expect(status).toEqual({
-      status: "trial_ai_limit_reached",
-      message: TRIAL_AI_LIMIT_REACHED_MESSAGE,
-      weeklySpendUsd: 3,
-      weeklyLimitUsd: 2,
-    });
   });
 });

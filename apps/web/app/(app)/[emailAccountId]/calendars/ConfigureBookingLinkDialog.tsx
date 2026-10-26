@@ -276,9 +276,7 @@ function GeneralTab({
         <Item variant="outline">
           <ItemContent>
             <ItemTitle>最短提前预约时间</ItemTitle>
-            <ItemDescription>
-              禁止预约未来指定小时数内的时间。
-            </ItemDescription>
+            <ItemDescription>禁止预约未来指定小时数内的时间。</ItemDescription>
           </ItemContent>
           <ItemActions>
             <Input
@@ -394,9 +392,7 @@ function AdvancedTab({
         <Item variant="outline">
           <ItemContent>
             <ItemTitle>删除预约链接</ItemTitle>
-            <ItemDescription>
-              永久删除此预约链接及预约记录。
-            </ItemDescription>
+            <ItemDescription>永久删除此预约链接及预约记录。</ItemDescription>
           </ItemContent>
           <ItemActions>
             <Button

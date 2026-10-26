@@ -10,7 +10,7 @@ import {
 } from "./mail-test-helpers";
 
 const THREAD_ID = "thr_playwright_archive";
-const SUBJECT = "Archive Action Message";
+const SUBJECT = "归档操作测试邮件";
 
 test("keeps an archived conversation hidden through engine reconciliation", async ({
   page,
@@ -164,7 +164,7 @@ test("drops Inbox and Unread counts when an unread conversation is archived", as
   page,
 }, testInfo) => {
   const threadId = "thr_playwright_3";
-  const subject = "Second Unread Command Message";
+  const subject = "第二封未读操作测试邮件";
   const { conversations, emailAccountId } = await openMail(page);
   const conversation = conversationWithSubject(page, conversations, subject);
   await expect(conversation).toBeVisible();
@@ -259,7 +259,7 @@ test("returns an archived conversation when new mail arrives in it", async ({
       threadId: THREAD_ID,
       messageId: "msg_playwright_archive",
       subject: SUBJECT,
-      from: "Erin Example <erin@example.com>",
+      from: "艾琳 <erin@example.com>",
     });
     await requestMailSync(page);
     await expect(conversation).toBeVisible({ timeout: 60_000 });

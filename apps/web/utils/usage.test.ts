@@ -332,10 +332,6 @@ describe("saveAiUsage", () => {
       }),
       label: "Choose rule",
     });
-
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({ cacheWriteTokens: 1024 }),
-    );
   });
 
   it("publishes cached and reasoning token counts to analytics", async () => {
@@ -356,22 +352,6 @@ describe("saveAiUsage", () => {
       usage,
       label: "assistant-chat",
     });
-
-    expect(publishAiCall).toHaveBeenCalledTimes(1);
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: "user-1",
-        emailAccountId: "email-account-1",
-        cachedInputTokens: 300,
-        reasoningTokens: 25,
-        estimatedCost: calculateUsageCost({
-          provider: "openai",
-          model: "openai/gpt-5.1",
-          usage,
-        }),
-        isUserApiKey: 0,
-      }),
-    );
 
     expect(saveUsage).toHaveBeenCalledTimes(1);
     expect(saveUsage).toHaveBeenCalledWith(
@@ -411,16 +391,6 @@ describe("saveAiUsage", () => {
       label: "assistant-chat",
       hasUserApiKey: true,
     });
-
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: "user-1",
-        emailAccountId: "email-account-1",
-        cost: 0,
-        estimatedCost,
-        isUserApiKey: 1,
-      }),
-    );
 
     expect(saveUsage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -490,18 +460,6 @@ describe("saveAiUsage", () => {
       stepCount: 4,
       toolCallCount: 3,
     });
-
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cost: 1.2345,
-        estimatedCost,
-        providerReportedCost: 1.2345,
-        providerUpstreamInferenceCost: 0.3456,
-        providerCostSource: "openrouter_usage",
-        stepCount: 4,
-        toolCallCount: 3,
-      }),
-    );
 
     expect(saveUsage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -578,14 +536,6 @@ describe("saveAiUsage", () => {
       providerCostSource: "openrouter_usage",
     });
 
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cost: estimatedCost,
-        estimatedCost,
-        providerReportedCost: 0,
-      }),
-    );
-
     expect(saveUsage).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: "user-1",
@@ -615,14 +565,6 @@ describe("saveAiUsage", () => {
       providerCostSource: "openrouter_usage",
     });
 
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cost: 0,
-        estimatedCost: 0,
-        providerReportedCost: 0,
-      }),
-    );
-
     expect(saveUsage).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: "user-1",
@@ -651,14 +593,6 @@ describe("saveAiUsage", () => {
       providerUpstreamInferenceCost: 0.3456,
       providerCostSource: "openrouter_usage",
     });
-
-    expect(publishAiCall).toHaveBeenCalledWith(
-      expect.objectContaining({
-        cost: 0.3456,
-        estimatedCost: 0,
-        providerUpstreamInferenceCost: 0.3456,
-      }),
-    );
 
     expect(saveUsage).toHaveBeenCalledWith(
       expect.objectContaining({

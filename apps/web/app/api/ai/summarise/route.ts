@@ -5,7 +5,7 @@ import { summariseBody } from "@/app/api/ai/summarise/validation";
 import { getSummary } from "@/utils/redis/summary";
 import { getEmailAccountWithAi } from "@/utils/user/get";
 import { emailToContentForAI } from "@/utils/ai/content-sanitizer";
-import { assertHasAiAccess } from "@/utils/premium/limits";
+import { assertHasAiAccess } from "@/utils/feature-access.server";
 
 export const POST = withEmailAccount(async (request) => {
   const emailAccountId = request.auth.emailAccountId;

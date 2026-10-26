@@ -24,8 +24,7 @@ ENV CI=true
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY patches ./patches
 COPY apps/web/package.json apps/web/package.json
-# Lockfile plumbing only; Electron and the unsubscribe worker are not installed.
-COPY apps/desktop/package.json apps/desktop/package.json
+# Workspace manifests for the retained applications.
 COPY apps/worker/package.json apps/worker/package.json
 COPY apps/unsubscribe-worker/package.json apps/unsubscribe-worker/package.json
 COPY apps/image-proxy/package.json apps/image-proxy/package.json
@@ -39,24 +38,18 @@ COPY packages/mail-react/package.json packages/mail-react/package.json
 COPY packages/mail-ui/package.json packages/mail-ui/package.json
 COPY packages/image-proxy/package.json packages/image-proxy/package.json
 COPY packages/network/package.json packages/network/package.json
-COPY packages/loops/package.json packages/loops/package.json
 COPY packages/transactional-email/package.json packages/transactional-email/package.json
 COPY packages/scheduling/package.json packages/scheduling/package.json
 COPY packages/tinybird/package.json packages/tinybird/package.json
-COPY packages/tinybird-ai-analytics/package.json packages/tinybird-ai-analytics/package.json
 COPY packages/tsconfig/package.json packages/tsconfig/package.json
 
 # Copy Prisma schema file needed for postinstall script
 COPY apps/web/prisma/schema.prisma apps/web/prisma/schema.prisma
 # Copy postinstall script
-COPY clone-marketing.sh clone-marketing.sh
-COPY scripts/pnpm-install-without-desktop.sh scripts/pnpm-install-without-desktop.sh
 
-# Install deps with BuildKit cache for pnpm store. Skip @inboxzero/desktop so
-# the image does not download Electron.
+# Install dependencies with the BuildKit package cache.
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    chmod +x scripts/pnpm-install-without-desktop.sh \
- && ./scripts/pnpm-install-without-desktop.sh --no-frozen-lockfile --shamefully-hoist
+    pnpm install --no-frozen-lockfile --shamefully-hoist
 
 # Copy the full repo
 COPY . .
@@ -74,8 +67,6 @@ ENV NODE_OPTIONS=--max_old_space_size=3072
 # Feature flag placeholders
 ARG NEXT_PUBLIC_BASE_URL="http://NEXT_PUBLIC_BASE_URL_PLACEHOLDER"
 ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
-ARG NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS="NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS_PLACEHOLDER"
-ENV NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS=${NEXT_PUBLIC_BYPASS_PREMIUM_CHECKS}
 ARG NEXT_PUBLIC_EMAIL_SEND_ENABLED="NEXT_PUBLIC_EMAIL_SEND_ENABLED_PLACEHOLDER"
 ENV NEXT_PUBLIC_EMAIL_SEND_ENABLED=${NEXT_PUBLIC_EMAIL_SEND_ENABLED}
 ARG NEXT_PUBLIC_SELF_HOSTED_LOGIN_FOOTER_TEXT="NEXT_PUBLIC_SELF_HOSTED_LOGIN_FOOTER_TEXT_PLACEHOLDER"

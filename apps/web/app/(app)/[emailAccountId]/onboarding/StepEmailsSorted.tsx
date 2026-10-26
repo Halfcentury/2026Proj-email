@@ -8,9 +8,7 @@ export function StepEmailsSorted({ onNext }: { onNext: () => void }) {
     <OnboardingFeatureStep
       illustration={<EmailsSortedIllustration />}
       title="自动整理收件箱"
-      description={
-        "为邮件添加“待回复”“订阅邮件”“陌生推广”等标签。"
-      }
+      description={"为邮件添加“待回复”“订阅邮件”“陌生推广”等标签。"}
       onNext={onNext}
     />
   );

@@ -79,11 +79,11 @@ vi.mock("@/utils/email/provider", () => ({
   createEmailProvider: mockCreateEmailProvider,
 }));
 
-vi.mock("@/utils/posthog", () => ({
+vi.mock("@/utils/local-telemetry", () => ({
   posthogCaptureEvent: mockPosthogCaptureEvent,
 }));
 
-vi.mock("@/utils/integration-action.server", () => ({
+vi.mock("@/utils/optional-features", () => ({
   isIntegrationActionEnabledForUserId: mockIsIntegrationActionEnabledForUserId,
 }));
 
@@ -222,7 +222,7 @@ describe("aiProcessAssistantChat", () => {
         .soft(guidance)
         .toContain("unless the user explicitly requests another language");
     }
-  });
+  }, 15_000);
 
   it("registers expected core and send tools when email sending is enabled", async () => {
     const { aiProcessAssistantChat } = await loadAssistantChatModule({

@@ -23,9 +23,7 @@ export default function RuleHistorySelectPage() {
   const { data, isLoading, error } = useRules();
 
   if (isLoading) {
-    return (
-      <LoadingContent loading={isLoading}>正在加载规则…</LoadingContent>
-    );
+    return <LoadingContent loading={isLoading}>正在加载规则…</LoadingContent>;
   }
 
   if (error) {
